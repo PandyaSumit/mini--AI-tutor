@@ -8,8 +8,11 @@ import authRoutes from './routes/authRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import conversationRoutes from './routes/conversationRoutes.js';
+import roadmapRoutes from './routes/roadmapRoutes.js';
+import studyMaterialRoutes from './routes/studyMaterialRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import rateLimiter from './middleware/rateLimiter.js';
+import moderateContent from './middleware/contentModeration.js';
 
 // Load environment variables
 dotenv.config();
@@ -41,9 +44,11 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/chat', chatRoutes);
+app.use('/api/chat', moderateContent, chatRoutes); // Apply content moderation to chat
 app.use('/api/user', userRoutes);
 app.use('/api/conversations', conversationRoutes);
+app.use('/api/roadmaps', roadmapRoutes);
+app.use('/api/study', studyMaterialRoutes);
 
 // 404 Handler
 app.use('*', (req, res) => {

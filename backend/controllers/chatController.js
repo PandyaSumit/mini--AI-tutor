@@ -3,24 +3,21 @@ import Message from '../models/Message.js';
 import Conversation from '../models/Conversation.js';
 import User from '../models/User.js';
 
-// Initialize Groq client (only if API key is available)
-let groq = null;
-if (process.env.GROQ_API_KEY) {
-    groq = new Groq({
-        apiKey: process.env.GROQ_API_KEY
-    });
-}
+const getGroqClient = () => {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+        throw new Error('GROQ_API_KEY environment variable is missing. Add it to backend/.env or your environment before starting the server.');
+    }
+    return new Groq({ apiKey });
+};
 
-// @desc    Send message to AI and get response
-// @route   POST /api/chat/message
-// @access  Private
 export const sendMessage = async (req, res) => {
     try {
         const { conversationId, message, topic } = req.body;
         const userId = req.user.id;
 
         // Check if Groq API key is configured
-        if (!groq) {
+        if (!process.env.GROQ_API_KEY) {
             return res.status(500).json({
                 success: false,
                 message: 'AI service not configured. Please set GROQ_API_KEY in your .env file. Get your free API key at https://console.groq.com'
@@ -93,15 +90,39 @@ export const sendMessage = async (req, res) => {
         // Track response time
         const startTime = Date.now();
 
-        // Call Groq API
-        const chatCompletion = await groq.chat.completions.create({
-            messages: messages,
-            model: process.env.GROQ_MODEL || 'llama-3.1-70b-versatile',
-            temperature: 0.7,
-            max_tokens: 2000,
-            top_p: 1,
-            stream: false
-        });
+        // Call Groq API (create client at runtime)
+        const model = process.env.GROQ_MODEL;
+        if (!model) {
+            return res.status(500).json({
+                success: false,
+                message: 'AI model not configured. Please set GROQ_MODEL in your .env to a supported Groq model. See https://console.groq.com/docs/deprecations for guidance.'
+            });
+        }
+
+        let chatCompletion;
+        try {
+            chatCompletion = await getGroqClient().chat.completions.create({
+                messages: messages,
+                model,
+                temperature: 0.7,
+                max_tokens: 2000,
+                top_p: 1,
+                stream: false
+            });
+        } catch (err) {
+            // If Groq returns a model decommissioned error, surface a helpful message
+            const errMsg = String(err?.message || err);
+            if (errMsg.includes('model_decommissioned') || errMsg.includes('decommissioned')) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'The configured model has been decommissioned. Please update GROQ_MODEL in your .env to a supported model.',
+                    details: errMsg,
+                    docs: 'https://console.groq.com/docs/deprecations'
+                });
+            }
+            // Re-throw for outer catch to handle generically
+            throw err;
+        }
 
         const responseTime = Date.now() - startTime;
         const aiResponse = chatCompletion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';

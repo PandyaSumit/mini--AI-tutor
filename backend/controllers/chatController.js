@@ -1,23 +1,18 @@
-import Groq from 'groq-sdk';
+import aiService from '../config/aiService.js';
 import Message from '../models/Message.js';
 import Conversation from '../models/Conversation.js';
 import User from '../models/User.js';
 
-const getGroqClient = () => {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-        throw new Error('GROQ_API_KEY environment variable is missing. Add it to backend/.env or your environment before starting the server.');
-    }
-    return new Groq({ apiKey });
-};
-
+// @desc    Send message to AI and get response
+// @route   POST /api/chat/message
+// @access  Private
 export const sendMessage = async (req, res) => {
     try {
         const { conversationId, message, topic } = req.body;
         const userId = req.user.id;
 
-        // Check if Groq API key is configured
-        if (!process.env.GROQ_API_KEY) {
+        // Check if AI service is configured
+        if (!aiService.isReady()) {
             return res.status(500).json({
                 success: false,
                 message: 'AI service not configured. Please set GROQ_API_KEY in your .env file. Get your free API key at https://console.groq.com'
@@ -72,7 +67,7 @@ export const sendMessage = async (req, res) => {
             .limit(20)
             .select('role content');
 
-        // Prepare messages for Groq API
+        // Prepare messages for AI API
         const messages = [
             {
                 role: 'system',
@@ -90,24 +85,13 @@ export const sendMessage = async (req, res) => {
         // Track response time
         const startTime = Date.now();
 
-        // Call Groq API (create client at runtime)
-        const model = process.env.GROQ_MODEL;
-        if (!model) {
-            return res.status(500).json({
-                success: false,
-                message: 'AI model not configured. Please set GROQ_MODEL in your .env to a supported Groq model. See https://console.groq.com/docs/deprecations for guidance.'
-            });
-        }
-
+        // Call AI service with error handling
         let chatCompletion;
         try {
-            chatCompletion = await getGroqClient().chat.completions.create({
-                messages: messages,
-                model,
+            chatCompletion = await aiService.generateCompletion(messages, {
                 temperature: 0.7,
                 max_tokens: 2000,
-                top_p: 1,
-                stream: false
+                top_p: 1
             });
         } catch (err) {
             // If Groq returns a model decommissioned error, surface a helpful message

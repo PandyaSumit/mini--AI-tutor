@@ -31,7 +31,7 @@ const dailyTaskSchema = new mongoose.Schema({
     url: String,
     type: {
       type: String,
-      enum: ['video', 'article', 'interactive', 'documentation', 'exercise']
+      enum: ['video', 'article', 'text', 'interactive', 'documentation', 'exercise']
     }
   }]
 });

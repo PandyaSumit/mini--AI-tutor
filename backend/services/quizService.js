@@ -1,12 +1,7 @@
-import Groq from 'groq-sdk';
-
-const groq = process.env.GROQ_API_KEY ? new Groq({ apiKey: process.env.GROQ_API_KEY }) : null;
+import aiService from '../config/aiService.js';
 
 // Generate flashcards from content
 export const generateFlashcards = async (content, options = {}) => {
-  if (!groq) {
-    throw new Error('AI service not configured');
-  }
 
   const { count = 10, difficulty = 'medium', deck = 'General' } = options;
 
@@ -37,15 +32,12 @@ ${content}
 Create cards that test understanding of key concepts, definitions, and relationships.`;
 
   try {
-    const completion = await groq.chat.completions.create({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      model: process.env.GROQ_MODEL || 'llama-3.1-70b-versatile',
+    const completion = await aiService.generateStructuredJSON([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ], {
       temperature: 0.7,
-      max_tokens: 3000,
-      response_format: { type: 'json_object' }
+      max_tokens: 3000
     });
 
     const result = JSON.parse(completion.choices[0].message.content);
@@ -58,9 +50,6 @@ Create cards that test understanding of key concepts, definitions, and relations
 
 // Generate quiz from content
 export const generateQuiz = async (content, options = {}) => {
-  if (!groq) {
-    throw new Error('AI service not configured');
-  }
 
   const {
     questionCount = 5,
@@ -131,15 +120,12 @@ Question types to include: ${types.join(', ')}
 Create diverse, challenging questions that assess true understanding.`;
 
   try {
-    const completion = await groq.chat.completions.create({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      model: process.env.GROQ_MODEL || 'llama-3.1-70b-versatile',
+    const completion = await aiService.generateStructuredJSON([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ], {
       temperature: 0.7,
-      max_tokens: 4000,
-      response_format: { type: 'json_object' }
+      max_tokens: 4000
     });
 
     const result = JSON.parse(completion.choices[0].message.content);
@@ -152,9 +138,6 @@ Create diverse, challenging questions that assess true understanding.`;
 
 // Generate coding challenge
 export const generateCodingChallenge = async (topic, difficulty = 'medium', language = 'javascript') => {
-  if (!groq) {
-    throw new Error('AI service not configured');
-  }
 
   const systemPrompt = `You are an expert coding challenge creator. Generate practical coding problems that:
 
@@ -195,15 +178,12 @@ Include:
 - Solution hints`;
 
   try {
-    const completion = await groq.chat.completions.create({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      model: process.env.GROQ_MODEL || 'llama-3.1-70b-versatile',
+    const completion = await aiService.generateStructuredJSON([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ], {
       temperature: 0.7,
-      max_tokens: 2000,
-      response_format: { type: 'json_object' }
+      max_tokens: 2000
     });
 
     return JSON.parse(completion.choices[0].message.content);

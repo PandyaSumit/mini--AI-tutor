@@ -1,21 +1,29 @@
 import Groq from 'groq-sdk';
 
-const groq = process.env.GROQ_API_KEY ? new Groq({ apiKey: process.env.GROQ_API_KEY }) : null;
+// Lazy Groq client factory — create at runtime so dotenv has been loaded
+const getGroqClient = () => {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+        return null; // caller will handle missing client with a clear error
+    }
+    return new Groq({ apiKey });
+};
 
 // Generate personalized learning roadmap using AI
 export const generateRoadmap = async (params) => {
-  const { goal, currentLevel, weeklyTimeCommitment, targetDate, preferredLearningModes } = params;
+    const { goal, currentLevel, weeklyTimeCommitment, targetDate, preferredLearningModes } = params;
 
-  if (!groq) {
-    throw new Error('AI service not configured');
-  }
+    const groq = getGroqClient();
+    if (!groq) {
+        throw new Error('AI service not configured');
+    }
 
-  // Calculate total weeks available
-  const totalWeeks = targetDate
-    ? Math.ceil((new Date(targetDate) - new Date()) / (7 * 24 * 60 * 60 * 1000))
-    : calculateOptimalWeeks(currentLevel, weeklyTimeCommitment);
+    // Calculate total weeks available
+    const totalWeeks = targetDate
+        ? Math.ceil((new Date(targetDate) - new Date()) / (7 * 24 * 60 * 60 * 1000))
+        : calculateOptimalWeeks(currentLevel, weeklyTimeCommitment);
 
-  const systemPrompt = `You are an expert curriculum designer and educational mentor. Create a comprehensive, time-aware learning roadmap.
+    const systemPrompt = `You are an expert curriculum designer and educational mentor. Create a comprehensive, time-aware learning roadmap.
 
 STRICT REQUIREMENTS:
 1. Be concise, clear, and actionable
@@ -73,7 +81,7 @@ Respond ONLY in valid JSON format with this exact structure:
   ]
 }`;
 
-  const userPrompt = `Create a ${totalWeeks}-week learning roadmap for:
+    const userPrompt = `Create a ${totalWeeks}-week learning roadmap for:
 
 **Goal:** ${goal}
 **Current Level:** ${currentLevel}
@@ -83,61 +91,62 @@ Respond ONLY in valid JSON format with this exact structure:
 
 Generate a structured, progressive learning plan with weekly modules, daily tasks, milestones, and resources.`;
 
-  try {
-    const completion = await groq.chat.completions.create({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      model: process.env.GROQ_MODEL || 'llama-3.1-70b-versatile',
-      temperature: 0.7,
-      max_tokens: 4000,
-      response_format: { type: 'json_object' }
-    });
+    try {
+        const completion = await groq.chat.completions.create({
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+            ],
+            model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+            temperature: 0.7,
+            max_tokens: 4000,
+            response_format: { type: 'json_object' }
+        });
 
-    const roadmapData = JSON.parse(completion.choices[0].message.content);
+        const roadmapData = JSON.parse(completion.choices[0].message.content);
 
-    return {
-      ...roadmapData,
-      totalWeeks,
-      generationMetadata: {
-        model: completion.model,
-        tokensUsed: completion.usage?.total_tokens
-      }
-    };
-  } catch (error) {
-    console.error('Roadmap generation error:', error);
-    throw new Error('Failed to generate roadmap: ' + error.message);
-  }
+        return {
+            ...roadmapData,
+            totalWeeks,
+            generationMetadata: {
+                model: completion.model,
+                tokensUsed: completion.usage?.total_tokens
+            }
+        };
+    } catch (error) {
+        console.error('Roadmap generation error:', error);
+        throw new Error('Failed to generate roadmap: ' + error.message);
+    }
 };
 
 // Calculate optimal weeks based on level and time
 function calculateOptimalWeeks(level, weeklyHours) {
-  const baseWeeks = {
-    novice: 16,
-    intermediate: 12,
-    advanced: 8
-  };
+    const baseWeeks = {
+        novice: 16,
+        intermediate: 12,
+        advanced: 8
+    };
 
-  const weeks = baseWeeks[level] || 12;
+    const weeks = baseWeeks[level] || 12;
 
-  // Adjust based on time commitment
-  if (weeklyHours < 5) {
-    return Math.ceil(weeks * 1.5);
-  } else if (weeklyHours > 15) {
-    return Math.ceil(weeks * 0.75);
-  }
+    // Adjust based on time commitment
+    if (weeklyHours < 5) {
+        return Math.ceil(weeks * 1.5);
+    } else if (weeklyHours > 15) {
+        return Math.ceil(weeks * 0.75);
+    }
 
-  return weeks;
+    return weeks;
 }
 
 // Adapt roadmap based on progress
 export const adaptRoadmap = async (roadmap, progressData) => {
-  if (!groq) {
-    throw new Error('AI service not configured');
-  }
+    const groq = getGroqClient();
+    if (!groq) {
+        throw new Error('AI service not configured');
+    }
 
-  const systemPrompt = `You are an adaptive learning coach. Analyze user progress and adjust the learning roadmap accordingly.
+    const systemPrompt = `You are an adaptive learning coach. Analyze user progress and adjust the learning roadmap accordingly.
 
 RULES:
 1. If user is behind, suggest remediation strategies
@@ -160,7 +169,7 @@ Respond in JSON with:
   "remediationNeeded": true/false
 }`;
 
-  const userPrompt = `Current roadmap progress:
+    const userPrompt = `Current roadmap progress:
 - Total modules: ${roadmap.weeklyModules.length}
 - Completed: ${roadmap.weeklyModules.filter(m => m.status === 'completed').length}
 - Average quiz score: ${progressData.averageQuizScore}%
@@ -169,21 +178,21 @@ Respond in JSON with:
 
 Analyze and suggest adjustments.`;
 
-  try {
-    const completion = await groq.chat.completions.create({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      model: process.env.GROQ_MODEL || 'llama-3.1-70b-versatile',
-      temperature: 0.6,
-      max_tokens: 1500,
-      response_format: { type: 'json_object' }
-    });
+    try {
+        const completion = await groq.chat.completions.create({
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+            ],
+            model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+            temperature: 0.6,
+            max_tokens: 1500,
+            response_format: { type: 'json_object' }
+        });
 
-    return JSON.parse(completion.choices[0].message.content);
-  } catch (error) {
-    console.error('Roadmap adaptation error:', error);
-    throw new Error('Failed to adapt roadmap');
-  }
+        return JSON.parse(completion.choices[0].message.content);
+    } catch (error) {
+        console.error('Roadmap adaptation error:', error);
+        throw new Error('Failed to adapt roadmap');
+    }
 };

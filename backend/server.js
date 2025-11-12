@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import connectDB from './config/database.js';
 import authRoutes from './routes/authRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
@@ -14,8 +16,11 @@ import { errorHandler } from './middleware/errorHandler.js';
 import rateLimiter from './middleware/rateLimiter.js';
 import moderateContent from './middleware/contentModeration.js';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from backend/.env (resolve relative to this file)
+// This is more robust when the process is started from a different working directory.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 // Initialize Express app
 const app = express();
@@ -35,11 +40,11 @@ app.use(rateLimiter);
 
 // Health check route
 app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Mini AI Tutor API is running',
-    timestamp: new Date().toISOString()
-  });
+    res.status(200).json({
+        success: true,
+        message: 'Mini AI Tutor API is running',
+        timestamp: new Date().toISOString()
+    });
 });
 
 // API Routes
@@ -52,10 +57,10 @@ app.use('/api/study', studyMaterialRoutes);
 
 // 404 Handler
 app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
+    res.status(404).json({
+        success: false,
+        message: 'Route not found'
+    });
 });
 
 // Error handling middleware (must be last)
@@ -64,9 +69,9 @@ app.use(errorHandler);
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📚 Mini AI Tutor API`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📚 Mini AI Tutor API`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 export default app;

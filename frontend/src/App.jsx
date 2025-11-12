@@ -9,6 +9,7 @@ import Chat from './pages/Chat';
 import Conversations from './pages/Conversations';
 import Profile from './pages/Profile';
 import CreateRoadmap from './pages/CreateRoadmap';
+import RoadmapDetail from './pages/RoadmapDetail';
 import Flashcards from './pages/Flashcards';
 import StudyFlashcards from './pages/StudyFlashcards';
 
@@ -84,6 +85,14 @@ function App() {
             element={
               <PrivateRoute>
                 <CreateRoadmap />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/roadmaps/:id"
+            element={
+              <PrivateRoute>
+                <RoadmapDetail />
               </PrivateRoute>
             }
           />

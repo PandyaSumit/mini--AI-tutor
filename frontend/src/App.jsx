@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
 import Conversations from './pages/Conversations';
 import Profile from './pages/Profile';
+import CreateRoadmap from './pages/CreateRoadmap';
 
 function App() {
   const { user, loading } = useAuth();
@@ -73,6 +74,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/roadmaps/create"
+            element={
+              <PrivateRoute>
+                <CreateRoadmap />
               </PrivateRoute>
             }
           />

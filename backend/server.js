@@ -5,7 +5,15 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Load environment variables FIRST (before any other imports that need them)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+// Now import other modules that depend on environment variables
 import connectDB from './config/database.js';
+import aiService from './config/aiService.js';
 import authRoutes from './routes/authRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -16,17 +24,21 @@ import { errorHandler } from './middleware/errorHandler.js';
 import rateLimiter from './middleware/rateLimiter.js';
 import moderateContent from './middleware/contentModeration.js';
 
-// Load environment variables from backend/.env (resolve relative to this file)
-// This is more robust when the process is started from a different working directory.
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '.env') });
-
 // Initialize Express app
 const app = express();
 
 // Connect to MongoDB
 connectDB();
+
+// Re-initialize AI Service now that dotenv has loaded
+aiService.initialize();
+
+// Verify AI Service is initialized
+if (aiService.isReady()) {
+    console.log('✅ AI Service is ready');
+} else {
+    console.warn('⚠️  AI Service initialization pending - will retry on first use');
+}
 
 // Middleware
 app.use(helmet()); // Security headers

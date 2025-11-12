@@ -9,6 +9,8 @@ import Chat from './pages/Chat';
 import Conversations from './pages/Conversations';
 import Profile from './pages/Profile';
 import CreateRoadmap from './pages/CreateRoadmap';
+import Flashcards from './pages/Flashcards';
+import StudyFlashcards from './pages/StudyFlashcards';
 
 function App() {
   const { user, loading } = useAuth();
@@ -82,6 +84,22 @@ function App() {
             element={
               <PrivateRoute>
                 <CreateRoadmap />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/flashcards"
+            element={
+              <PrivateRoute>
+                <Flashcards />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/flashcards/study/:deckName"
+            element={
+              <PrivateRoute>
+                <StudyFlashcards />
               </PrivateRoute>
             }
           />

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { chatService } from '../services/chatService';
-import { Send, Loader, BookOpen, Code, Calculator, Globe, History } from 'lucide-react';
+import { studyMaterialService } from '../services/studyMaterialService';
+import { Send, Loader, BookOpen, Code, Calculator, Globe, History, Brain, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -21,6 +22,7 @@ const Chat = () => {
   const [loading, setLoading] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState('general');
   const [conversationTitle, setConversationTitle] = useState('');
+  const [generatingFlashcards, setGeneratingFlashcards] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -96,6 +98,31 @@ const Chat = () => {
     }
   };
 
+  const handleGenerateFlashcards = async () => {
+    if (!conversationId || messages.length === 0) {
+      alert('Start a conversation first to generate flashcards!');
+      return;
+    }
+
+    setGeneratingFlashcards(true);
+    try {
+      await studyMaterialService.generateFlashcards({
+        conversationId,
+        count: 10,
+        difficulty: 'intermediate'
+      });
+
+      if (window.confirm('Flashcards generated successfully! Would you like to study them now?')) {
+        navigate('/flashcards');
+      }
+    } catch (error) {
+      console.error('Error generating flashcards:', error);
+      alert(error.response?.data?.message || 'Failed to generate flashcards');
+    } finally {
+      setGeneratingFlashcards(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
@@ -128,12 +155,32 @@ const Chat = () => {
             )}
           </div>
           {conversationId && (
-            <button
-              onClick={() => navigate('/chat')}
-              className="btn-secondary"
-            >
-              New Chat
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleGenerateFlashcards}
+                disabled={generatingFlashcards || messages.length === 0}
+                className="btn-secondary flex items-center gap-2"
+                title="Generate flashcards from this conversation"
+              >
+                {generatingFlashcards ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    <span className="hidden md:inline">Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Brain className="w-4 h-4" />
+                    <span className="hidden md:inline">Create Flashcards</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => navigate('/chat')}
+                className="btn-secondary"
+              >
+                New Chat
+              </button>
+            </div>
           )}
         </div>
       </div>

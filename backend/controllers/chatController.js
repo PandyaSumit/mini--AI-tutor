@@ -3,10 +3,13 @@ import Message from '../models/Message.js';
 import Conversation from '../models/Conversation.js';
 import User from '../models/User.js';
 
-// Initialize Groq client
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY
-});
+// Initialize Groq client (only if API key is available)
+let groq = null;
+if (process.env.GROQ_API_KEY) {
+    groq = new Groq({
+        apiKey: process.env.GROQ_API_KEY
+    });
+}
 
 // @desc    Send message to AI and get response
 // @route   POST /api/chat/message
@@ -15,6 +18,14 @@ export const sendMessage = async (req, res) => {
     try {
         const { conversationId, message, topic } = req.body;
         const userId = req.user.id;
+
+        // Check if Groq API key is configured
+        if (!groq) {
+            return res.status(500).json({
+                success: false,
+                message: 'AI service not configured. Please set GROQ_API_KEY in your .env file. Get your free API key at https://console.groq.com'
+            });
+        }
 
         // Validate input
         if (!message || message.trim() === '') {

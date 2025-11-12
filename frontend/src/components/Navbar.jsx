@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MessageSquare, LayoutDashboard, BookOpen, User, LogOut } from 'lucide-react';
+import { MessageSquare, LayoutDashboard, BookOpen, User, LogOut, Brain, Map } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -15,7 +15,9 @@ const Navbar = () => {
   const navLinks = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/chat', label: 'Chat', icon: MessageSquare },
-    { to: '/conversations', label: 'Conversations', icon: BookOpen },
+    { to: '/flashcards', label: 'Flashcards', icon: Brain },
+    { to: '/roadmaps/create', label: 'Roadmaps', icon: Map },
+    { to: '/conversations', label: 'History', icon: BookOpen },
     { to: '/profile', label: 'Profile', icon: User },
   ];
 
@@ -31,7 +33,9 @@ const Navbar = () => {
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = location.pathname === link.to ||
-                (link.to === '/chat' && location.pathname.startsWith('/chat'));
+                (link.to === '/chat' && location.pathname.startsWith('/chat')) ||
+                (link.to === '/flashcards' && location.pathname.startsWith('/flashcards')) ||
+                (link.to === '/roadmaps/create' && location.pathname.startsWith('/roadmaps'));
 
               return (
                 <Link

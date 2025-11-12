@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { studyMaterialService } from '../services/studyMaterialService';
+import { useToast } from '../context/ToastContext';
 import { Brain, Plus, Play, Download, Sparkles, Clock, TrendingUp, Target } from 'lucide-react';
 
 const Flashcards = () => {
     const navigate = useNavigate();
+    const toast = useToast();
     const [loading, setLoading] = useState(true);
     const [decks, setDecks] = useState([]);
     const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -46,10 +48,10 @@ const Flashcards = () => {
             setShowGenerateModal(false);
             setGenerateForm({ topic: '', count: 10, difficulty: 'intermediate', source: 'topic' });
             await loadDecks();
-            alert('Flashcards generated successfully!');
+            toast.success('Flashcards generated successfully!');
         } catch (error) {
             console.error('Error generating flashcards:', error);
-            alert(error.response?.data?.message || 'Failed to generate flashcards');
+            toast.error(error.response?.data?.message || 'Failed to generate flashcards');
         } finally {
             setGenerating(false);
         }
@@ -68,9 +70,10 @@ const Flashcards = () => {
             a.download = `${deckName}-flashcards.csv`;
             a.click();
             window.URL.revokeObjectURL(url);
+            toast.success(`Exported ${deckName} flashcards to CSV`);
         } catch (error) {
             console.error('Error exporting flashcards:', error);
-            alert('Failed to export flashcards');
+            toast.error('Failed to export flashcards');
         }
     };
 

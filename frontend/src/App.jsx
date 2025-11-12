@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -18,7 +18,7 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     );
@@ -26,9 +26,10 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
-        {user && <Navbar />}
-        <Routes>
+      <div className="min-h-screen bg-gray-50 flex">
+        {user && <Sidebar />}
+        <div className="flex-1 overflow-x-hidden">
+          <Routes>
           {/* Public Routes */}
           <Route
             path="/login"
@@ -134,7 +135,8 @@ function App() {
               </div>
             }
           />
-        </Routes>
+          </Routes>
+        </div>
       </div>
     </Router>
   );

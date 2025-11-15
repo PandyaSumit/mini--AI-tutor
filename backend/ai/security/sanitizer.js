@@ -3,18 +3,15 @@
  * Prevents XSS and injection attacks
  */
 
-import { JSDOM } from 'jsdom';
-import createDOMPurify from 'isomorphic-dompurify';
-
-const window = new JSDOM('').window;
-const DOMPurify = createDOMPurify(window);
+import sanitizeHtml from 'sanitize-html';
 
 class Sanitizer {
   constructor() {
-    // Configure DOMPurify
+    // Configure sanitize-html
     this.config = {
-      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'pre', 'ul', 'ol', 'li'],
-      ALLOWED_ATTR: [],
+      allowedTags: ['p', 'br', 'strong', 'em', 'code', 'pre', 'ul', 'ol', 'li'],
+      allowedAttributes: {},
+      disallowedTagsMode: 'discard',
     };
   }
 
@@ -23,7 +20,7 @@ class Sanitizer {
    */
   sanitizeHTML(html) {
     if (!html || typeof html !== 'string') return '';
-    return DOMPurify.sanitize(html, this.config);
+    return sanitizeHtml(html, this.config);
   }
 
   /**

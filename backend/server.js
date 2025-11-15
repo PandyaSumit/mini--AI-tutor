@@ -101,6 +101,33 @@ app.use('/api/study', studyMaterialRoutes);
     }
 })();
 
+// Initialize AI Pipeline
+(async () => {
+    try {
+        const aiOrchestrator = await import('./services/aiOrchestrator.js');
+        const result = await aiOrchestrator.default.initialize();
+
+        if (result.success) {
+            // Mount AI routes
+            const aiRoutes = await import('./routes/aiRoutes.js');
+            app.use('/api/ai', aiRoutes.default);
+            console.log('✅ AI routes mounted at /api/ai');
+
+            // Add cleanup on shutdown
+            const aiShutdown = async () => {
+                console.log('\n🛑 Shutting down AI pipeline...');
+                await aiOrchestrator.default.cleanup();
+            };
+
+            process.on('SIGTERM', aiShutdown);
+            process.on('SIGINT', aiShutdown);
+        }
+    } catch (error) {
+        console.error('❌ AI Pipeline initialization error:', error.message);
+        console.log('⚠️  Continuing without AI pipeline...');
+    }
+})();
+
 // 404 Handler
 app.use('*', (req, res) => {
     res.status(404).json({

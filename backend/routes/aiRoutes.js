@@ -1,0 +1,37 @@
+/**
+ * AI API Routes
+ * Routes for AI chat, RAG, embeddings, and semantic search
+ */
+
+import express from 'express';
+import aiController from '../controllers/aiController.js';
+import { protect } from '../middleware/authMiddleware.js';
+import { rateLimitMiddleware } from '../middleware/cacheRateLimiter.js';
+
+const router = express.Router();
+
+// Rate limiting for AI endpoints
+const aiRateLimit = rateLimitMiddleware({
+  keyPrefix: 'ai',
+  maxRequests: 50, // 50 requests
+  windowSeconds: 3600, // per hour
+});
+
+// Chat endpoints
+router.post('/chat', protect, aiRateLimit, aiController.chat);
+router.post('/rag/query', protect, aiRateLimit, aiController.ragQuery);
+
+// Embeddings
+router.post('/embeddings', protect, aiRateLimit, aiController.generateEmbeddings);
+
+// Semantic search
+router.post('/search', protect, aiController.semanticSearch);
+
+// Content ingestion
+router.post('/ingest', protect, aiController.ingestContent);
+
+// Stats and health
+router.get('/stats', protect, aiController.getStats);
+router.get('/health', aiController.healthCheck);
+
+export default router;

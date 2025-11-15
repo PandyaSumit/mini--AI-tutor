@@ -3,8 +3,8 @@
  * Implements sliding window rate limiting
  */
 
-const redisClient = require('../config/redis');
-const cacheConfig = require('../config/cache');
+import redisClient from '../config/redis.js';
+import cacheConfig from '../config/cache.js';
 
 class RateLimiter {
   constructor() {
@@ -165,7 +165,4 @@ const rateLimitMiddleware = (options = {}) => {
   };
 };
 
-module.exports = {
-  rateLimiter,
-  rateLimitMiddleware,
-};
+export { rateLimiter, rateLimitMiddleware };

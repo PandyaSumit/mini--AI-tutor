@@ -3,9 +3,9 @@
  * Centralized invalidation logic for different data types
  */
 
-const cacheManager = require('./CacheManager');
-const cacheTagManager = require('./CacheTagManager');
-const cacheConfig = require('../config/cache');
+import cacheManager from './CacheManager.js';
+import cacheTagManager from './CacheTagManager.js';
+import cacheConfig from '../config/cache.js';
 
 /**
  * Invalidate conversation-related caches
@@ -171,7 +171,7 @@ async function isTokenBlacklisted(tokenId) {
   return blacklisted !== null;
 }
 
-module.exports = {
+export {
   invalidateConversationCache,
   invalidateRoadmapCache,
   invalidateFlashcardCache,

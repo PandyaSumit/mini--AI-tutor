@@ -3,14 +3,14 @@
  * Endpoints for cache monitoring, invalidation, and management
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
-const cacheManager = require('../utils/CacheManager');
-const cacheTagManager = require('../utils/CacheTagManager');
-const cacheMetrics = require('../utils/CacheMetrics');
-const redisClient = require('../config/redis');
-const { rateLimiter } = require('../middleware/cacheRateLimiter');
+import { protect as authMiddleware } from '../middleware/authMiddleware.js';
+import cacheManager from '../utils/CacheManager.js';
+import cacheTagManager from '../utils/CacheTagManager.js';
+import cacheMetrics from '../utils/CacheMetrics.js';
+import redisClient from '../config/redis.js';
+import { rateLimiter } from '../middleware/cacheRateLimiter.js';
 
 // Admin-only middleware (you can enhance this with role-based access)
 const adminOnly = (req, res, next) => {
@@ -224,4 +224,4 @@ router.delete('/rate-limit/:identifier', authMiddleware, adminOnly, async (req, 
   }
 });
 
-module.exports = router;
+export default router;

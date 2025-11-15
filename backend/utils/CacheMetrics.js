@@ -3,8 +3,8 @@
  * Tracks cache performance, hit ratios, latency, etc.
  */
 
-const redisClient = require('../config/redis');
-const cacheConfig = require('../config/cache');
+import redisClient from '../config/redis.js';
+import cacheConfig from '../config/cache.js';
 
 class CacheMetrics {
   constructor() {
@@ -315,4 +315,4 @@ class CacheMetrics {
 // Singleton instance
 const cacheMetrics = new CacheMetrics();
 
-module.exports = cacheMetrics;
+export default cacheMetrics;

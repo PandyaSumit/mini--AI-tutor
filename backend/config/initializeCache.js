@@ -3,12 +3,12 @@
  * Initialize all cache components on server startup
  */
 
-const redisClient = require('./redis');
-const cacheManager = require('../utils/CacheManager');
-const cacheTagManager = require('../utils/CacheTagManager');
-const cacheMetrics = require('../utils/CacheMetrics');
-const { rateLimiter } = require('../middleware/cacheRateLimiter');
-const cacheConfig = require('./cache');
+import redisClient from './redis.js';
+import cacheManager from '../utils/CacheManager.js';
+import cacheTagManager from '../utils/CacheTagManager.js';
+import cacheMetrics from '../utils/CacheMetrics.js';
+import { rateLimiter } from '../middleware/cacheRateLimiter.js';
+import cacheConfig from './cache.js';
 
 /**
  * Initialize all cache components
@@ -90,7 +90,4 @@ async function shutdownCache() {
   }
 }
 
-module.exports = {
-  initializeCache,
-  shutdownCache,
-};
+export { initializeCache, shutdownCache };

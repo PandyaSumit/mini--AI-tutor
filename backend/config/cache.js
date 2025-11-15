@@ -3,7 +3,7 @@
  * Centralized TTL and cache strategy settings
  */
 
-module.exports = {
+const cacheConfig = {
   // Cache TTL values (in seconds)
   TTL: {
     // Chat & Conversations
@@ -88,3 +88,5 @@ module.exports = {
     BLACKLIST: 'blacklist',
   },
 };
+
+export default cacheConfig;

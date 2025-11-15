@@ -3,8 +3,8 @@
  * Allows bulk invalidation of related cache entries
  */
 
-const redisClient = require('../config/redis');
-const cacheConfig = require('../config/cache');
+import redisClient from '../config/redis.js';
+import cacheConfig from '../config/cache.js';
 
 class CacheTagManager {
   constructor() {
@@ -254,4 +254,4 @@ class CacheTagManager {
 // Singleton instance
 const cacheTagManager = new CacheTagManager();
 
-module.exports = cacheTagManager;
+export default cacheTagManager;

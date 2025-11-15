@@ -3,9 +3,9 @@
  * Automatically caches route responses with configurable TTL
  */
 
-const cacheManager = require('../utils/CacheManager');
-const cacheTagManager = require('../utils/CacheTagManager');
-const cacheConfig = require('../config/cache');
+import cacheManager from '../utils/CacheManager.js';
+import cacheTagManager from '../utils/CacheTagManager.js';
+import cacheConfig from '../config/cache.js';
 
 /**
  * Cache middleware factory
@@ -196,7 +196,7 @@ function resourceCacheKey(namespace, paramName = 'id', subpath = '') {
   };
 }
 
-module.exports = {
+export {
   cacheMiddleware,
   invalidateCacheAfter,
   conditionalCache,

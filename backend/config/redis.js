@@ -2,8 +2,8 @@
  * Redis Connection Setup with Circuit Breaker
  */
 
-const Redis = require('ioredis');
-const cacheConfig = require('./cache');
+import Redis from 'ioredis';
+import cacheConfig from './cache.js';
 
 class RedisClient {
   constructor() {
@@ -233,4 +233,4 @@ class RedisClient {
 // Singleton instance
 const redisClient = new RedisClient();
 
-module.exports = redisClient;
+export default redisClient;

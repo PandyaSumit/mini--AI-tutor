@@ -3,8 +3,8 @@
  * Includes: Cache-aside, Stale-While-Revalidate, Distributed Locks
  */
 
-const redisClient = require('../config/redis');
-const cacheConfig = require('../config/cache');
+import redisClient from '../config/redis.js';
+import cacheConfig from '../config/cache.js';
 
 class CacheManager {
   constructor() {
@@ -367,4 +367,4 @@ class CacheManager {
 // Singleton instance
 const cacheManager = new CacheManager();
 
-module.exports = cacheManager;
+export default cacheManager;

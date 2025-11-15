@@ -73,7 +73,7 @@ const Sidebar = () => {
             match: (path) => path.startsWith('/chat')
         },
         {
-            to: '/roadmaps/create',
+            to: '/roadmaps',
             label: 'Roadmaps',
             icon: Map,
             match: (path) => path.startsWith('/roadmaps')

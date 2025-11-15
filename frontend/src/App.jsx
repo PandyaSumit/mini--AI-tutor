@@ -10,6 +10,7 @@ import Conversations from './pages/Conversations';
 import Profile from './pages/Profile';
 import CreateRoadmap from './pages/CreateRoadmap';
 import RoadmapDetail from './pages/RoadmapDetail';
+import MyRoadmaps from './pages/MyRoadmaps';
 import Flashcards from './pages/Flashcards';
 import StudyFlashcards from './pages/StudyFlashcards';
 
@@ -78,6 +79,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/roadmaps"
+            element={
+              <PrivateRoute>
+                <MyRoadmaps />
               </PrivateRoute>
             }
           />

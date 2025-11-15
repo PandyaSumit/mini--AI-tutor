@@ -155,13 +155,22 @@ const Dashboard = () => {
                   <Map className="w-6 h-6 text-primary-600" />
                   Learning Roadmaps
                 </h2>
-                <Link
-                  to="/roadmaps/create"
-                  className="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center gap-1"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create New
-                </Link>
+                <div className="flex items-center gap-3">
+                  <Link
+                    to="/roadmaps"
+                    className="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center gap-1"
+                  >
+                    View All
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    to="/roadmaps/create"
+                    className="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center gap-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create New
+                  </Link>
+                </div>
               </div>
 
               {roadmaps.length > 0 ? (

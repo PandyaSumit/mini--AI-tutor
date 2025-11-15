@@ -139,7 +139,6 @@ const RoadmapDetail = () => {
     if (!roadmapData.roadmap) {
         return null;
     }
-    console.log('roadmapData :>> ', roadmapData);
     const roadmap = roadmapData.roadmap;
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-purple-50 px-4 py-8">

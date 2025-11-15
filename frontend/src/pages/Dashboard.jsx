@@ -81,7 +81,7 @@ const Dashboard = () => {
         <div className="min-h-screen bg-white">
             {/* Header Skeleton */}
             <div className="border-b border-gray-100">
-                <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 lg:py-12">
+                <div className="mx-auto px-6 lg:px-8 py-8 lg:py-12">
                     <div className="animate-pulse space-y-4">
                         <div className="h-4 w-32 bg-gray-200 rounded"></div>
                         <div className="h-8 w-64 bg-gray-200 rounded"></div>
@@ -91,7 +91,7 @@ const Dashboard = () => {
             </div>
 
             {/* Stats Skeleton */}
-            <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+            <div className="mx-auto px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {[...Array(4)].map((_, i) => (
                         <div key={i} className="bg-white rounded-xl p-6 border border-gray-100">

@@ -104,7 +104,7 @@ class AIService {
 // Export singleton instance
 const aiService = new AIService();
 
-// Initialize on import to ensure environment variables are available
-aiService.initialize();
+// Do NOT initialize here — server.js will call initialize() after dotenv.config() loads
+// This ensures environment variables are properly available before Groq client is created.
 
 export default aiService;

@@ -13,6 +13,7 @@ import RoadmapDetail from './pages/RoadmapDetail';
 import MyRoadmaps from './pages/MyRoadmaps';
 import Flashcards from './pages/Flashcards';
 import StudyFlashcards from './pages/StudyFlashcards';
+import NotFound from './pages/NotFound';
 
 function App() {
   const { user, loading } = useAuth();
@@ -130,20 +131,7 @@ function App() {
           />
 
           {/* 404 - Not Found */}
-          <Route
-            path="*"
-            element={
-              <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                  <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
-                  <p className="text-xl text-gray-600 mb-8">Page not found</p>
-                  <a href="/" className="btn-primary">
-                    Go Home
-                  </a>
-                </div>
-              </div>
-            }
-          />
+          <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </div>

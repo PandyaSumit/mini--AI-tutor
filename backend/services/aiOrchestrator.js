@@ -39,25 +39,29 @@ class AIOrchestrator {
         return { success: false, error: 'Environment validation failed', details: validation.errors };
       }
 
-      // Initialize embedding service
+      // Initialize embedding service (required)
       await embeddingService.initialize();
 
-      // Initialize ChromaDB
-      await chromaService.initialize();
+      // Initialize ChromaDB (optional - graceful degradation)
+      const chromaResult = await chromaService.initialize();
+      const chromaAvailable = chromaResult.success;
 
       this.isInitialized = true;
       console.log('✅ AI Pipeline initialized successfully');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('📋 AI Pipeline Ready:');
       console.log('   ✓ Local embeddings (BGE-small, FREE)');
-      console.log('   ✓ Vector store (ChromaDB)');
-      console.log('   ✓ RAG pipeline');
+      console.log(`   ${chromaAvailable ? '✓' : '✗'} Vector store (ChromaDB) ${chromaAvailable ? '' : '- DISABLED'}`);
+      console.log(`   ${chromaAvailable ? '✓' : '✗'} RAG pipeline ${chromaAvailable ? '' : '- LIMITED'}`);
       console.log('   ✓ LLM (Groq)');
       console.log('   ✓ Security layer');
       console.log('   Cost: $0 embeddings + Groq LLM only');
+      if (!chromaAvailable) {
+        console.log('   ⚠️  Note: Some features require ChromaDB server');
+      }
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-      return { success: true };
+      return { success: true, chromaAvailable };
     } catch (error) {
       console.error('❌ AI Pipeline initialization failed:', error.message);
       this.isInitialized = false;
@@ -90,6 +94,10 @@ class AIOrchestrator {
    * Chat with RAG (context-aware)
    */
   async chatWithRAG(question, options = {}) {
+    if (!chromaService.isInitialized) {
+      throw new Error('RAG features require ChromaDB server. Please start ChromaDB server first.');
+    }
+
     const injectionCheck = sanitizer.detectInjection(question);
     if (injectionCheck.detected) {
       throw new Error('Potential prompt injection detected');
@@ -121,6 +129,10 @@ class AIOrchestrator {
    * Semantic search
    */
   async semanticSearch(query, options = {}) {
+    if (!chromaService.isInitialized) {
+      throw new Error('Search features require ChromaDB server. Please start ChromaDB server first.');
+    }
+
     const { collectionKey = 'knowledge', topK = 5 } = options;
 
     const results = await chromaService.search(collectionKey, query, { topK });
@@ -137,6 +149,10 @@ class AIOrchestrator {
    * Ingest content into vector store
    */
   async ingestContent(type, content, metadata = {}) {
+    if (!chromaService.isInitialized) {
+      throw new Error('Content ingestion requires ChromaDB server. Please start ChromaDB server first.');
+    }
+
     return await ingestionService.ingestContent(type, content, metadata);
   }
 

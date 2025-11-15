@@ -37,25 +37,16 @@ class ChromaService {
         fs.mkdirSync(chromaPath, { recursive: true });
       }
 
-      // Connect to ChromaDB with proper server configuration
-      // For local development, ChromaDB client expects a server at localhost:8000
-      // If no server is running, we'll use in-memory mode
-      try {
-        this.client = new ChromaClient({
-          path: `http://${process.env.CHROMA_HOST || 'localhost'}:${process.env.CHROMA_PORT || '8000'}`,
-        });
-        // Test connection to server
-        await this.client.heartbeat();
-        console.log('   Using ChromaDB server mode');
-      } catch (serverError) {
-        // If server connection fails, fall back to default (ephemeral in-memory)
-        console.log('   ChromaDB server not available, using in-memory storage');
-        this.client = new ChromaClient();
-        // Heartbeat not needed for in-memory mode
-      }
+      // Connect to ChromaDB server
+      // Note: ChromaDB JS client ALWAYS requires a server (unlike Python version)
+      this.client = new ChromaClient({
+        path: `http://${process.env.CHROMA_HOST || 'localhost'}:${process.env.CHROMA_PORT || '8000'}`,
+      });
 
-      console.log('✅ ChromaDB connected successfully');
-      console.log(`   Path: ${aiConfig.vectorStore.path}`);
+      // Test connection to server
+      await this.client.heartbeat();
+      console.log('✅ ChromaDB server connected');
+      console.log(`   Server: http://${process.env.CHROMA_HOST || 'localhost'}:${process.env.CHROMA_PORT || '8000'}`);
 
       // Create default collections
       await this.ensureCollections();
@@ -65,10 +56,15 @@ class ChromaService {
 
       return { success: true };
     } catch (error) {
-      console.error('❌ ChromaDB initialization failed:', error.message);
-      console.log('   Make sure ChromaDB is running or using local storage');
+      console.log('⚠️  ChromaDB server not available');
+      console.log('   Vector search features will be disabled');
+      console.log('   To enable: Install and run ChromaDB server');
+      console.log('   Quick start: pip install chromadb && chroma run --path ./data/chromadb');
+
       this.isInitialized = false;
-      return { success: false, error: error.message };
+      this.client = null;
+
+      return { success: false, error: 'ChromaDB server not available' };
     }
   }
 

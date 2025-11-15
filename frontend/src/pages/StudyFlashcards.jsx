@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { studyMaterialService } from '../services/studyMaterialService';
 import { ArrowLeft, RotateCw, Check, X, Brain, Trophy, TrendingUp } from 'lucide-react';

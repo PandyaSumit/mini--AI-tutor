@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { chatService } from '../services/chatService';
 import { studyMaterialService } from '../services/studyMaterialService';
@@ -265,11 +265,10 @@ const Chat = () => {
                             {/* AI Mode Toggle */}
                             <button
                                 onClick={() => setAiMode(aiMode === 'rag' ? 'simple' : 'rag')}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                                    aiMode === 'rag'
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${aiMode === 'rag'
                                         ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
+                                    }`}
                                 title={aiMode === 'rag' ? 'RAG Mode: Smart answers with sources' : 'Simple Mode: Direct AI responses'}
                             >
                                 {aiMode === 'rag' ? (
@@ -435,92 +434,92 @@ const Chat = () => {
                                                 ) : (
                                                     <div className="prose prose-sm max-w-none">
                                                         <ReactMarkdown
-                                                        components={{
-                                                            code({ node, inline, className, children, ...props }) {
-                                                                const match = /language-(\w+)/.exec(className || '');
-                                                                return !inline && match ? (
-                                                                    <SyntaxHighlighter
-                                                                        style={vscDarkPlus}
-                                                                        language={match[1]}
-                                                                        PreTag="div"
-                                                                        className="rounded-lg my-4 text-sm"
-                                                                        {...props}
-                                                                    >
-                                                                        {String(children).replace(/\n$/, '')}
-                                                                    </SyntaxHighlighter>
-                                                                ) : (
-                                                                    <code className="bg-gray-200 text-gray-900 px-1.5 py-0.5 rounded text-sm" {...props}>
-                                                                        {children}
-                                                                    </code>
-                                                                );
-                                                            },
-                                                            p: ({ children }) => <p className="mb-4 last:mb-0 leading-relaxed text-[15px] text-gray-900">{children}</p>,
-                                                            ul: ({ children }) => <ul className="mb-4 ml-4 space-y-2 list-disc text-gray-900">{children}</ul>,
-                                                            ol: ({ children }) => <ol className="mb-4 ml-4 space-y-2 list-decimal text-gray-900">{children}</ol>,
-                                                            li: ({ children }) => <li className="text-[15px] text-gray-900">{children}</li>,
-                                                            h1: ({ children }) => <h1 className="text-xl font-bold mb-3 text-gray-900">{children}</h1>,
-                                                            h2: ({ children }) => <h2 className="text-lg font-bold mb-3 text-gray-900">{children}</h2>,
-                                                            h3: ({ children }) => <h3 className="text-base font-bold mb-2 text-gray-900">{children}</h3>,
-                                                            strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
-                                                            a: ({ children, href }) => <a href={href} className="text-gray-900 underline hover:text-gray-700" target="_blank" rel="noopener noreferrer">{children}</a>,
-                                                        }}
-                                                    >
-                                                        {message.content}
-                                                    </ReactMarkdown>
-                                                </div>
-                                            )}
-
-                                            {/* RAG Sources Display */}
-                                            {message.sources && message.sources.length > 0 && (
-                                                <div className="mt-4 pt-4 border-t border-gray-300">
-                                                    <p className="text-xs font-semibold text-gray-600 mb-2 flex items-center gap-1">
-                                                        <BookOpen className="w-3 h-3" />
-                                                        Sources ({message.sources.length}):
-                                                    </p>
-                                                    <div className="space-y-2">
-                                                        {message.sources.map((source, idx) => (
-                                                            <div
-                                                                key={idx}
-                                                                className="text-xs bg-white p-3 rounded-lg border border-gray-200"
-                                                            >
-                                                                <div className="flex justify-between items-center mb-1">
-                                                                    <span className="font-medium text-gray-700">
-                                                                        Source {idx + 1}
-                                                                    </span>
-                                                                    <span className="text-green-600 font-semibold">
-                                                                        {(source.score * 100).toFixed(0)}% match
-                                                                    </span>
-                                                                </div>
-                                                                <p className="text-gray-600 line-clamp-2">
-                                                                    {source.content}
-                                                                </p>
-                                                            </div>
-                                                        ))}
+                                                            components={{
+                                                                code({ node, inline, className, children, ...props }) {
+                                                                    const match = /language-(\w+)/.exec(className || '');
+                                                                    return !inline && match ? (
+                                                                        <SyntaxHighlighter
+                                                                            style={vscDarkPlus}
+                                                                            language={match[1]}
+                                                                            PreTag="div"
+                                                                            className="rounded-lg my-4 text-sm"
+                                                                            {...props}
+                                                                        >
+                                                                            {String(children).replace(/\n$/, '')}
+                                                                        </SyntaxHighlighter>
+                                                                    ) : (
+                                                                        <code className="bg-gray-200 text-gray-900 px-1.5 py-0.5 rounded text-sm" {...props}>
+                                                                            {children}
+                                                                        </code>
+                                                                    );
+                                                                },
+                                                                p: ({ children }) => <p className="mb-4 last:mb-0 leading-relaxed text-[15px] text-gray-900">{children}</p>,
+                                                                ul: ({ children }) => <ul className="mb-4 ml-4 space-y-2 list-disc text-gray-900">{children}</ul>,
+                                                                ol: ({ children }) => <ol className="mb-4 ml-4 space-y-2 list-decimal text-gray-900">{children}</ol>,
+                                                                li: ({ children }) => <li className="text-[15px] text-gray-900">{children}</li>,
+                                                                h1: ({ children }) => <h1 className="text-xl font-bold mb-3 text-gray-900">{children}</h1>,
+                                                                h2: ({ children }) => <h2 className="text-lg font-bold mb-3 text-gray-900">{children}</h2>,
+                                                                h3: ({ children }) => <h3 className="text-base font-bold mb-2 text-gray-900">{children}</h3>,
+                                                                strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                                                                a: ({ children, href }) => <a href={href} className="text-gray-900 underline hover:text-gray-700" target="_blank" rel="noopener noreferrer">{children}</a>,
+                                                            }}
+                                                        >
+                                                            {message.content}
+                                                        </ReactMarkdown>
                                                     </div>
-                                                </div>
-                                            )}
-
-                                            {/* Confidence Score & Model Info */}
-                                            <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-                                                <div className="flex items-center gap-3">
-                                                    {message.confidence && (
-                                                        <span>
-                                                            Confidence: {(message.confidence * 100).toFixed(0)}%
-                                                        </span>
-                                                    )}
-                                                    {message.model && (
-                                                        <span className="flex items-center gap-1">
-                                                            {message.isRAG && <Sparkles className="w-3 h-3 text-purple-500" />}
-                                                            {message.model}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                {message.metadata?.responseTime && (
-                                                    <span>
-                                                        {(message.metadata.responseTime / 1000).toFixed(2)}s
-                                                    </span>
                                                 )}
-                                            </div>
+
+                                                {/* RAG Sources Display */}
+                                                {message.sources && message.sources.length > 0 && (
+                                                    <div className="mt-4 pt-4 border-t border-gray-300">
+                                                        <p className="text-xs font-semibold text-gray-600 mb-2 flex items-center gap-1">
+                                                            <BookOpen className="w-3 h-3" />
+                                                            Sources ({message.sources.length}):
+                                                        </p>
+                                                        <div className="space-y-2">
+                                                            {message.sources.map((source, idx) => (
+                                                                <div
+                                                                    key={idx}
+                                                                    className="text-xs bg-white p-3 rounded-lg border border-gray-200"
+                                                                >
+                                                                    <div className="flex justify-between items-center mb-1">
+                                                                        <span className="font-medium text-gray-700">
+                                                                            Source {idx + 1}
+                                                                        </span>
+                                                                        <span className="text-green-600 font-semibold">
+                                                                            {(source.score * 100).toFixed(0)}% match
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="text-gray-600 line-clamp-2">
+                                                                        {source.content}
+                                                                    </p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Confidence Score & Model Info */}
+                                                <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                                                    <div className="flex items-center gap-3">
+                                                        {message.confidence && (
+                                                            <span>
+                                                                Confidence: {(message.confidence * 100).toFixed(0)}%
+                                                            </span>
+                                                        )}
+                                                        {message.model && (
+                                                            <span className="flex items-center gap-1">
+                                                                {message.isRAG && <Sparkles className="w-3 h-3 text-purple-500" />}
+                                                                {message.model}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {message.metadata?.responseTime && (
+                                                        <span>
+                                                            {(message.metadata.responseTime / 1000).toFixed(2)}s
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

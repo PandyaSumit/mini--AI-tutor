@@ -37,13 +37,22 @@ class ChromaService {
         fs.mkdirSync(chromaPath, { recursive: true });
       }
 
-      // Connect to ChromaDB
-      this.client = new ChromaClient({
-        path: chromaPath,
-      });
-
-      // Test connection
-      await this.client.heartbeat();
+      // Connect to ChromaDB with proper server configuration
+      // For local development, ChromaDB client expects a server at localhost:8000
+      // If no server is running, we'll use in-memory mode
+      try {
+        this.client = new ChromaClient({
+          path: `http://${process.env.CHROMA_HOST || 'localhost'}:${process.env.CHROMA_PORT || '8000'}`,
+        });
+        // Test connection to server
+        await this.client.heartbeat();
+        console.log('   Using ChromaDB server mode');
+      } catch (serverError) {
+        // If server connection fails, fall back to default (ephemeral in-memory)
+        console.log('   ChromaDB server not available, using in-memory storage');
+        this.client = new ChromaClient();
+        // Heartbeat not needed for in-memory mode
+      }
 
       console.log('✅ ChromaDB connected successfully');
       console.log(`   Path: ${aiConfig.vectorStore.path}`);

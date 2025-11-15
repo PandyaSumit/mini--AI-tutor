@@ -14,8 +14,6 @@ import RoadmapDetail from './pages/RoadmapDetail';
 import MyRoadmaps from './pages/MyRoadmaps';
 import Flashcards from './pages/Flashcards';
 import StudyFlashcards from './pages/StudyFlashcards';
-import AIDashboard from './pages/AIDashboard';
-import AISettings from './pages/AISettings';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -123,22 +121,6 @@ function App() {
             element={
               <PrivateRoute>
                 <StudyFlashcards />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/ai"
-            element={
-              <PrivateRoute>
-                <AIDashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/ai-settings"
-            element={
-              <PrivateRoute>
-                <AISettings />
               </PrivateRoute>
             }
           />

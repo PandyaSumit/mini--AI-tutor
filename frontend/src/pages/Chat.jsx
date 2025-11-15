@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { chatService } from '../services/chatService';
 import { studyMaterialService } from '../services/studyMaterialService';
+import aiService from '../services/aiService';
 import {
     Send,
     Loader,
@@ -15,7 +16,8 @@ import {
     MessageCircle,
     User,
     AlertCircle,
-    ArrowRight
+    ArrowRight,
+    Zap
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -37,6 +39,7 @@ const Chat = () => {
     const [selectedTopic, setSelectedTopic] = useState('general');
     const [conversationTitle, setConversationTitle] = useState('');
     const [generatingFlashcards, setGeneratingFlashcards] = useState(false);
+    const [aiMode, setAiMode] = useState('rag'); // 'rag' or 'simple'
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -83,25 +86,62 @@ const Chat = () => {
         setLoading(true);
 
         try {
-            const response = await chatService.sendMessage({
-                conversationId: conversationId || null,
-                message: userMessageText,
-                topic: selectedTopic
-            });
+            let aiResponse;
 
-            // Update messages with actual response
-            setMessages(prev => {
-                const filtered = prev.filter(msg => msg._id !== tempUserMessage._id);
-                return [
-                    ...filtered,
-                    response.data.userMessage,
-                    response.data.aiMessage
-                ];
-            });
+            // Use AI Service with RAG or simple mode
+            if (aiMode === 'rag') {
+                // RAG mode - get answer with sources
+                aiResponse = await aiService.ragQuery(userMessageText, {
+                    topK: 5,
+                    collectionKey: 'knowledge'
+                });
 
-            // If new conversation, navigate to it
-            if (!conversationId && response.data.conversationId) {
-                navigate(`/chat/${response.data.conversationId}`, { replace: true });
+                const aiMessage = {
+                    role: 'assistant',
+                    content: aiResponse.answer,
+                    createdAt: new Date(),
+                    _id: `ai-${Date.now()}`,
+                    sources: aiResponse.sources || [],
+                    confidence: aiResponse.confidence,
+                    model: aiResponse.model,
+                    isRAG: true
+                };
+
+                setMessages(prev => {
+                    const filtered = prev.filter(msg => msg._id !== tempUserMessage._id);
+                    return [...filtered, tempUserMessage, aiMessage];
+                });
+            } else {
+                // Simple mode - direct AI chat
+                aiResponse = await aiService.chat(userMessageText);
+
+                const aiMessage = {
+                    role: 'assistant',
+                    content: aiResponse.response,
+                    createdAt: new Date(),
+                    _id: `ai-${Date.now()}`,
+                    model: aiResponse.model,
+                    isRAG: false
+                };
+
+                setMessages(prev => {
+                    const filtered = prev.filter(msg => msg._id !== tempUserMessage._id);
+                    return [...filtered, tempUserMessage, aiMessage];
+                });
+            }
+
+            // Optional: Save to database if conversationId exists
+            if (conversationId) {
+                try {
+                    await chatService.sendMessage({
+                        conversationId,
+                        message: userMessageText,
+                        topic: selectedTopic
+                    });
+                } catch (dbError) {
+                    console.warn('Failed to save to database:', dbError);
+                    // Continue anyway - we still show the AI response
+                }
             }
         } catch (error) {
             console.error('Error sending message:', error);
@@ -111,7 +151,7 @@ const Chat = () => {
             // Show error in a more user-friendly way
             const errorMessage = {
                 role: 'assistant',
-                content: 'Sorry, I encountered an error processing your message. Please try again.',
+                content: error.response?.data?.error || 'Sorry, I encountered an error processing your message. Please try again.',
                 createdAt: new Date(),
                 _id: `error-${Date.now()}`,
                 isError: true
@@ -218,35 +258,60 @@ const Chat = () => {
                         </div>
 
                         {/* Action Buttons */}
-                        {conversationId && (
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                                <button
-                                    onClick={handleGenerateFlashcards}
-                                    disabled={generatingFlashcards || messages.length === 0}
-                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                    title="Generate flashcards from this conversation"
-                                >
-                                    {generatingFlashcards ? (
-                                        <>
-                                            <Loader className="w-4 h-4 animate-spin" strokeWidth={2} />
-                                            <span>Generating...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Brain className="w-4 h-4" strokeWidth={2} />
-                                            <span>Flashcards</span>
-                                        </>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => navigate('/chat')}
-                                    className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-medium transition-all"
-                                >
-                                    <Plus className="w-4 h-4" strokeWidth={2} />
-                                    <span className="hidden sm:inline">New</span>
-                                </button>
-                            </div>
-                        )}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            {/* AI Mode Toggle */}
+                            <button
+                                onClick={() => setAiMode(aiMode === 'rag' ? 'simple' : 'rag')}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                    aiMode === 'rag'
+                                        ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                                title={aiMode === 'rag' ? 'RAG Mode: Smart answers with sources' : 'Simple Mode: Direct AI responses'}
+                            >
+                                {aiMode === 'rag' ? (
+                                    <>
+                                        <Sparkles className="w-4 h-4" strokeWidth={2} />
+                                        <span className="hidden sm:inline">RAG</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Zap className="w-4 h-4" strokeWidth={2} />
+                                        <span className="hidden sm:inline">Simple</span>
+                                    </>
+                                )}
+                            </button>
+
+                            {conversationId && (
+                                <>
+                                    <button
+                                        onClick={handleGenerateFlashcards}
+                                        disabled={generatingFlashcards || messages.length === 0}
+                                        className="hidden md:flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Generate flashcards from this conversation"
+                                    >
+                                        {generatingFlashcards ? (
+                                            <>
+                                                <Loader className="w-4 h-4 animate-spin" strokeWidth={2} />
+                                                <span>Generating...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Brain className="w-4 h-4" strokeWidth={2} />
+                                                <span>Flashcards</span>
+                                            </>
+                                        )}
+                                    </button>
+                                    <button
+                                        onClick={() => navigate('/chat')}
+                                        className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-medium transition-all"
+                                    >
+                                        <Plus className="w-4 h-4" strokeWidth={2} />
+                                        <span className="hidden sm:inline">New</span>
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -391,11 +456,58 @@ const Chat = () => {
                                                     </ReactMarkdown>
                                                 </div>
                                             )}
-                                            {message.metadata?.responseTime && (
-                                                <p className="text-xs text-gray-500 mt-3">
-                                                    {(message.metadata.responseTime / 1000).toFixed(2)}s
-                                                </p>
+
+                                            {/* RAG Sources Display */}
+                                            {message.sources && message.sources.length > 0 && (
+                                                <div className="mt-4 pt-4 border-t border-gray-300">
+                                                    <p className="text-xs font-semibold text-gray-600 mb-2 flex items-center gap-1">
+                                                        <BookOpen className="w-3 h-3" />
+                                                        Sources ({message.sources.length}):
+                                                    </p>
+                                                    <div className="space-y-2">
+                                                        {message.sources.map((source, idx) => (
+                                                            <div
+                                                                key={idx}
+                                                                className="text-xs bg-white p-3 rounded-lg border border-gray-200"
+                                                            >
+                                                                <div className="flex justify-between items-center mb-1">
+                                                                    <span className="font-medium text-gray-700">
+                                                                        Source {idx + 1}
+                                                                    </span>
+                                                                    <span className="text-green-600 font-semibold">
+                                                                        {(source.score * 100).toFixed(0)}% match
+                                                                    </span>
+                                                                </div>
+                                                                <p className="text-gray-600 line-clamp-2">
+                                                                    {source.content}
+                                                                </p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             )}
+
+                                            {/* Confidence Score & Model Info */}
+                                            <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                                                <div className="flex items-center gap-3">
+                                                    {message.confidence && (
+                                                        <span>
+                                                            Confidence: {(message.confidence * 100).toFixed(0)}%
+                                                        </span>
+                                                    )}
+                                                    {message.model && (
+                                                        <span className="flex items-center gap-1">
+                                                            {message.isRAG && <Sparkles className="w-3 h-3 text-purple-500" />}
+                                                            {message.model}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {message.metadata?.responseTime && (
+                                                    <span>
+                                                        {(message.metadata.responseTime / 1000).toFixed(2)}s
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

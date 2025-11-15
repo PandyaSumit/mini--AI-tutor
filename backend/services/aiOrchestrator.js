@@ -9,6 +9,7 @@ import chromaService from '../ai/vectorstore/chromaService.js';
 import ingestionService from '../ai/vectorstore/ingestion.js';
 import ragChain from '../ai/chains/ragChain.js';
 import sanitizer from '../ai/security/sanitizer.js';
+import envValidator from '../config/envValidator.js';
 import aiConfig from '../config/ai.js';
 
 class AIOrchestrator {
@@ -31,6 +32,13 @@ class AIOrchestrator {
     console.log('🚀 Initializing AI Pipeline...');
 
     try {
+      // Validate environment variables
+      const validation = envValidator.validate();
+      if (!validation.valid) {
+        console.error('❌ Environment validation failed - AI pipeline may not work correctly');
+        return { success: false, error: 'Environment validation failed', details: validation.errors };
+      }
+
       // Initialize embedding service
       await embeddingService.initialize();
 

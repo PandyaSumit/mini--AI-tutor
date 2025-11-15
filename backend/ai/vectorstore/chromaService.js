@@ -4,6 +4,8 @@
  */
 
 import { ChromaClient } from 'chromadb';
+import fs from 'fs';
+import path from 'path';
 import embeddingService from '../embeddings/embeddingService.js';
 import aiConfig from '../../config/ai.js';
 
@@ -28,9 +30,16 @@ class ChromaService {
     console.log('🚀 Initializing ChromaDB Vector Store...');
 
     try {
+      // Ensure ChromaDB directory exists
+      const chromaPath = aiConfig.vectorStore.path;
+      if (!fs.existsSync(chromaPath)) {
+        console.log(`   Creating ChromaDB directory: ${chromaPath}`);
+        fs.mkdirSync(chromaPath, { recursive: true });
+      }
+
       // Connect to ChromaDB
       this.client = new ChromaClient({
-        path: aiConfig.vectorStore.path,
+        path: chromaPath,
       });
 
       // Test connection

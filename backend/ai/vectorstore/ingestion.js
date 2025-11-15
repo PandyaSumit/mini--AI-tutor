@@ -3,6 +3,7 @@
  * Handles ingestion of documents into vector store
  */
 
+import crypto from 'crypto';
 import chromaService from './chromaService.js';
 
 class IngestionService {

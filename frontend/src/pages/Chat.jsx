@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { chatService } from '../services/chatService';
 import { studyMaterialService } from '../services/studyMaterialService';
 import aiService from '../services/aiService';
+import ThinkingProcess from '../components/ThinkingProcess';
 import {
     Send,
     Loader,
@@ -104,6 +105,7 @@ const Chat = () => {
                     sources: aiResponse.sources || [],
                     confidence: aiResponse.confidence,
                     model: aiResponse.model,
+                    thinking: aiResponse.thinking, // Include thinking data
                     isRAG: true
                 };
 
@@ -121,6 +123,7 @@ const Chat = () => {
                     createdAt: new Date(),
                     _id: `ai-${Date.now()}`,
                     model: aiResponse.model,
+                    thinking: aiResponse.thinking, // Include thinking data
                     isRAG: false
                 };
 
@@ -409,19 +412,29 @@ const Chat = () => {
                                         </div>
 
                                         {/* Message Bubble */}
-                                        <div
-                                            className={`rounded-xl px-5 py-4 ${message.role === 'user'
-                                                ? 'bg-gray-900 text-white'
-                                                : message.isError
-                                                    ? 'bg-red-50 text-red-900 border border-red-200'
-                                                    : 'bg-gray-50 text-gray-900 border border-gray-200'
-                                                }`}
-                                        >
-                                            {message.role === 'user' ? (
-                                                <p className="whitespace-pre-wrap leading-relaxed text-[15px]">{message.content}</p>
-                                            ) : (
-                                                <div className="prose prose-sm max-w-none">
-                                                    <ReactMarkdown
+                                        <div className="flex-1 min-w-0">
+                                            {/* Thinking Process - Only for AI responses */}
+                                            {message.role === 'assistant' && message.thinking && (
+                                                <ThinkingProcess
+                                                    thinking={message.thinking}
+                                                    isComplete={true}
+                                                />
+                                            )}
+
+                                            {/* Message Content */}
+                                            <div
+                                                className={`rounded-xl px-5 py-4 ${message.role === 'user'
+                                                    ? 'bg-gray-900 text-white'
+                                                    : message.isError
+                                                        ? 'bg-red-50 text-red-900 border border-red-200'
+                                                        : 'bg-gray-50 text-gray-900 border border-gray-200'
+                                                    }`}
+                                            >
+                                                {message.role === 'user' ? (
+                                                    <p className="whitespace-pre-wrap leading-relaxed text-[15px]">{message.content}</p>
+                                                ) : (
+                                                    <div className="prose prose-sm max-w-none">
+                                                        <ReactMarkdown
                                                         components={{
                                                             code({ node, inline, className, children, ...props }) {
                                                                 const match = /language-(\w+)/.exec(className || '');
@@ -507,6 +520,7 @@ const Chat = () => {
                                                         {(message.metadata.responseTime / 1000).toFixed(2)}s
                                                     </span>
                                                 )}
+                                            </div>
                                             </div>
                                         </div>
                                     </div>

@@ -11,6 +11,7 @@ import ragChain from '../ai/chains/ragChain.js';
 import sanitizer from '../ai/security/sanitizer.js';
 import envValidator from '../config/envValidator.js';
 import aiConfig from '../config/ai.js';
+import thinkingGenerator from '../ai/thinking/thinkingGenerator.js';
 
 class AIOrchestrator {
   constructor() {
@@ -73,6 +74,8 @@ class AIOrchestrator {
    * Chat with AI (simple completion)
    */
   async chat(message, context = {}) {
+    const startTime = Date.now();
+
     // Security check
     const injectionCheck = sanitizer.detectInjection(message);
     if (injectionCheck.detected) {
@@ -81,12 +84,25 @@ class AIOrchestrator {
 
     const sanitizedMessage = sanitizer.sanitizeText(message);
 
+    // Generate thinking steps
+    const thinkingSteps = thinkingGenerator.generateThinkingSteps(sanitizedMessage, {
+      mode: 'simple',
+      hasRAG: false
+    });
+
     const response = await this.llm.invoke(sanitizedMessage);
+
+    const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
 
     return {
       response: response.content,
       model: aiConfig.llm.model,
       sanitized: message !== sanitizedMessage,
+      thinking: {
+        steps: thinkingSteps,
+        summary: thinkingSummary,
+        totalDuration: Date.now() - startTime
+      }
     };
   }
 
@@ -94,6 +110,8 @@ class AIOrchestrator {
    * Chat with RAG (context-aware)
    */
   async chatWithRAG(question, options = {}) {
+    const startTime = Date.now();
+
     if (!chromaService.isInitialized) {
       throw new Error('RAG features require ChromaDB server. Please start ChromaDB server first.');
     }
@@ -107,10 +125,24 @@ class AIOrchestrator {
 
     const result = await ragChain.query(sanitizedQuestion, options);
 
+    // Generate thinking steps with RAG context
+    const thinkingSteps = thinkingGenerator.generateThinkingSteps(sanitizedQuestion, {
+      mode: 'rag',
+      hasRAG: true,
+      sources: result.sources || []
+    });
+
+    const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
+
     return {
       ...result,
       question: sanitizedQuestion,
       model: aiConfig.llm.model,
+      thinking: {
+        steps: thinkingSteps,
+        summary: thinkingSummary,
+        totalDuration: Date.now() - startTime
+      }
     };
   }
 

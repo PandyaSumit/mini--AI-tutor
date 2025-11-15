@@ -30,6 +30,29 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+// Initialize Cache System
+let cacheInitialized = false;
+(async () => {
+    try {
+        const { initializeCache, shutdownCache } = await import('./config/initializeCache.js');
+        const result = await initializeCache();
+        cacheInitialized = result.success;
+
+        // Graceful shutdown
+        const shutdown = async () => {
+            console.log('\n🛑 Received shutdown signal...');
+            await shutdownCache();
+            process.exit(0);
+        };
+
+        process.on('SIGTERM', shutdown);
+        process.on('SIGINT', shutdown);
+    } catch (error) {
+        console.error('❌ Cache initialization error:', error.message);
+        console.log('⚠️  Continuing without cache...');
+    }
+})();
+
 // Re-initialize AI Service now that dotenv has loaded
 aiService.initialize();
 
@@ -66,6 +89,17 @@ app.use('/api/user', userRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/study', studyMaterialRoutes);
+
+// Cache Admin Routes (dynamically imported)
+(async () => {
+    try {
+        const cacheAdminRoutes = await import('./routes/cacheAdminRoutes.js');
+        app.use('/api/cache', cacheAdminRoutes.default);
+        console.log('✅ Cache admin routes mounted at /api/cache');
+    } catch (error) {
+        console.warn('⚠️  Cache admin routes not available:', error.message);
+    }
+})();
 
 // 404 Handler
 app.use('*', (req, res) => {

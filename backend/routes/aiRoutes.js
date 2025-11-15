@@ -5,6 +5,7 @@
 
 import express from 'express';
 import aiController from '../controllers/aiController.js';
+import { chatStream } from '../controllers/aiStreamController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { rateLimitMiddleware } from '../middleware/cacheRateLimiter.js';
 
@@ -19,6 +20,7 @@ const aiRateLimit = rateLimitMiddleware({
 
 // Chat endpoints
 router.post('/chat', protect, aiRateLimit, aiController.chat);
+router.post('/chat/stream', protect, aiRateLimit, chatStream); // Streaming endpoint
 router.post('/rag/query', protect, aiRateLimit, aiController.ragQuery);
 
 // Embeddings

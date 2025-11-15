@@ -179,6 +179,37 @@ class AIController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  /**
+   * POST /api/ai/tutor
+   * AI Tutor chat with Socratic teaching method
+   */
+  async tutorChat(req, res) {
+    try {
+      const validation = validate(chatMessageSchema, req.body);
+      if (!validation.success) {
+        return res.status(400).json({ error: validation.error });
+      }
+
+      const { message } = validation.data;
+      const { subject, level, phase, conversationHistory } = req.body;
+
+      const result = await aiOrchestrator.tutorChat(message, {
+        subject: subject || 'general',
+        level: level || 'intermediate',
+        phase: phase || 'introduction',
+        conversationHistory: conversationHistory || []
+      });
+
+      res.json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      console.error('Tutor chat error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 export default new AIController();

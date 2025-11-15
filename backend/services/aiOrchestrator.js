@@ -4,6 +4,7 @@
  */
 
 import { ChatGroq } from '@langchain/groq';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import embeddingService from '../ai/embeddings/embeddingService.js';
 import chromaService from '../ai/vectorstore/chromaService.js';
 import ingestionService from '../ai/vectorstore/ingestion.js';
@@ -12,6 +13,7 @@ import sanitizer from '../ai/security/sanitizer.js';
 import envValidator from '../config/envValidator.js';
 import aiConfig from '../config/ai.js';
 import thinkingGenerator from '../ai/thinking/thinkingGenerator.js';
+import tutorPrompts from '../ai/prompts/tutorPrompts.js';
 
 class AIOrchestrator {
   constructor() {
@@ -138,6 +140,72 @@ class AIOrchestrator {
       ...result,
       question: sanitizedQuestion,
       model: aiConfig.llm.model,
+      thinking: {
+        steps: thinkingSteps,
+        summary: thinkingSummary,
+        totalDuration: Date.now() - startTime
+      }
+    };
+  }
+
+  /**
+   * Tutor Chat - Socratic teaching method
+   * Uses comprehensive tutor system prompt for educational conversations
+   */
+  async tutorChat(message, options = {}) {
+    const startTime = Date.now();
+
+    const {
+      subject = 'general',
+      level = 'intermediate',
+      phase = 'introduction',
+      conversationHistory = []
+    } = options;
+
+    // Security check
+    const injectionCheck = sanitizer.detectInjection(message);
+    if (injectionCheck.detected) {
+      throw new Error('Potential prompt injection detected');
+    }
+
+    const sanitizedMessage = sanitizer.sanitizeText(message);
+
+    // Generate tutor system prompt
+    const systemPrompt = tutorPrompts.generate({
+      subject,
+      level,
+      phase,
+      sessionContext: conversationHistory.length > 0
+        ? `Previous exchanges: ${conversationHistory.slice(-3).map(h => `Student: ${h.question}\nTutor: ${h.answer}`).join('\n')}`
+        : null
+    });
+
+    // Generate thinking steps for tutor mode
+    const thinkingSteps = thinkingGenerator.generateThinkingSteps(sanitizedMessage, {
+      mode: 'tutor',
+      hasRAG: false,
+      subject,
+      phase
+    });
+
+    // Create messages with system prompt
+    const messages = [
+      new SystemMessage(systemPrompt),
+      new HumanMessage(sanitizedMessage)
+    ];
+
+    const response = await this.llm.invoke(messages);
+
+    const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
+
+    return {
+      response: response.content,
+      model: aiConfig.llm.model,
+      sanitized: message !== sanitizedMessage,
+      tutorMode: true,
+      subject,
+      level,
+      phase,
       thinking: {
         steps: thinkingSteps,
         summary: thinkingSummary,

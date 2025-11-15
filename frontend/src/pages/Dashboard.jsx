@@ -148,7 +148,7 @@ const Dashboard = () => {
         <div className="min-h-screen bg-white">
             {/* Header Section */}
             <div className="border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white">
-                <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 lg:py-12">
+                <div className="mx-auto px-6 lg:px-8 py-8 lg:py-12">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         {/* Welcome Message */}
                         <div className="space-y-3">
@@ -176,7 +176,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 lg:py-10">
+            <div className="mx-auto px-6 lg:px-8 py-8 lg:py-10">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-10">
                     {statCards.map((stat, index) => {

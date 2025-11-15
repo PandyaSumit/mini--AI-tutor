@@ -128,7 +128,7 @@ const Conversations = () => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 lg:py-10">
+            <div className="mx-auto px-6 lg:px-8 py-8 lg:py-10">
                 {/* Search and Filters */}
                 <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
                     {/* Search Bar */}

@@ -90,54 +90,57 @@ app.use('/api/conversations', conversationRoutes);
 app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/study', studyMaterialRoutes);
 
-// Cache Admin Routes (dynamically imported)
+// Initialize async routes
 (async () => {
     try {
-        const cacheAdminRoutes = await import('./routes/cacheAdminRoutes.js');
-        app.use('/api/cache', cacheAdminRoutes.default);
-        console.log('✅ Cache admin routes mounted at /api/cache');
-    } catch (error) {
-        console.warn('⚠️  Cache admin routes not available:', error.message);
-    }
-})();
-
-// Initialize AI Pipeline
-(async () => {
-    try {
-        const aiOrchestrator = await import('./services/aiOrchestrator.js');
-        const result = await aiOrchestrator.default.initialize();
-
-        if (result.success) {
-            // Mount AI routes
-            const aiRoutes = await import('./routes/aiRoutes.js');
-            app.use('/api/ai', aiRoutes.default);
-            console.log('✅ AI routes mounted at /api/ai');
-
-            // Add cleanup on shutdown
-            const aiShutdown = async () => {
-                console.log('\n🛑 Shutting down AI pipeline...');
-                await aiOrchestrator.default.cleanup();
-            };
-
-            process.on('SIGTERM', aiShutdown);
-            process.on('SIGINT', aiShutdown);
+        // Cache Admin Routes
+        try {
+            const cacheAdminRoutes = await import('./routes/cacheAdminRoutes.js');
+            app.use('/api/cache', cacheAdminRoutes.default);
+            console.log('✅ Cache admin routes mounted at /api/cache');
+        } catch (error) {
+            console.warn('⚠️  Cache admin routes not available:', error.message);
         }
+
+        // Initialize AI Pipeline
+        try {
+            const aiOrchestrator = await import('./services/aiOrchestrator.js');
+            const result = await aiOrchestrator.default.initialize();
+
+            if (result.success) {
+                // Mount AI routes
+                const aiRoutes = await import('./routes/aiRoutes.js');
+                app.use('/api/ai', aiRoutes.default);
+                console.log('✅ AI routes mounted at /api/ai');
+
+                // Add cleanup on shutdown
+                const aiShutdown = async () => {
+                    console.log('\n🛑 Shutting down AI pipeline...');
+                    await aiOrchestrator.default.cleanup();
+                };
+
+                process.on('SIGTERM', aiShutdown);
+                process.on('SIGINT', aiShutdown);
+            }
+        } catch (error) {
+            console.error('❌ AI Pipeline initialization error:', error.message);
+            console.log('⚠️  Continuing without AI pipeline...');
+        }
+
+        // Register 404 handler AFTER all routes are mounted
+        app.use('*', (req, res) => {
+            res.status(404).json({
+                success: false,
+                message: 'Route not found'
+            });
+        });
+
+        // Error handling middleware (must be last)
+        app.use(errorHandler);
     } catch (error) {
-        console.error('❌ AI Pipeline initialization error:', error.message);
-        console.log('⚠️  Continuing without AI pipeline...');
+        console.error('❌ Route initialization error:', error);
     }
 })();
-
-// 404 Handler
-app.use('*', (req, res) => {
-    res.status(404).json({
-        success: false,
-        message: 'Route not found'
-    });
-});
-
-// Error handling middleware (must be last)
-app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;

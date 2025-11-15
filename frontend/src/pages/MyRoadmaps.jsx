@@ -38,17 +38,21 @@ const MyRoadmaps = () => {
   const loadRoadmaps = async () => {
     try {
       const response = await roadmapService.getRoadmaps();
-      setRoadmaps(response.data || []);
+      // Ensure we always set an array
+      const roadmapsData = Array.isArray(response.data) ? response.data : [];
+      setRoadmaps(roadmapsData);
     } catch (error) {
       console.error('Error loading roadmaps:', error);
       toast.error('Failed to load roadmaps');
+      setRoadmaps([]); // Ensure roadmaps is an empty array on error
     } finally {
       setLoading(false);
     }
   };
 
   const filterRoadmaps = () => {
-    let filtered = roadmaps;
+    // Ensure roadmaps is an array
+    let filtered = Array.isArray(roadmaps) ? roadmaps : [];
 
     // Filter by status
     if (statusFilter !== 'all') {
@@ -83,11 +87,13 @@ const MyRoadmaps = () => {
   };
 
   const getStatusCounts = () => {
+    // Ensure roadmaps is an array before filtering
+    const roadmapsArray = Array.isArray(roadmaps) ? roadmaps : [];
     return {
-      all: roadmaps.length,
-      not_started: roadmaps.filter(r => r.status === 'not_started').length,
-      in_progress: roadmaps.filter(r => r.status === 'in_progress').length,
-      completed: roadmaps.filter(r => r.status === 'completed').length
+      all: roadmapsArray.length,
+      not_started: roadmapsArray.filter(r => r.status === 'not_started').length,
+      in_progress: roadmapsArray.filter(r => r.status === 'in_progress').length,
+      completed: roadmapsArray.filter(r => r.status === 'completed').length
     };
   };
 

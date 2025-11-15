@@ -43,13 +43,13 @@ const Dashboard = () => {
       ]);
 
       setStats(statsRes.data.stats);
-      setRecentConversations(conversationsRes.data.conversations);
-      setRoadmaps(roadmapsRes.data || []);
+      setRecentConversations(Array.isArray(conversationsRes.data.conversations) ? conversationsRes.data.conversations : []);
+      setRoadmaps(Array.isArray(roadmapsRes.data) ? roadmapsRes.data : []);
 
-      // Calculate flashcard stats
-      const decks = decksRes.data || [];
-      const totalCards = decks.reduce((sum, deck) => sum + deck.totalCards, 0);
-      const dueCards = decks.reduce((sum, deck) => sum + deck.dueCount, 0);
+      // Calculate flashcard stats - ensure decks is an array
+      const decks = Array.isArray(decksRes.data) ? decksRes.data : [];
+      const totalCards = decks.reduce((sum, deck) => sum + (deck.totalCards || 0), 0);
+      const dueCards = decks.reduce((sum, deck) => sum + (deck.dueCount || 0), 0);
       setFlashcardStats({ totalCards, dueCards, decks: decks.length });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

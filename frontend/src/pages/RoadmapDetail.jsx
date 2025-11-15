@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { roadmapService } from '../services/roadmapService';
+import { useToast } from '../context/ToastContext';
 import {
   ArrowLeft,
   Target,
@@ -22,6 +23,7 @@ import {
 const RoadmapDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [roadmap, setRoadmap] = useState(null);
   const [expandedWeeks, setExpandedWeeks] = useState([1]);
@@ -37,15 +39,17 @@ const RoadmapDetail = () => {
       setRoadmap(response.data);
 
       // Auto-expand the current week
-      const currentWeek = response.data.weeklyModules.find(
-        w => w.status === 'in_progress' || w.status === 'not_started'
-      );
-      if (currentWeek) {
-        setExpandedWeeks([currentWeek.weekNumber]);
+      if (response.data?.weeklyModules && Array.isArray(response.data.weeklyModules)) {
+        const currentWeek = response.data.weeklyModules.find(
+          w => w.status === 'in_progress' || w.status === 'not_started'
+        );
+        if (currentWeek) {
+          setExpandedWeeks([currentWeek.weekNumber]);
+        }
       }
     } catch (error) {
       console.error('Error loading roadmap:', error);
-      alert('Failed to load roadmap');
+      toast.error('Failed to load roadmap. Please try again.');
       navigate('/dashboard');
     } finally {
       setLoading(false);
@@ -72,9 +76,10 @@ const RoadmapDetail = () => {
       });
 
       await loadRoadmap();
+      toast.success('Task updated successfully');
     } catch (error) {
       console.error('Error updating task:', error);
-      alert('Failed to update task');
+      toast.error('Failed to update task. Please try again.');
     } finally {
       setUpdating(false);
     }
@@ -85,9 +90,10 @@ const RoadmapDetail = () => {
     try {
       await roadmapService.completeMilestone(id, milestoneIndex);
       await loadRoadmap();
+      toast.success('Milestone completed! Great job!');
     } catch (error) {
       console.error('Error completing milestone:', error);
-      alert('Failed to complete milestone');
+      toast.error('Failed to complete milestone. Please try again.');
     } finally {
       setUpdating(false);
     }

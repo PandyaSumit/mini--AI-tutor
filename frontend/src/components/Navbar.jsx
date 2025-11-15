@@ -1,9 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { MessageSquare, LayoutDashboard, BookOpen, User, LogOut, Brain, Map } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { isDark } = useTheme();
   const location = useLocation();
 
   const handleLogout = async () => {
@@ -22,14 +25,16 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="bg-white border-b border-gray-200">
+    <nav className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b transition-colors duration-300`}>
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/dashboard" className="flex items-center">
-            <span className="text-2xl font-bold text-primary-600">Mini AI Tutor</span>
+            <span className={`text-2xl font-bold ${isDark ? 'text-primary-400' : 'text-primary-600'}`}>
+              Mini AI Tutor
+            </span>
           </Link>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = location.pathname === link.to ||
@@ -43,8 +48,12 @@ const Navbar = () => {
                   to={link.to}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-primary-100 text-primary-600 font-medium'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? isDark
+                        ? 'bg-primary-600 text-white font-medium'
+                        : 'bg-primary-100 text-primary-600 font-medium'
+                      : isDark
+                        ? 'text-gray-300 hover:bg-gray-700'
+                        : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -53,9 +62,15 @@ const Navbar = () => {
               );
             })}
 
+            <ThemeToggle />
+
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                isDark
+                  ? 'text-red-400 hover:bg-red-900/20'
+                  : 'text-red-600 hover:bg-red-50'
+              }`}
             >
               <LogOut className="w-5 h-5" />
               <span className="hidden md:inline">Logout</span>

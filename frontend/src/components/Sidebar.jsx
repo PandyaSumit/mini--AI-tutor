@@ -82,6 +82,13 @@ const Sidebar = () => {
             match: (path) => path === '/dashboard'
         },
         {
+            to: '/ai',
+            label: 'AI Assistant',
+            icon: Sparkles,
+            match: (path) => path === '/ai',
+            badge: 'NEW'
+        },
+        {
             to: '/chat',
             label: 'AI Chat',
             icon: MessageSquare,
@@ -104,6 +111,12 @@ const Sidebar = () => {
             label: 'History',
             icon: BookOpen,
             match: (path) => path === '/conversations'
+        },
+        {
+            to: '/ai-settings',
+            label: 'AI Stats',
+            icon: Settings,
+            match: (path) => path === '/ai-settings'
         },
         {
             to: '/settings',

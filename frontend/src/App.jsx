@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useAuth } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import Sidebar from './components/Sidebar';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -124,10 +125,10 @@ function App() {
             }
           />
 
-          {/* Redirect root to dashboard or login */}
+          {/* Root - Landing page or redirect to dashboard */}
           <Route
             path="/"
-            element={<Navigate to={user ? "/dashboard" : "/login"} replace />}
+            element={user ? <Navigate to="/dashboard" replace /> : <Landing />}
           />
 
           {/* 404 - Not Found */}

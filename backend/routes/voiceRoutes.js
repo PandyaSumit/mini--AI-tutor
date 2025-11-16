@@ -88,7 +88,7 @@ router.post('/sessions', async (req, res) => {
 
     // Create session
     const session = await Session.create({
-      user: req.user._id,
+      userId: req.user._id,
       title: title || 'Voice Learning Session',
       conversationId: conversation._id,
       lesson: lesson || null,
@@ -157,7 +157,7 @@ router.get('/sessions/:sessionId', async (req, res) => {
     }
 
     // Check if user owns this session
-    if (session.user.toString() !== req.user._id.toString()) {
+    if (session.userId.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to access this session'

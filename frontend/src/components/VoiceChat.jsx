@@ -132,12 +132,18 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
         // Stop recording
         if (sttMode === 'browser') {
           // Stop browser STT
+          console.log('🛑 Stopping browser STT...');
           const finalTranscript = browserSTT.stop();
+          console.log('📝 Final transcript:', finalTranscript);
           if (finalTranscript && finalTranscript.trim()) {
             // Send transcript as text message
+            console.log('📤 Sending transcript to AI:', finalTranscript);
             voiceWebSocket.sendTextMessage(finalTranscript);
             addMessage('user', finalTranscript);
             setIsProcessing(true);
+          } else {
+            console.warn('⚠️ No transcript captured');
+            setError('No speech detected. Please try again.');
           }
         } else {
           // Stop server-side recording
@@ -151,26 +157,41 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
 
         if (sttMode === 'browser') {
           // Use browser STT
+          console.log('🎤 Starting browser STT...');
           if (!browserSTT.isSupported()) {
-            setError('Browser speech recognition not supported');
+            setError('Browser speech recognition not supported. Please use Chrome, Edge, or Safari.');
             return;
           }
 
+          // Start browser STT and handle errors
           browserSTT.start({
             onStart: () => {
+              console.log('✅ Browser STT started successfully');
               setIsRecording(true);
             },
             onResult: (result) => {
+              console.log('📝 Browser STT result:', result.transcript);
               setTranscript(result.transcript);
             },
             onError: (error) => {
-              console.error('Browser STT error:', error);
-              setError(`Speech recognition error: ${error}`);
+              console.error('❌ Browser STT error:', error);
+              let errorMessage = `Speech recognition error: ${error}`;
+              if (error === 'not-allowed') {
+                errorMessage = 'Microphone permission denied. Please allow microphone access and try again.';
+              } else if (error === 'no-speech') {
+                errorMessage = 'No speech detected. Please speak clearly and try again.';
+              }
+              setError(errorMessage);
               setIsRecording(false);
             },
             onEnd: (finalTranscript) => {
+              console.log('🎤 Browser STT ended');
               setIsRecording(false);
             }
+          }).catch(err => {
+            console.error('❌ Failed to start browser STT:', err);
+            setError(`Failed to start speech recognition: ${err.message}`);
+            setIsRecording(false);
           });
         } else {
           // Use server-side recording

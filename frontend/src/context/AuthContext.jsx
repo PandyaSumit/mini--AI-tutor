@@ -13,15 +13,17 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [token, setToken] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Check if user is logged in on mount
         const storedUser = authService.getStoredUser();
-        const token = localStorage.getItem('token');
+        const storedToken = localStorage.getItem('token');
 
-        if (token && storedUser) {
+        if (storedToken && storedUser) {
             setUser(storedUser);
+            setToken(storedToken);
         }
         setLoading(false);
     }, []);
@@ -30,6 +32,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authService.register(userData);
             setUser(response.data.user);
+            setToken(response.data.token);
             return response;
         } catch (error) {
             throw error;
@@ -40,6 +43,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authService.login(credentials);
             setUser(response.data.user);
+            setToken(response.data.token);
             return response;
         } catch (error) {
             throw error;
@@ -50,10 +54,12 @@ export const AuthProvider = ({ children }) => {
         try {
             await authService.logout();
             setUser(null);
+            setToken(null);
         } catch (error) {
             console.error('Logout error:', error);
             // Still clear local state even if API call fails
             setUser(null);
+            setToken(null);
         }
     };
 
@@ -64,6 +70,7 @@ export const AuthProvider = ({ children }) => {
 
     const value = {
         user,
+        token,
         loading,
         register,
         login,

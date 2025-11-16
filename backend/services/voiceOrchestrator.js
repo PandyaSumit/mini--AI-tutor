@@ -2,6 +2,7 @@ import sttService from './sttService.js';
 import Session from '../models/Session.js';
 import Conversation from '../models/Conversation.js';
 import Message from '../models/Message.js';
+import Lesson from '../models/Lesson.js';
 import { emitToUser } from '../config/socket.js';
 import aiOrchestrator from './aiOrchestrator.js';
 
@@ -175,11 +176,12 @@ class VoiceOrchestrator {
         status: 'thinking'
       });
 
-      // Step 4: Generate AI response
+      // Step 4: Generate AI response with session context
       const aiResponse = await this.generateAIResponse(
         conversation._id,
         transcription.text,
-        session.context
+        session.context,
+        sessionId // Pass sessionId for lesson-aware context
       );
 
       // Step 5: Save AI message
@@ -281,11 +283,12 @@ class VoiceOrchestrator {
 
   /**
    * Generate AI response using existing AI orchestrator
+   * Enhanced with lesson-aware context for structured learning
    */
-  async generateAIResponse(conversationId, userMessage, context = {}) {
+  async generateAIResponse(conversationId, userMessage, context = {}, sessionId = null) {
     try {
-      // Get conversation history
-      const messages = await Message.find({ conversationId })
+      // Get conversation history for session-level memory
+      const messages = await Message.find({ conversation: conversationId })
         .sort({ createdAt: 1 })
         .limit(20); // Last 20 messages for context
 
@@ -294,13 +297,43 @@ class VoiceOrchestrator {
         answer: msg.role === 'assistant' ? msg.content : ''
       })).filter(h => h.question || h.answer);
 
-      // Use AI orchestrator tutorChat method
-      const response = await aiOrchestrator.tutorChat(userMessage, {
+      // Build enhanced context with lesson information
+      let lessonContext = null;
+      if (sessionId) {
+        const session = await Session.findById(sessionId).populate('lesson');
+        if (session && session.lesson) {
+          lessonContext = session.lesson.getAIContext();
+        }
+      }
+
+      // Prepare AI prompt with lesson context
+      let enhancedUserMessage = userMessage;
+      let systemContext = {
         subject: context.currentTopic || 'general',
         level: context.level || 'intermediate',
         phase: context.phase || 'explanation',
         conversationHistory
-      });
+      };
+
+      // If we have lesson context, enhance the system prompt
+      if (lessonContext) {
+        systemContext = {
+          ...systemContext,
+          lessonContext: {
+            title: lessonContext.lessonTitle,
+            content: lessonContext.lessonContent,
+            objectives: lessonContext.objectives,
+            keyPoints: lessonContext.keyPoints,
+            examples: lessonContext.examples,
+            teachingStyle: lessonContext.teachingStyle
+          },
+          customSystemPrompt: lessonContext.systemPrompt,
+          contextGuidelines: lessonContext.contextGuidelines
+        };
+      }
+
+      // Use AI orchestrator tutorChat method with enhanced context
+      const response = await aiOrchestrator.tutorChat(enhancedUserMessage, systemContext);
 
       return {
         text: response.response,

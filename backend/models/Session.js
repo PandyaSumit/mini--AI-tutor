@@ -12,6 +12,19 @@ const sessionSchema = new mongoose.Schema({
     ref: 'Conversation',
     index: true
   },
+  // Course structure linkage
+  lesson: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Lesson',
+    index: true,
+    default: null
+  },
+  enrollment: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Enrollment',
+    index: true,
+    default: null
+  },
   title: {
     type: String,
     default: 'AI Tutoring Session'

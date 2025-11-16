@@ -22,6 +22,10 @@ import conversationRoutes from './routes/conversationRoutes.js';
 import roadmapRoutes from './routes/roadmapRoutes.js';
 import studyMaterialRoutes from './routes/studyMaterialRoutes.js';
 import voiceRoutes from './routes/voiceRoutes.js';
+import courseRoutes from './routes/courses.js';
+import moduleRoutes from './routes/modules.js';
+import lessonRoutes from './routes/lessons.js';
+import enrollmentRoutes from './routes/enrollments.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import rateLimiter from './middleware/rateLimiter.js';
 import moderateContent from './middleware/contentModeration.js';
@@ -100,6 +104,12 @@ app.use('/api/conversations', conversationRoutes);
 app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/study', studyMaterialRoutes);
 app.use('/api/voice', voiceRoutes); // Voice session routes
+
+// Course system routes
+app.use('/api/courses', courseRoutes);
+app.use('/api/courses/:courseId/modules', moduleRoutes);
+app.use('/api/courses/:courseId/modules/:moduleId/lessons', lessonRoutes);
+app.use('/api/enrollments', enrollmentRoutes);
 
 // Initialize async routes
 (async () => {

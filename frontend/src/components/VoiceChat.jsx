@@ -56,8 +56,17 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
 
         voiceWebSocket.on('response', (data) => {
           addMessage('assistant', data.text);
-          setIsSpeaking(data.shouldSpeak);
           setIsProcessing(false);
+        });
+
+        voiceWebSocket.on('tts-started', () => {
+          console.log('🔊 TTS started - showing indicator');
+          setIsSpeaking(true);
+        });
+
+        voiceWebSocket.on('tts-ended', () => {
+          console.log('🔊 TTS ended - hiding indicator');
+          setIsSpeaking(false);
         });
 
         voiceWebSocket.on('processing', (data) => {
@@ -239,8 +248,11 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
 
   // Stop TTS speaking
   const stopSpeaking = () => {
+    console.log('⏹️ User stopped TTS');
     ttsService.stop();
     setIsSpeaking(false);
+    // Notify server that TTS is complete (user interrupted)
+    voiceWebSocket.notifyTTSComplete();
   };
 
   return (

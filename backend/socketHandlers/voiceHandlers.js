@@ -6,8 +6,11 @@ import { emitToUser } from '../config/socket.js';
  * WebSocket handlers for voice sessions
  */
 export const registerVoiceHandlers = (io) => {
+    console.log('🎧 Registering voice handlers...');
+
     io.on('connection', (socket) => {
         const userId = socket.userId;
+        console.log(`🎤 Voice handlers active for socket ${socket.id}, user ${userId}`);
 
         /**
          * Join voice session

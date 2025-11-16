@@ -141,28 +141,36 @@ const SessionDetails = () => {
         });
 
         socket.on('voice:transcribed', (data) => {
-            console.log('Transcription received:', data.text);
+            console.log('📥 voice:transcribed received:', data.text);
             setCurrentTranscript('');
             setProcessingStatus('Generating AI response...');
 
             // Add user message to chat
             addMessage('user', data.text);
+            console.log('✅ User message added to chat');
         });
 
         socket.on('voice:processing', (data) => {
+            console.log('📥 voice:processing received:', data.status);
             setProcessingStatus(data.status);
         });
 
         socket.on('voice:response', (data) => {
-            console.log('AI response received:', data.text);
+            console.log('📥 voice:response received!');
+            console.log('Response text:', data.text?.substring(0, 100));
+            console.log('Should speak:', data.shouldSpeak);
+
             setIsProcessing(false);
             setProcessingStatus('');
+            console.log('✅ Processing state cleared');
 
             // Add AI message to chat
             addMessage('assistant', data.text);
+            console.log('✅ Assistant message added to chat');
 
             // Speak the response if TTS is enabled
             if (data.shouldSpeak && ttsEnabled) {
+                console.log('🔊 Speaking response...');
                 speakText(data.text);
             }
         });
@@ -174,11 +182,12 @@ const SessionDetails = () => {
         });
 
         socket.on('voice:error', (data) => {
-            console.error('Voice error:', data.error);
+            console.error('❌ voice:error received:', data.error);
             setError(data.error);
             setIsProcessing(false);
             setIsRecording(false);
             setProcessingStatus('');
+            console.log('✅ Error state set, processing cleared');
         });
 
         socket.on('voice:ready', () => {
@@ -282,7 +291,20 @@ const SessionDetails = () => {
 
     // Handle text message
     const handleTextMessage = (text) => {
-        if (!text.trim() || !socketRef.current) return;
+        if (!text.trim()) {
+            console.log('❌ Empty message, not sending');
+            return;
+        }
+
+        if (!socketRef.current) {
+            console.error('❌ Socket not connected!');
+            setError('Not connected to server. Please refresh the page.');
+            return;
+        }
+
+        console.log('📤 Sending message:', text);
+        console.log('🔌 Socket connected:', socketRef.current.connected);
+        console.log('📋 Session ID:', sessionId);
 
         setIsProcessing(true);
         setProcessingStatus('Processing...');
@@ -292,6 +314,8 @@ const SessionDetails = () => {
             sessionId,
             text: text.trim()
         });
+
+        console.log('✅ Message emitted via socket');
     };
 
     // Send text message (button click)

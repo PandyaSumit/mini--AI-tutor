@@ -73,7 +73,9 @@ export const emitToUser = (userId, event, data) => {
     console.warn('Socket.IO not initialized');
     return;
   }
+  console.log(`📤 Emitting '${event}' to user:${userId}`);
   io.to(`user:${userId}`).emit(event, data);
+  console.log(`✅ Event '${event}' emitted to user:${userId}`);
 };
 
 // Emit to specific session

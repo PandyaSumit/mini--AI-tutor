@@ -113,7 +113,13 @@ router.post('/sessions', async (req, res) => {
 
     // Populate the response
     const populatedSession = await Session.findById(session._id)
-      .populate('lesson')
+      .populate({
+        path: 'lesson',
+        populate: {
+          path: 'module',
+          populate: { path: 'course' }
+        }
+      })
       .populate('enrollment');
 
     res.status(201).json({

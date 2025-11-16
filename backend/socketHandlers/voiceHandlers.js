@@ -190,7 +190,8 @@ export const registerVoiceHandlers = (io) => {
         const Message = (await import('../models/Message.js')).default;
 
         const userMessage = new Message({
-          conversationId: session.conversationId,
+          conversation: session.conversationId,
+          user: session.userId,
           role: 'user',
           content: text,
           metadata: { isVoice: false }
@@ -198,7 +199,8 @@ export const registerVoiceHandlers = (io) => {
         await userMessage.save();
 
         const aiMessage = new Message({
-          conversationId: session.conversationId,
+          conversation: session.conversationId,
+          user: session.userId,
           role: 'assistant',
           content: response.text,
           metadata: {

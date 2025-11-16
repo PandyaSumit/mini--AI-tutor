@@ -151,7 +151,8 @@ class VoiceOrchestrator {
 
       // Step 3: Save user message
       const userMessage = new Message({
-        conversationId: conversation._id,
+        conversation: conversation._id,
+        user: session.userId,
         role: 'user',
         content: transcription.text,
         metadata: {
@@ -183,7 +184,8 @@ class VoiceOrchestrator {
 
       // Step 5: Save AI message
       const aiMessage = new Message({
-        conversationId: conversation._id,
+        conversation: conversation._id,
+        user: session.userId,
         role: 'assistant',
         content: aiResponse.text,
         metadata: {

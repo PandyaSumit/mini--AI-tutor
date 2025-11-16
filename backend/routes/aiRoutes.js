@@ -21,6 +21,7 @@ const aiRateLimit = rateLimitMiddleware({
 // Chat endpoints
 router.post('/chat', protect, aiRateLimit, aiController.chat);
 router.post('/chat/stream', protect, aiRateLimit, chatStream); // Streaming endpoint
+router.post('/tutor', protect, aiRateLimit, aiController.tutorChat); // AI Tutor endpoint
 router.post('/rag/query', protect, aiRateLimit, aiController.ragQuery);
 
 // Embeddings

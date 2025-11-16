@@ -16,6 +16,7 @@ import MyRoadmaps from './pages/MyRoadmaps';
 import Flashcards from './pages/Flashcards';
 import StudyFlashcards from './pages/StudyFlashcards';
 import NotFound from './pages/NotFound';
+import SessionDetails from './pages/SessionDetails';
 
 function App() {
     const { user, loading } = useAuth();
@@ -74,6 +75,14 @@ function App() {
                             element={
                                 <PrivateRoute>
                                     <Conversations />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/session"
+                            element={
+                                <PrivateRoute>
+                                    <SessionDetails />
                                 </PrivateRoute>
                             }
                         />

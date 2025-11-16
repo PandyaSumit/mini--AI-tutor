@@ -13,7 +13,12 @@ class ThinkingGenerator {
    */
   generateThinkingSteps(query, context = {}) {
     const steps = [];
-    const { mode, sources, hasRAG } = context;
+    const { mode, sources, hasRAG, subject, phase } = context;
+
+    // Tutor mode - different thinking flow
+    if (mode === 'tutor') {
+      return this._generateTutorThinkingSteps(query, context);
+    }
 
     // Step 1: Understanding the query
     steps.push({
@@ -62,6 +67,52 @@ class ThinkingGenerator {
       content: this._generateFormulationStep(query, context),
       timestamp: Date.now() + 1800,
       duration: this._randomDuration(150, 350)
+    });
+
+    return steps;
+  }
+
+  /**
+   * Generate tutor-specific thinking steps
+   */
+  _generateTutorThinkingSteps(query, context) {
+    const steps = [];
+    const { subject = 'general', phase = 'introduction' } = context;
+
+    // Step 1: Understanding student's question
+    steps.push({
+      phase: 'understanding',
+      title: 'Understanding the question',
+      content: `Analyzing student's query about ${subject}. Identifying learning objectives and current knowledge level.`,
+      timestamp: Date.now(),
+      duration: this._randomDuration(150, 300)
+    });
+
+    // Step 2: Diagnostic assessment
+    steps.push({
+      phase: 'assessment',
+      title: 'Assessing knowledge level',
+      content: `Determining student's current understanding. Checking for misconceptions or knowledge gaps that need addressing.`,
+      timestamp: Date.now() + 300,
+      duration: this._randomDuration(200, 400)
+    });
+
+    // Step 3: Planning teaching approach
+    steps.push({
+      phase: 'planning',
+      title: 'Planning teaching approach',
+      content: `Designing Socratic questions to guide discovery. Planning scaffolded steps appropriate for ${phase} phase.`,
+      timestamp: Date.now() + 700,
+      duration: this._randomDuration(250, 450)
+    });
+
+    // Step 4: Formulating engaging response
+    steps.push({
+      phase: 'formulation',
+      title: 'Crafting teaching response',
+      content: 'Preparing questions, analogies, and examples to facilitate understanding. Ensuring conversational, encouraging tone.',
+      timestamp: Date.now() + 1150,
+      duration: this._randomDuration(200, 350)
     });
 
     return steps;

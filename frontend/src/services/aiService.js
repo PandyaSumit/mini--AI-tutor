@@ -128,6 +128,26 @@ export const aiService = {
       { topK: 5 }
     );
   },
+
+  /**
+   * AI Tutor chat with Socratic teaching method
+   * @param {string} message - Student's question or message
+   * @param {object} options - Tutor context options
+   * @param {string} options.subject - Subject area (programming, mathematics, languages, sciences)
+   * @param {string} options.level - Student level (beginner, intermediate, advanced)
+   * @param {string} options.phase - Session phase (warmup, diagnostic, introduction, guidedPractice, independentPractice, reflection)
+   * @param {array} options.conversationHistory - Previous conversation exchanges
+   */
+  tutorChat: async (message, options = {}) => {
+    const response = await api.post('/ai/tutor', {
+      message,
+      subject: options.subject || 'general',
+      level: options.level || 'intermediate',
+      phase: options.phase || 'introduction',
+      conversationHistory: options.conversationHistory || []
+    });
+    return response.data;
+  },
 };
 
 export default aiService;

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const sessionSchema = new mongoose.Schema({
   userId: {
@@ -143,4 +143,5 @@ sessionSchema.statics.getUserSessions = function(userId, limit = 10) {
     .populate('conversationId');
 };
 
-module.exports = mongoose.model('Session', sessionSchema);
+const Session = mongoose.model('Session', sessionSchema);
+export default Session;

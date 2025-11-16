@@ -38,7 +38,7 @@ const CourseDetails = () => {
                 setLoading(true);
 
                 // Fetch course details
-                const courseRes = await api.get(`/api/courses/${courseId}`);
+                const courseRes = await api.get(`/courses/${courseId}`);
                 setCourse(courseRes.data.data);
 
                 // Expand all modules by default
@@ -52,7 +52,7 @@ const CourseDetails = () => {
                 if (user) {
                     try {
                         const enrollmentRes = await api.get(
-                            `/api/enrollments/${courseId}`
+                            `/enrollments/${courseId}`
                         );
                         setEnrollment(enrollmentRes.data.data);
                     } catch (err) {
@@ -82,10 +82,10 @@ const CourseDetails = () => {
 
         try {
             setEnrolling(true);
-            await api.post(`/api/courses/${courseId}/enroll`);
+            await api.post(`/courses/${courseId}/enroll`);
 
             // Refresh enrollment status
-            const enrollmentRes = await api.get(`/api/enrollments/${courseId}`);
+            const enrollmentRes = await api.get(`/enrollments/${courseId}`);
             setEnrollment(enrollmentRes.data.data);
 
             setEnrolling(false);
@@ -112,14 +112,14 @@ const CourseDetails = () => {
 
         try {
             // Create a new session linked to this lesson
-            const sessionRes = await api.post('/api/voice/sessions', {
+            const sessionRes = await api.post('/voice/sessions', {
                 lesson: lesson._id,
                 enrollment: enrollment._id,
                 title: lesson.title
             });
 
             // Update current lesson in enrollment
-            await api.put(`/api/enrollments/${courseId}/current-lesson`, {
+            await api.put(`/enrollments/${courseId}/current-lesson`, {
                 lessonId: lesson._id
             });
 

@@ -57,13 +57,13 @@ const SessionDetails = () => {
                 setLoading(true);
 
                 // Fetch session details
-                const sessionRes = await api.get(`/api/voice/sessions/${sessionId}`);
+                const sessionRes = await api.get(`/voice/sessions/${sessionId}`);
                 setSession(sessionRes.data.session);
 
                 // Fetch conversation messages
                 if (sessionRes.data.session.conversationId) {
                     const messagesRes = await api.get(
-                        `/api/conversations/${sessionRes.data.session.conversationId}/messages`
+                        `/conversations/${sessionRes.data.session.conversationId}/messages`
                     );
                     setMessages(messagesRes.data.data || []);
                 }
@@ -71,7 +71,7 @@ const SessionDetails = () => {
                 // Fetch lesson data if session is linked to a lesson
                 if (sessionRes.data.session.lesson) {
                     const lessonRes = await api.get(
-                        `/api/courses/${sessionRes.data.session.lesson.module.course}/modules/${sessionRes.data.session.lesson.module._id}/lessons/${sessionRes.data.session.lesson._id}`
+                        `/courses/${sessionRes.data.session.lesson.module.course}/modules/${sessionRes.data.session.lesson.module._id}/lessons/${sessionRes.data.session.lesson._id}`
                     );
                     setLesson(lessonRes.data.data);
                 }

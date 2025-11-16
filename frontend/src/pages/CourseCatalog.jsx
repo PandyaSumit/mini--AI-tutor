@@ -54,7 +54,7 @@ const CourseCatalog = () => {
                 if (selectedCategory !== 'all') params.category = selectedCategory;
                 if (selectedLevel !== 'all') params.level = selectedLevel;
 
-                const response = await api.get('/api/courses', { params });
+                const response = await api.get('/courses', { params });
                 setCourses(response.data.data || []);
                 setLoading(false);
             } catch (err) {
@@ -74,7 +74,7 @@ const CourseCatalog = () => {
         }
 
         try {
-            await api.post(`/api/courses/${courseId}/enroll`);
+            await api.post(`/courses/${courseId}/enroll`);
             navigate(`/courses/${courseId}`);
         } catch (err) {
             console.error('Error enrolling in course:', err);

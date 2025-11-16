@@ -496,15 +496,15 @@ const CourseDetails = () => {
                             <div className="flex items-center space-x-3">
                                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                                     <span className="text-white text-lg font-semibold">
-                                        {course.instructor?.name?.[0] || 'T'}
+                                        {course.createdBy?.name?.[0] || 'T'}
                                     </span>
                                 </div>
                                 <div>
                                     <p className="font-semibold text-gray-900">
-                                        {course.instructor?.name || 'Instructor'}
+                                        {course.createdBy?.name || 'Instructor'}
                                     </p>
                                     <p className="text-sm text-gray-500">
-                                        {course.instructor?.email}
+                                        {course.createdBy?.email}
                                     </p>
                                 </div>
                             </div>

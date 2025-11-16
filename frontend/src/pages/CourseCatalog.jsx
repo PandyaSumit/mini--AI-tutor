@@ -127,12 +127,20 @@ const CourseCatalog = () => {
                             </p>
                         </div>
                         {user && (
-                            <button
-                                onClick={() => navigate('/my-courses')}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                My Courses
-                            </button>
+                            <div className="flex items-center space-x-3">
+                                <button
+                                    onClick={() => navigate('/courses/create')}
+                                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium"
+                                >
+                                    + Create Course with AI
+                                </button>
+                                <button
+                                    onClick={() => navigate('/my-courses')}
+                                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                                >
+                                    My Courses
+                                </button>
+                            </div>
                         )}
                     </div>
 
@@ -280,11 +288,11 @@ const CourseCatalog = () => {
                                         <div className="flex items-center space-x-2">
                                             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                                                 <span className="text-white text-xs font-semibold">
-                                                    {course.instructor?.name?.[0] || 'T'}
+                                                    {course.createdBy?.name?.[0] || 'T'}
                                                 </span>
                                             </div>
                                             <span className="text-sm text-gray-600">
-                                                {course.instructor?.name || 'Instructor'}
+                                                {course.createdBy?.name || 'Instructor'}
                                             </span>
                                         </div>
 

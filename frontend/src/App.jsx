@@ -20,6 +20,7 @@ import SessionDetails from './pages/SessionDetails';
 import VoiceTutorTest from './pages/VoiceTutorTest';
 import CourseCatalog from './pages/CourseCatalog';
 import CourseDetails from './pages/CourseDetails';
+import CreateCourse from './pages/CreateCourse';
 
 function App() {
     const { user, loading } = useAuth();
@@ -94,6 +95,14 @@ function App() {
                             element={
                                 <PrivateRoute>
                                     <CourseCatalog />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/courses/create"
+                            element={
+                                <PrivateRoute>
+                                    <CreateCourse />
                                 </PrivateRoute>
                             }
                         />

@@ -5,9 +5,18 @@ let io = null;
 
 // Initialize Socket.IO server
 export const initializeSocketIO = (httpServer) => {
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:3000',
+    'http://localhost:5173', // Vite default
+    'http://localhost:5174'  // Vite alternate
+  ].filter(Boolean);
+
+  console.log('🔧 Socket.IO CORS allowed origins:', allowedOrigins);
+
   io = new Server(httpServer, {
     cors: {
-      origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+      origin: allowedOrigins,
       methods: ['GET', 'POST'],
       credentials: true
     },

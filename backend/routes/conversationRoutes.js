@@ -57,7 +57,7 @@ router.get('/:conversationId/messages', protect, async (req, res) => {
     // Fetch messages
     const messages = await Message.find({ conversation: req.params.conversationId })
       .sort({ createdAt: 1 })
-      .populate('sender', 'name email');
+      .populate('user', 'name email'); // Changed from 'sender' to 'user'
 
     console.log('✅ Found', messages.length, 'messages');
 

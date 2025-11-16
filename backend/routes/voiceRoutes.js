@@ -68,6 +68,113 @@ router.post('/session/:sessionId/end', endVoiceSession);
 router.put('/session/:sessionId/context', updateSessionContext);
 
 /**
+ * @route   POST /api/voice/sessions
+ * @desc    Create a new voice session (with optional lesson/enrollment)
+ * @access  Private
+ */
+router.post('/sessions', async (req, res) => {
+  try {
+    const { lesson, enrollment, title } = req.body;
+    const Session = (await import('../models/Session.js')).default;
+    const VoiceSession = (await import('../models/VoiceSession.js')).default;
+    const Conversation = (await import('../models/Conversation.js')).default;
+
+    // Create conversation
+    const conversation = await Conversation.create({
+      user: req.user._id,
+      title: title || 'Voice Learning Session',
+      conversationType: 'voice'
+    });
+
+    // Create session
+    const session = await Session.create({
+      user: req.user._id,
+      title: title || 'Voice Learning Session',
+      conversationId: conversation._id,
+      lesson: lesson || null,
+      enrollment: enrollment || null
+    });
+
+    // Create voice session
+    const voiceSession = await VoiceSession.create({
+      session: session._id,
+      user: req.user._id,
+      conversation: conversation._id,
+      status: 'active',
+      settings: {
+        language: 'en-US',
+        autoSpeak: true,
+        voiceType: 'default'
+      }
+    });
+
+    // Populate the response
+    const populatedSession = await Session.findById(session._id)
+      .populate('lesson')
+      .populate('enrollment');
+
+    res.status(201).json({
+      success: true,
+      session: populatedSession,
+      voiceSession
+    });
+  } catch (error) {
+    console.error('Error creating voice session:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/voice/sessions/:sessionId
+ * @desc    Get specific session details
+ * @access  Private
+ */
+router.get('/sessions/:sessionId', async (req, res) => {
+  try {
+    const Session = (await import('../models/Session.js')).default;
+
+    const session = await Session.findById(req.params.sessionId)
+      .populate({
+        path: 'lesson',
+        populate: {
+          path: 'module',
+          populate: { path: 'course' }
+        }
+      })
+      .populate('enrollment');
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
+
+    // Check if user owns this session
+    if (session.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized to access this session'
+      });
+    }
+
+    res.json({
+      success: true,
+      session
+    });
+  } catch (error) {
+    console.error('Error fetching session:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
  * @route   GET /api/voice/sessions
  * @desc    Get user's session history
  * @access  Private

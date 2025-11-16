@@ -38,6 +38,7 @@ router.get('/', async (req, res) => {
 
     const courses = await Course.find(query)
       .populate('createdBy', 'name email')
+      .populate('contributors.user', 'name email')
       .sort({ 'statistics.enrollmentCount': -1, createdAt: -1 })
       .limit(100);
 
@@ -62,7 +63,8 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const course = await Course.findById(req.params.id)
-      .populate('createdBy', 'name email');
+      .populate('createdBy', 'name email')
+      .populate('contributors.user', 'name email');
 
     if (!course) {
       return res.status(404).json({
@@ -200,7 +202,16 @@ router.post('/', protect, async (req, res) => {
   try {
     const courseData = {
       ...req.body,
-      createdBy: req.user._id
+      createdBy: req.user._id,
+      // Automatically add the creator as the founder
+      contributors: [{
+        user: req.user._id,
+        contributionType: 'founder',
+        contributionDate: new Date(),
+        contributionScore: 100,
+        revenueShare: 60, // Founders start at 60%
+        approvalStatus: 'approved'
+      }]
     };
 
     const course = await Course.create(courseData);

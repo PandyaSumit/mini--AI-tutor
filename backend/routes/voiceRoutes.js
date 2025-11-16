@@ -97,14 +97,17 @@ router.post('/sessions', async (req, res) => {
 
     // Create voice session
     const voiceSession = await VoiceSession.create({
-      session: session._id,
-      user: req.user._id,
-      conversation: conversation._id,
+      userId: req.user._id,
+      conversationId: conversation._id,
+      lesson: lesson || null,
+      enrollment: enrollment || null,
       status: 'active',
+      language: 'en-US',
       settings: {
         language: 'en-US',
         autoSpeak: true,
-        voiceType: 'default'
+        ttsEnabled: true,
+        sttMode: 'auto'
       }
     });
 

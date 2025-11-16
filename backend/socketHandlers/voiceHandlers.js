@@ -195,7 +195,7 @@ export const registerVoiceHandlers = (io) => {
                 if (!conversation) {
                     console.log('📝 Creating new conversation for text message');
                     conversation = new Conversation({
-                        userId: session.userId,
+                        user: session.userId,  // Fixed: 'user' not 'userId'
                         title: `Voice Chat - ${new Date().toLocaleString()}`,
                         metadata: {
                             isVoiceSession: true,

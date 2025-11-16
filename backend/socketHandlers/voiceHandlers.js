@@ -169,13 +169,17 @@ export const registerVoiceHandlers = (io) => {
          */
         socket.on('voice:text-message', async (data) => {
             try {
+                console.log('📨 Received voice:text-message event:', { sessionId: data.sessionId, text: data.text?.substring(0, 50) });
                 const { sessionId, text } = data;
 
                 const session = await Session.findById(sessionId);
                 if (!session || session.userId.toString() !== userId) {
+                    console.log('❌ Invalid session or user mismatch');
                     socket.emit('voice:error', { error: 'Invalid session' });
                     return;
                 }
+
+                console.log('✅ Session validated');
 
                 // Emit transcription event (simulating STT)
                 emitToUser(userId, 'voice:transcribed', {
@@ -183,6 +187,7 @@ export const registerVoiceHandlers = (io) => {
                     text,
                     language: session.settings.language
                 });
+                console.log('📤 Emitted voice:transcribed');
 
                 // Create conversation if it doesn't exist
                 const Conversation = (await import('../models/Conversation.js')).default;
@@ -190,6 +195,7 @@ export const registerVoiceHandlers = (io) => {
 
                 if (session.conversationId) {
                     conversation = await Conversation.findById(session.conversationId);
+                    console.log('📖 Found existing conversation:', conversation?._id);
                 }
 
                 if (!conversation) {
@@ -204,21 +210,26 @@ export const registerVoiceHandlers = (io) => {
                         }
                     });
                     await conversation.save();
+                    console.log('✅ Conversation created:', conversation._id);
 
                     session.conversationId = conversation._id;
                     await session.save();
+                    console.log('✅ Session updated with conversationId');
                 }
 
                 // Process as if it were voice input (without STT step)
+                console.log('🤖 Generating AI response...');
                 const response = await voiceOrchestrator.generateAIResponse(
                     conversation._id,
                     text,
                     session.context
                 );
+                console.log('✅ AI response generated:', response.text?.substring(0, 50));
 
                 // Save messages, update metrics, etc.
                 const Message = (await import('../models/Message.js')).default;
 
+                console.log('💾 Saving user message...');
                 const userMessage = new Message({
                     conversation: conversation._id,
                     user: session.userId,
@@ -227,7 +238,9 @@ export const registerVoiceHandlers = (io) => {
                     metadata: { isVoice: false }
                 });
                 await userMessage.save();
+                console.log('✅ User message saved');
 
+                console.log('💾 Saving AI message...');
                 const aiMessage = new Message({
                     conversation: conversation._id,
                     user: session.userId,
@@ -239,14 +252,18 @@ export const registerVoiceHandlers = (io) => {
                     }
                 });
                 await aiMessage.save();
+                console.log('✅ AI message saved');
 
                 // Update metrics
+                console.log('📊 Updating session metrics...');
                 await session.updateMetrics({
                     messageCount: session.metrics.messageCount + 2,
                     textMessageCount: session.metrics.textMessageCount + 1
                 });
+                console.log('✅ Metrics updated');
 
                 // Emit response
+                console.log('📤 Emitting voice:response to user...');
                 emitToUser(userId, 'voice:response', {
                     sessionId,
                     text: response.text,
@@ -257,8 +274,10 @@ export const registerVoiceHandlers = (io) => {
                         tokensUsed: response.tokensUsed
                     }
                 });
+                console.log('✅ Response emitted successfully');
             } catch (error) {
-                console.error('Error processing text message:', error);
+                console.error('❌ Error processing text message:', error);
+                console.error('Stack trace:', error.stack);
                 socket.emit('voice:error', { error: error.message });
             }
         });

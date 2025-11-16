@@ -3,9 +3,23 @@ import Course from '../models/Course.js';
 import Module from '../models/Module.js';
 import Lesson from '../models/Lesson.js';
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY
-});
+// Lazy initialization of Groq client to avoid import-time errors
+// when GROQ_API_KEY is not yet available (before dotenv loads)
+let groq = null;
+
+function getGroqClient() {
+  if (groq) return groq;
+
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      'GROQ_API_KEY is not configured. Please set it in your .env file or environment variables.'
+    );
+  }
+
+  groq = new Groq({ apiKey });
+  return groq;
+}
 
 /**
  * Generate embedding vector for text using AI
@@ -173,7 +187,7 @@ Requirements:
 - Tailor difficulty to ${level} level
 - Make it engaging and educational`;
 
-    const completion = await groq.chat.completions.create({
+    const completion = await getGroqClient().chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -328,7 +342,7 @@ Return ONLY a valid JSON object:
   "estimatedDuration": 120
 }`;
 
-    const completion = await groq.chat.completions.create({
+    const completion = await getGroqClient().chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: systemPrompt },

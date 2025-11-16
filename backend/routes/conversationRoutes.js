@@ -11,14 +11,24 @@ import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
+console.log('🔧 Conversation routes module loaded');
+
+// Debug middleware to log all requests to this router
+router.use((req, res, next) => {
+  console.log('🌐 Conversation route hit:', req.method, req.path, req.originalUrl);
+  next();
+});
+
 // All routes are protected
 router.get('/', protect, getConversations);
 router.post('/', protect, createConversation);
 router.get('/search', protect, searchConversations);
 
 // Get messages for a conversation (must be before /:id route)
+console.log('📝 Registering route: GET /:conversationId/messages');
 router.get('/:conversationId/messages', protect, async (req, res) => {
   try {
+    console.log('🎯 Messages route handler called!');
     const Message = (await import('../models/Message.js')).default;
     const Conversation = (await import('../models/Conversation.js')).default;
 
@@ -65,8 +75,12 @@ router.get('/:conversationId/messages', protect, async (req, res) => {
 });
 
 // Other conversation routes (must be after specific routes)
+console.log('📝 Registering route: GET /:id');
 router.get('/:id', protect, getConversation);
+console.log('📝 Registering route: PUT /:id');
 router.put('/:id', protect, updateConversation);
+console.log('📝 Registering route: DELETE /:id');
 router.delete('/:id', protect, deleteConversation);
 
+console.log('✅ All conversation routes registered');
 export default router;

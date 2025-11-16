@@ -8,6 +8,81 @@ const groq = new Groq({
 });
 
 /**
+ * Generate embedding vector for text using AI
+ * Creates a 384-dimensional vector representation
+ */
+async function generateEmbedding(text) {
+  try {
+    // For now, generate a simple hash-based embedding
+    // In production, use a proper embedding model like BGE-small via HuggingFace or similar
+    const hashEmbedding = createSimpleEmbedding(text);
+    return hashEmbedding;
+  } catch (error) {
+    console.error('Error generating embedding:', error);
+    return null;
+  }
+}
+
+/**
+ * Simple embedding generation using text features
+ * In production, replace with proper BGE-small or similar model
+ */
+function createSimpleEmbedding(text) {
+  const normalized = text.toLowerCase();
+  const words = normalized.split(/\s+/);
+  const embedding = new Array(384).fill(0);
+
+  // Create feature vector based on text characteristics
+  words.forEach((word, index) => {
+    const hash = simpleHash(word);
+    const position = hash % 384;
+    embedding[position] += 1;
+  });
+
+  // Normalize the vector
+  const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+  return embedding.map(val => magnitude > 0 ? val / magnitude : 0);
+}
+
+function simpleHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+}
+
+/**
+ * Calculate cosine similarity between two vectors
+ */
+function cosineSimilarity(vec1, vec2) {
+  if (!vec1 || !vec2 || vec1.length !== vec2.length) {
+    return 0;
+  }
+
+  let dotProduct = 0;
+  let mag1 = 0;
+  let mag2 = 0;
+
+  for (let i = 0; i < vec1.length; i++) {
+    dotProduct += vec1[i] * vec2[i];
+    mag1 += vec1[i] * vec1[i];
+    mag2 += vec2[i] * vec2[i];
+  }
+
+  mag1 = Math.sqrt(mag1);
+  mag2 = Math.sqrt(mag2);
+
+  if (mag1 === 0 || mag2 === 0) {
+    return 0;
+  }
+
+  return dotProduct / (mag1 * mag2);
+}
+
+/**
  * AI Course Generator
  * Generates complete course structure using Groq AI based on user prompts
  */
@@ -133,7 +208,11 @@ Requirements:
   /**
    * Create course, modules, and lessons in database
    */
-  async createCourseInDatabase(structure, userId) {
+  async createCourseInDatabase(structure, userId, specializationInfo = null) {
+    // Generate embedding for course similarity matching
+    const embeddingText = `${structure.title} ${structure.description} ${structure.tags?.join(' ') || ''}`;
+    const embedding = await generateEmbedding(embeddingText);
+
     // Create the course
     const course = await Course.create({
       title: structure.title,
@@ -144,11 +223,19 @@ Requirements:
       createdBy: userId,
       contributors: [{
         user: userId,
-        contributionType: 'creator',
+        contributionType: 'founder',
         contributionDate: new Date(),
-        contributionScore: 100
+        contributionScore: 100,
+        revenueShare: 100,
+        approvalStatus: 'approved'
       }],
+      embedding: embedding,
+      specializationType: specializationInfo?.type || 'general',
+      specializationJustification: specializationInfo?.justification || null,
+      parentCourse: specializationInfo?.parentCourse || null,
+      isDraft: true,
       isPublished: false,
+      qualityScore: 0,
       metadata: {
         language: 'en-US',
         learningOutcomes: structure.learningOutcomes || []
@@ -261,90 +348,78 @@ Return ONLY a valid JSON object:
   }
 
   /**
-   * Find similar existing courses using AI
+   * Find similar existing courses using embedding-based cosine similarity
    * @param {string} prompt - User's course creation prompt
    * @param {string} level - Course level
-   * @returns {Promise<Array>} - Array of similar courses with similarity scores
+   * @returns {Promise<Array>} - Array of similar courses with similarity scores (85%+ threshold)
    */
   async findSimilarCourses(prompt, level) {
     try {
-      // Get all published courses
-      const allCourses = await Course.find({ isPublished: true })
-        .populate('createdBy', 'name')
-        .select('title description category level tags statistics createdBy')
+      // Generate embedding for the user's prompt
+      const queryEmbedding = await generateEmbedding(prompt);
+
+      if (!queryEmbedding) {
+        return [];
+      }
+
+      // Get all published courses with embeddings
+      const allCourses = await Course.find({
+        isPublished: true,
+        embedding: { $exists: true, $ne: null }
+      })
+        .populate('createdBy', 'name email')
+        .populate({
+          path: 'contributors',
+          populate: { path: 'user', select: 'name' }
+        })
+        .select('title description category level tags statistics createdBy contributors embedding')
         .limit(100);
 
       if (allCourses.length === 0) {
         return [];
       }
 
-      // Use AI to calculate similarity scores
-      const systemPrompt = `You are a course similarity analyzer. Compare the user's course request with existing courses and calculate similarity scores.
+      // Calculate cosine similarity for each course
+      const coursesWithSimilarity = allCourses.map(course => {
+        const similarity = cosineSimilarity(queryEmbedding, course.embedding);
+        const similarityScore = Math.round(similarity * 100);
 
-For each existing course, determine how similar it is to the requested course on a scale of 0-100.
+        // Generate reason based on matching features
+        let reason = '';
+        if (course.level === level) {
+          reason += 'Same difficulty level. ';
+        }
+        if (similarityScore >= 90) {
+          reason += 'Nearly identical course content and objectives.';
+        } else if (similarityScore >= 85) {
+          reason += 'Very similar topics and learning outcomes.';
+        }
 
-Return ONLY a valid JSON array of objects:
-[
-  {
-    "courseId": "course_id_here",
-    "similarityScore": 85,
-    "reason": "Brief explanation of why this is similar"
-  }
-]
-
-Only include courses with similarity >= 70. If no courses are similar enough, return an empty array.`;
-
-      const existingCoursesInfo = allCourses.map(c => ({
-        id: c._id.toString(),
-        title: c.title,
-        description: c.description,
-        category: c.category,
-        level: c.level,
-        tags: c.tags
-      }));
-
-      const completion = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: `User wants to create: "${prompt}" (Level: ${level})\n\nExisting courses:\n${JSON.stringify(existingCoursesInfo, null, 2)}`
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 2000
+        return {
+          _id: course._id,
+          title: course.title,
+          description: course.description,
+          category: course.category,
+          level: course.level,
+          tags: course.tags,
+          statistics: course.statistics,
+          createdBy: course.createdBy,
+          contributors: course.contributors,
+          similarityScore,
+          similarityReason: reason.trim() || 'Similar course content and structure.'
+        };
       });
 
-      const response = completion.choices[0]?.message?.content;
-      const cleanedResponse = response
-        .replace(/```json\n?/g, '')
-        .replace(/```\n?/g, '')
-        .trim();
-
-      const similarityResults = JSON.parse(cleanedResponse);
-
-      // Merge with full course data and sort by similarity
-      const similarCourses = similarityResults
-        .map(result => {
-          const course = allCourses.find(c => c._id.toString() === result.courseId);
-          if (!course) return null;
-
-          return {
-            _id: course._id,
-            title: course.title,
-            description: course.description,
-            category: course.category,
-            level: course.level,
-            tags: course.tags,
-            statistics: course.statistics,
-            createdBy: course.createdBy,
-            similarityScore: result.similarityScore,
-            similarityReason: result.reason
-          };
+      // Filter courses with similarity >= 85% (high threshold)
+      const similarCourses = coursesWithSimilarity
+        .filter(c => c.similarityScore >= 85)
+        .sort((a, b) => {
+          // Sort by similarity first, then by enrollment count
+          if (b.similarityScore !== a.similarityScore) {
+            return b.similarityScore - a.similarityScore;
+          }
+          return (b.statistics?.enrollmentCount || 0) - (a.statistics?.enrollmentCount || 0);
         })
-        .filter(c => c !== null)
-        .sort((a, b) => b.similarityScore - a.similarityScore)
         .slice(0, 5); // Top 5 similar courses
 
       return similarCourses;

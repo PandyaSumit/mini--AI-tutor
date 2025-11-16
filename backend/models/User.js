@@ -76,6 +76,59 @@ const userSchema = new mongoose.Schema({
       default: true
     }
   },
+  reputation: {
+    score: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    coursesCreated: {
+      type: Number,
+      default: 0
+    },
+    coursesCoCreated: {
+      type: Number,
+      default: 0
+    },
+    improvementsImplemented: {
+      type: Number,
+      default: 0
+    },
+    totalStudents: {
+      type: Number,
+      default: 0
+    },
+    averageCourseRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5
+    },
+    badges: [{
+      type: String,
+      enum: ['founder', 'co-creator', 'expert', 'prolific', 'quality', 'helpful']
+    }]
+  },
+  subscription: {
+    tier: {
+      type: String,
+      enum: ['free', 'pro', 'enterprise'],
+      default: 'free'
+    },
+    status: {
+      type: String,
+      enum: ['active', 'cancelled', 'expired'],
+      default: 'active'
+    },
+    startDate: {
+      type: Date,
+      default: null
+    },
+    endDate: {
+      type: Date,
+      default: null
+    }
+  },
   isVerified: {
     type: Boolean,
     default: false
@@ -149,6 +202,42 @@ userSchema.methods.updateStreak = function() {
   }
 
   this.learningStats.lastActiveDate = new Date();
+};
+
+// Check if user can create specialized course
+userSchema.methods.canCreateSpecializedCourse = function() {
+  // Requires Pro subscription OR reputation score >= 100
+  const hasProSubscription = this.subscription.tier === 'pro' && this.subscription.status === 'active';
+  const hasReputationRequirement = this.reputation.score >= 100;
+
+  return hasProSubscription || hasReputationRequirement;
+};
+
+// Award reputation points
+userSchema.methods.awardReputation = function(points, reason) {
+  this.reputation.score += points;
+
+  // Award badges based on achievements
+  if (this.reputation.coursesCreated >= 1 && !this.reputation.badges.includes('founder')) {
+    this.reputation.badges.push('founder');
+  }
+  if (this.reputation.coursesCoCreated >= 3 && !this.reputation.badges.includes('co-creator')) {
+    this.reputation.badges.push('co-creator');
+  }
+  if (this.reputation.coursesCreated + this.reputation.coursesCoCreated >= 10 && !this.reputation.badges.includes('prolific')) {
+    this.reputation.badges.push('prolific');
+  }
+  if (this.reputation.improvementsImplemented >= 10 && !this.reputation.badges.includes('helpful')) {
+    this.reputation.badges.push('helpful');
+  }
+  if (this.reputation.averageCourseRating >= 4.5 && !this.reputation.badges.includes('quality')) {
+    this.reputation.badges.push('quality');
+  }
+  if (this.reputation.score >= 500 && !this.reputation.badges.includes('expert')) {
+    this.reputation.badges.push('expert');
+  }
+
+  return this.save();
 };
 
 export default mongoose.model('User', userSchema);

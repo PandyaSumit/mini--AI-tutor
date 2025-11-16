@@ -29,8 +29,8 @@ const courseSchema = new mongoose.Schema({
     },
     contributionType: {
       type: String,
-      enum: ['creator', 'editor', 'reviewer', 'content_improver'],
-      default: 'editor'
+      enum: ['founder', 'co-creator', 'content_improver', 'reviewer'],
+      default: 'co-creator'
     },
     contributionDate: {
       type: Date,
@@ -38,9 +38,58 @@ const courseSchema = new mongoose.Schema({
     },
     contributionScore: {
       type: Number,
-      default: 0 // For future revenue sharing
+      default: 0
+    },
+    revenueShare: {
+      type: Number,
+      default: 0, // Percentage (0-100)
+      min: 0,
+      max: 100
+    },
+    approvalStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'approved'
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    approvedAt: {
+      type: Date,
+      default: null
     }
   }],
+  embedding: {
+    type: [Number],
+    default: null // 384-dimensional vector from BGE-small
+  },
+  specializationType: {
+    type: String,
+    enum: ['general', 'niche', 'audience-specific', 'advanced'],
+    default: 'general'
+  },
+  specializationJustification: {
+    type: String,
+    maxlength: 1000,
+    default: null
+  },
+  parentCourse: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    default: null // Set if this is a specialized version
+  },
+  qualityScore: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
+  },
+  isDraft: {
+    type: Boolean,
+    default: true
+  },
   category: {
     type: String,
     enum: ['programming', 'mathematics', 'science', 'language', 'business', 'design', 'other'],
@@ -160,8 +209,8 @@ courseSchema.methods.updateStatistics = async function() {
   return this.save();
 };
 
-// Method to add contributor
-courseSchema.methods.addContributor = function(userId, contributionType = 'editor') {
+// Method to add contributor with revenue sharing
+courseSchema.methods.addContributor = function(userId, contributionType = 'co-creator', revenueShare = 0) {
   // Check if user is already a contributor
   const existingContributor = this.contributors.find(
     c => c.user.toString() === userId.toString()
@@ -172,12 +221,28 @@ courseSchema.methods.addContributor = function(userId, contributionType = 'edito
       user: userId,
       contributionType,
       contributionDate: new Date(),
-      contributionScore: 0
+      contributionScore: 0,
+      revenueShare: revenueShare,
+      approvalStatus: 'approved',
+      approvedBy: this.createdBy,
+      approvedAt: new Date()
     });
     return this.save();
+  } else {
+    // Update existing contributor's revenue share if higher
+    if (revenueShare > existingContributor.revenueShare) {
+      existingContributor.revenueShare = revenueShare;
+      return this.save();
+    }
   }
 
   return Promise.resolve(this);
+};
+
+// Method to get the course founder
+courseSchema.methods.getFounder = function() {
+  const founder = this.contributors.find(c => c.contributionType === 'founder');
+  return founder ? founder.user : this.createdBy;
 };
 
 // Method to check if user can contribute
@@ -187,12 +252,25 @@ courseSchema.methods.canUserContribute = function(userId) {
     return true;
   }
 
-  // Check if user is already a contributor
+  // Check if user is already an approved contributor
   const isContributor = this.contributors.some(
-    c => c.user.toString() === userId.toString()
+    c => c.user.toString() === userId.toString() && c.approvalStatus === 'approved'
   );
 
   return isContributor;
+};
+
+// Method to check if course meets quality standards for publishing
+courseSchema.methods.meetsQualityStandards = function() {
+  // Requirements:
+  // - At least 3 modules
+  // - At least 12 total lessons (3 modules × 4 lessons minimum)
+  // - Quality score >= 50
+  const hasMinModules = this.statistics.totalModules >= 3;
+  const hasMinLessons = this.statistics.totalLessons >= 12;
+  const meetsQualityScore = this.qualityScore >= 50;
+
+  return hasMinModules && hasMinLessons && meetsQualityScore;
 };
 
 // Static method to find published courses

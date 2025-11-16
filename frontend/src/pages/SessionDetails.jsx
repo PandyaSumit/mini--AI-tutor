@@ -70,10 +70,8 @@ const SessionDetails = () => {
 
                 // Fetch lesson data if session is linked to a lesson
                 if (sessionRes.data.session.lesson) {
-                    const lessonRes = await api.get(
-                        `/courses/${sessionRes.data.session.lesson.module.course}/modules/${sessionRes.data.session.lesson.module._id}/lessons/${sessionRes.data.session.lesson._id}`
-                    );
-                    setLesson(lessonRes.data.data);
+                    // Lesson is already populated with module and course, so just use it directly
+                    setLesson(sessionRes.data.session.lesson);
                 }
 
                 setLoading(false);

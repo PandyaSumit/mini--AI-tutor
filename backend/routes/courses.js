@@ -2,7 +2,8 @@ import express from 'express';
 import Course from '../models/Course.js';
 import Module from '../models/Module.js';
 import Enrollment from '../models/Enrollment.js';
-import { protect } from '../middleware/auth.js';
+import { protect } from '../middleware/authMiddleware.js';
+import courseGenerator from '../services/courseGenerator.js';
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get('/', async (req, res) => {
 
     // If fetching user's created courses (requires auth)
     if (myCreated && req.user) {
-      query.instructor = req.user._id;
+      query.createdBy = req.user._id;
     } else {
       // Public courses must be published
       query.isPublished = true;
@@ -36,7 +37,7 @@ router.get('/', async (req, res) => {
     }
 
     const courses = await Course.find(query)
-      .populate('instructor', 'name email')
+      .populate('createdBy', 'name email')
       .sort({ 'statistics.enrollmentCount': -1, createdAt: -1 })
       .limit(100);
 
@@ -61,7 +62,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const course = await Course.findById(req.params.id)
-      .populate('instructor', 'name email');
+      .populate('createdBy', 'name email');
 
     if (!course) {
       return res.status(404).json({
@@ -89,15 +90,82 @@ router.get('/:id', async (req, res) => {
 });
 
 /**
+ * @route   POST /api/courses/generate
+ * @desc    Generate course using AI
+ * @access  Private
+ */
+router.post('/generate', protect, async (req, res) => {
+  try {
+    const { prompt, level, numModules, lessonsPerModule } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({
+        success: false,
+        error: 'Prompt is required'
+      });
+    }
+
+    const result = await courseGenerator.generateCourse(prompt, req.user._id, {
+      level,
+      numModules,
+      lessonsPerModule
+    });
+
+    res.status(201).json({
+      success: true,
+      data: result.course,
+      message: 'Course generated successfully. You can now review and publish it.'
+    });
+  } catch (error) {
+    console.error('Error in AI course generation:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to generate course'
+    });
+  }
+});
+
+/**
+ * @route   POST /api/courses/generate/preview
+ * @desc    Generate course preview (without saving)
+ * @access  Private
+ */
+router.post('/generate/preview', protect, async (req, res) => {
+  try {
+    const { prompt, level, numModules } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({
+        success: false,
+        error: 'Prompt is required'
+      });
+    }
+
+    const preview = await courseGenerator.generatePreview(prompt, level, numModules);
+
+    res.json({
+      success: true,
+      data: preview
+    });
+  } catch (error) {
+    console.error('Error generating preview:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to generate preview'
+    });
+  }
+});
+
+/**
  * @route   POST /api/courses
- * @desc    Create new course
+ * @desc    Create new course manually
  * @access  Private
  */
 router.post('/', protect, async (req, res) => {
   try {
     const courseData = {
       ...req.body,
-      instructor: req.user._id
+      createdBy: req.user._id
     };
 
     const course = await Course.create(courseData);
@@ -117,7 +185,7 @@ router.post('/', protect, async (req, res) => {
 /**
  * @route   PUT /api/courses/:id
  * @desc    Update course
- * @access  Private (instructor only)
+ * @access  Private (creator only)
  */
 router.put('/:id', protect, async (req, res) => {
   try {
@@ -131,7 +199,7 @@ router.put('/:id', protect, async (req, res) => {
     }
 
     // Check ownership
-    if (course.instructor.toString() !== req.user._id.toString()) {
+    if (course.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to update this course'
@@ -159,7 +227,7 @@ router.put('/:id', protect, async (req, res) => {
 /**
  * @route   DELETE /api/courses/:id
  * @desc    Delete course
- * @access  Private (instructor only)
+ * @access  Private (creator only)
  */
 router.delete('/:id', protect, async (req, res) => {
   try {
@@ -173,7 +241,7 @@ router.delete('/:id', protect, async (req, res) => {
     }
 
     // Check ownership
-    if (course.instructor.toString() !== req.user._id.toString()) {
+    if (course.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to delete this course'
@@ -197,7 +265,7 @@ router.delete('/:id', protect, async (req, res) => {
 /**
  * @route   POST /api/courses/:id/publish
  * @desc    Publish course
- * @access  Private (instructor only)
+ * @access  Private (creator only)
  */
 router.post('/:id/publish', protect, async (req, res) => {
   try {
@@ -211,7 +279,7 @@ router.post('/:id/publish', protect, async (req, res) => {
     }
 
     // Check ownership
-    if (course.instructor.toString() !== req.user._id.toString()) {
+    if (course.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to publish this course'

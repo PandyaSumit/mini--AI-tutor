@@ -1,7 +1,7 @@
 import express from 'express';
 import Module from '../models/Module.js';
 import Course from '../models/Course.js';
-import { protect } from '../middleware/auth.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router({ mergeParams: true });
 
@@ -63,7 +63,7 @@ router.get('/:id', async (req, res) => {
 /**
  * @route   POST /api/courses/:courseId/modules
  * @desc    Create new module
- * @access  Private (instructor only)
+ * @access  Private (creator only)
  */
 router.post('/', protect, async (req, res) => {
   try {
@@ -77,7 +77,7 @@ router.post('/', protect, async (req, res) => {
     }
 
     // Check ownership
-    if (course.instructor.toString() !== req.user._id.toString()) {
+    if (course.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to create module in this course'
@@ -109,7 +109,7 @@ router.post('/', protect, async (req, res) => {
 /**
  * @route   PUT /api/courses/:courseId/modules/:id
  * @desc    Update module
- * @access  Private (instructor only)
+ * @access  Private (creator only)
  */
 router.put('/:id', protect, async (req, res) => {
   try {
@@ -123,7 +123,7 @@ router.put('/:id', protect, async (req, res) => {
     }
 
     // Check ownership
-    if (module.course.instructor.toString() !== req.user._id.toString()) {
+    if (module.course.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to update this module'
@@ -155,7 +155,7 @@ router.put('/:id', protect, async (req, res) => {
 /**
  * @route   DELETE /api/courses/:courseId/modules/:id
  * @desc    Delete module
- * @access  Private (instructor only)
+ * @access  Private (creator only)
  */
 router.delete('/:id', protect, async (req, res) => {
   try {
@@ -169,7 +169,7 @@ router.delete('/:id', protect, async (req, res) => {
     }
 
     // Check ownership
-    if (module.course.instructor.toString() !== req.user._id.toString()) {
+    if (module.course.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to delete this module'

@@ -16,7 +16,7 @@ const courseSchema = new mongoose.Schema({
     type: String,
     default: null // URL to thumbnail image
   },
-  instructor: {
+  createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true

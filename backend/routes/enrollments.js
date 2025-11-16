@@ -1,7 +1,7 @@
 import express from 'express';
 import Enrollment from '../models/Enrollment.js';
 import Lesson from '../models/Lesson.js';
-import { protect } from '../middleware/auth.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 

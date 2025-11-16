@@ -16,297 +16,311 @@ import thinkingGenerator from '../ai/thinking/thinkingGenerator.js';
 import tutorPrompts from '../ai/prompts/tutorPrompts.js';
 
 class AIOrchestrator {
-  constructor() {
-    this.llm = new ChatGroq({
-      apiKey: aiConfig.llm.apiKey,
-      model: aiConfig.llm.model,
-      temperature: aiConfig.llm.temperature,
-      maxTokens: aiConfig.llm.maxTokens,
-      streaming: aiConfig.llm.streaming,
-    });
-
-    this.isInitialized = false;
-  }
-
-  /**
-   * Initialize all AI services
-   */
-  async initialize() {
-    console.log('🚀 Initializing AI Pipeline...');
-
-    try {
-      // Validate environment variables
-      const validation = envValidator.validate();
-      if (!validation.valid) {
-        console.error('❌ Environment validation failed - AI pipeline may not work correctly');
-        return { success: false, error: 'Environment validation failed', details: validation.errors };
-      }
-
-      // Initialize embedding service (required)
-      await embeddingService.initialize();
-
-      // Initialize ChromaDB (optional - graceful degradation)
-      const chromaResult = await chromaService.initialize();
-      const chromaAvailable = chromaResult.success;
-
-      this.isInitialized = true;
-      console.log('✅ AI Pipeline initialized successfully');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('📋 AI Pipeline Ready:');
-      console.log('   ✓ Local embeddings (BGE-small, FREE)');
-      console.log(`   ${chromaAvailable ? '✓' : '✗'} Vector store (ChromaDB) ${chromaAvailable ? '' : '- DISABLED'}`);
-      console.log(`   ${chromaAvailable ? '✓' : '✗'} RAG pipeline ${chromaAvailable ? '' : '- LIMITED'}`);
-      console.log('   ✓ LLM (Groq)');
-      console.log('   ✓ Security layer');
-      console.log('   Cost: $0 embeddings + Groq LLM only');
-      if (!chromaAvailable) {
-        console.log('   ⚠️  Note: Some features require ChromaDB server');
-      }
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
-      return { success: true, chromaAvailable };
-    } catch (error) {
-      console.error('❌ AI Pipeline initialization failed:', error.message);
-      this.isInitialized = false;
-      return { success: false, error: error.message };
-    }
-  }
-
-  /**
-   * Chat with AI (simple completion)
-   */
-  async chat(message, context = {}) {
-    const startTime = Date.now();
-
-    // Security check
-    const injectionCheck = sanitizer.detectInjection(message);
-    if (injectionCheck.detected) {
-      throw new Error('Potential prompt injection detected');
+    constructor() {
+        // Lazily initialize the ChatGroq client to avoid throwing during module
+        // import if environment variables are not yet loaded.
+        this.llm = null;
+        this.isInitialized = false;
     }
 
-    const sanitizedMessage = sanitizer.sanitizeText(message);
+    getLLM() {
+        if (this.llm) return this.llm;
 
-    // Generate thinking steps
-    const thinkingSteps = thinkingGenerator.generateThinkingSteps(sanitizedMessage, {
-      mode: 'simple',
-      hasRAG: false
-    });
+        const apiKey = aiConfig.llm.apiKey || process.env.GROQ_API_KEY;
+        if (!apiKey) {
+            throw new Error('GROQ API key missing. Please set `GROQ_API_KEY` in your .env or environment and restart the server.');
+        }
 
-    const response = await this.llm.invoke(sanitizedMessage);
+        this.llm = new ChatGroq({
+            apiKey,
+            model: aiConfig.llm.model,
+            temperature: aiConfig.llm.temperature,
+            maxTokens: aiConfig.llm.maxTokens,
+            streaming: aiConfig.llm.streaming,
+        });
 
-    const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
-
-    return {
-      response: response.content,
-      model: aiConfig.llm.model,
-      sanitized: message !== sanitizedMessage,
-      thinking: {
-        steps: thinkingSteps,
-        summary: thinkingSummary,
-        totalDuration: Date.now() - startTime
-      }
-    };
-  }
-
-  /**
-   * Chat with RAG (context-aware)
-   */
-  async chatWithRAG(question, options = {}) {
-    const startTime = Date.now();
-
-    if (!chromaService.isInitialized) {
-      throw new Error('RAG features require ChromaDB server. Please start ChromaDB server first.');
+        return this.llm;
     }
 
-    const injectionCheck = sanitizer.detectInjection(question);
-    if (injectionCheck.detected) {
-      throw new Error('Potential prompt injection detected');
+    /**
+     * Initialize all AI services
+     */
+    async initialize() {
+        console.log('🚀 Initializing AI Pipeline...');
+
+        try {
+            // Validate environment variables
+            const validation = envValidator.validate();
+            if (!validation.valid) {
+                console.error('❌ Environment validation failed - AI pipeline may not work correctly');
+                return { success: false, error: 'Environment validation failed', details: validation.errors };
+            }
+
+            // Initialize embedding service (required)
+            await embeddingService.initialize();
+
+            // Initialize ChromaDB (optional - graceful degradation)
+            const chromaResult = await chromaService.initialize();
+            const chromaAvailable = chromaResult.success;
+
+            this.isInitialized = true;
+            console.log('✅ AI Pipeline initialized successfully');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('📋 AI Pipeline Ready:');
+            console.log('   ✓ Local embeddings (BGE-small, FREE)');
+            console.log(`   ${chromaAvailable ? '✓' : '✗'} Vector store (ChromaDB) ${chromaAvailable ? '' : '- DISABLED'}`);
+            console.log(`   ${chromaAvailable ? '✓' : '✗'} RAG pipeline ${chromaAvailable ? '' : '- LIMITED'}`);
+            console.log('   ✓ LLM (Groq)');
+            console.log('   ✓ Security layer');
+            console.log('   Cost: $0 embeddings + Groq LLM only');
+            if (!chromaAvailable) {
+                console.log('   ⚠️  Note: Some features require ChromaDB server');
+            }
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+            return { success: true, chromaAvailable };
+        } catch (error) {
+            console.error('❌ AI Pipeline initialization failed:', error.message);
+            this.isInitialized = false;
+            return { success: false, error: error.message };
+        }
     }
 
-    const sanitizedQuestion = sanitizer.sanitizeText(question);
+    /**
+     * Chat with AI (simple completion)
+     */
+    async chat(message, context = {}) {
+        const startTime = Date.now();
 
-    const result = await ragChain.query(sanitizedQuestion, options);
+        // Security check
+        const injectionCheck = sanitizer.detectInjection(message);
+        if (injectionCheck.detected) {
+            throw new Error('Potential prompt injection detected');
+        }
 
-    // Generate thinking steps with RAG context
-    const thinkingSteps = thinkingGenerator.generateThinkingSteps(sanitizedQuestion, {
-      mode: 'rag',
-      hasRAG: true,
-      sources: result.sources || []
-    });
+        const sanitizedMessage = sanitizer.sanitizeText(message);
 
-    const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
+        // Generate thinking steps
+        const thinkingSteps = thinkingGenerator.generateThinkingSteps(sanitizedMessage, {
+            mode: 'simple',
+            hasRAG: false
+        });
 
-    return {
-      ...result,
-      question: sanitizedQuestion,
-      model: aiConfig.llm.model,
-      thinking: {
-        steps: thinkingSteps,
-        summary: thinkingSummary,
-        totalDuration: Date.now() - startTime
-      }
-    };
-  }
+        const response = await this.getLLM().invoke(sanitizedMessage);
 
-  /**
-   * Tutor Chat - Socratic teaching method
-   * Uses comprehensive tutor system prompt for educational conversations
-   */
-  async tutorChat(message, options = {}) {
-    const startTime = Date.now();
+        const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
 
-    const {
-      subject = 'general',
-      level = 'intermediate',
-      phase = 'introduction',
-      conversationHistory = []
-    } = options;
-
-    // Security check
-    const injectionCheck = sanitizer.detectInjection(message);
-    if (injectionCheck.detected) {
-      throw new Error('Potential prompt injection detected');
+        return {
+            response: response.content,
+            model: aiConfig.llm.model,
+            sanitized: message !== sanitizedMessage,
+            thinking: {
+                steps: thinkingSteps,
+                summary: thinkingSummary,
+                totalDuration: Date.now() - startTime
+            }
+        };
     }
 
-    const sanitizedMessage = sanitizer.sanitizeText(message);
+    /**
+     * Chat with RAG (context-aware)
+     */
+    async chatWithRAG(question, options = {}) {
+        const startTime = Date.now();
 
-    // Generate tutor system prompt
-    const systemPrompt = tutorPrompts.generate({
-      subject,
-      level,
-      phase,
-      sessionContext: conversationHistory.length > 0
-        ? `Previous exchanges: ${conversationHistory.slice(-3).map(h => `Student: ${h.question}\nTutor: ${h.answer}`).join('\n')}`
-        : null
-    });
+        if (!chromaService.isInitialized) {
+            throw new Error('RAG features require ChromaDB server. Please start ChromaDB server first.');
+        }
 
-    // Generate thinking steps for tutor mode
-    const thinkingSteps = thinkingGenerator.generateThinkingSteps(sanitizedMessage, {
-      mode: 'tutor',
-      hasRAG: false,
-      subject,
-      phase
-    });
+        const injectionCheck = sanitizer.detectInjection(question);
+        if (injectionCheck.detected) {
+            throw new Error('Potential prompt injection detected');
+        }
 
-    // Create messages with system prompt
-    const messages = [
-      new SystemMessage(systemPrompt),
-      new HumanMessage(sanitizedMessage)
-    ];
+        const sanitizedQuestion = sanitizer.sanitizeText(question);
 
-    const response = await this.llm.invoke(messages);
+        const result = await ragChain.query(sanitizedQuestion, options);
 
-    const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
+        // Generate thinking steps with RAG context
+        const thinkingSteps = thinkingGenerator.generateThinkingSteps(sanitizedQuestion, {
+            mode: 'rag',
+            hasRAG: true,
+            sources: result.sources || []
+        });
 
-    return {
-      response: response.content,
-      model: aiConfig.llm.model,
-      sanitized: message !== sanitizedMessage,
-      tutorMode: true,
-      subject,
-      level,
-      phase,
-      thinking: {
-        steps: thinkingSteps,
-        summary: thinkingSummary,
-        totalDuration: Date.now() - startTime
-      }
-    };
-  }
+        const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
 
-  /**
-   * Generate embeddings
-   */
-  async generateEmbeddings(texts) {
-    if (!Array.isArray(texts)) {
-      texts = [texts];
+        return {
+            ...result,
+            question: sanitizedQuestion,
+            model: aiConfig.llm.model,
+            thinking: {
+                steps: thinkingSteps,
+                summary: thinkingSummary,
+                totalDuration: Date.now() - startTime
+            }
+        };
     }
 
-    return await embeddingService.embedBatch(texts);
-  }
+    /**
+     * Tutor Chat - Socratic teaching method
+     * Uses comprehensive tutor system prompt for educational conversations
+     */
+    async tutorChat(message, options = {}) {
+        const startTime = Date.now();
 
-  /**
-   * Semantic search
-   */
-  async semanticSearch(query, options = {}) {
-    if (!chromaService.isInitialized) {
-      throw new Error('Search features require ChromaDB server. Please start ChromaDB server first.');
+        const {
+            subject = 'general',
+            level = 'intermediate',
+            phase = 'introduction',
+            conversationHistory = []
+        } = options;
+
+        // Security check
+        const injectionCheck = sanitizer.detectInjection(message);
+        if (injectionCheck.detected) {
+            throw new Error('Potential prompt injection detected');
+        }
+
+        const sanitizedMessage = sanitizer.sanitizeText(message);
+
+        // Generate tutor system prompt
+        const systemPrompt = tutorPrompts.generate({
+            subject,
+            level,
+            phase,
+            sessionContext: conversationHistory.length > 0
+                ? `Previous exchanges: ${conversationHistory.slice(-3).map(h => `Student: ${h.question}\nTutor: ${h.answer}`).join('\n')}`
+                : null
+        });
+
+        // Generate thinking steps for tutor mode
+        const thinkingSteps = thinkingGenerator.generateThinkingSteps(sanitizedMessage, {
+            mode: 'tutor',
+            hasRAG: false,
+            subject,
+            phase
+        });
+
+        // Create messages with system prompt
+        const messages = [
+            new SystemMessage(systemPrompt),
+            new HumanMessage(sanitizedMessage)
+        ];
+
+        const response = await this.getLLM().invoke(messages);
+
+        const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
+
+        return {
+            response: response.content,
+            model: aiConfig.llm.model,
+            sanitized: message !== sanitizedMessage,
+            tutorMode: true,
+            subject,
+            level,
+            phase,
+            thinking: {
+                steps: thinkingSteps,
+                summary: thinkingSummary,
+                totalDuration: Date.now() - startTime
+            }
+        };
     }
 
-    const { collectionKey = 'knowledge', topK = 5 } = options;
+    /**
+     * Generate embeddings
+     */
+    async generateEmbeddings(texts) {
+        if (!Array.isArray(texts)) {
+            texts = [texts];
+        }
 
-    const results = await chromaService.search(collectionKey, query, { topK });
-
-    return {
-      query,
-      results: results.results,
-      count: results.count,
-      cached: results.queryCached,
-    };
-  }
-
-  /**
-   * Ingest content into vector store
-   */
-  async ingestContent(type, content, metadata = {}) {
-    if (!chromaService.isInitialized) {
-      throw new Error('Content ingestion requires ChromaDB server. Please start ChromaDB server first.');
+        return await embeddingService.embedBatch(texts);
     }
 
-    return await ingestionService.ingestContent(type, content, metadata);
-  }
+    /**
+     * Semantic search
+     */
+    async semanticSearch(query, options = {}) {
+        if (!chromaService.isInitialized) {
+            throw new Error('Search features require ChromaDB server. Please start ChromaDB server first.');
+        }
 
-  /**
-   * Calculate text similarity
-   */
-  async calculateSimilarity(text1, text2) {
-    return await embeddingService.similarity(text1, text2);
-  }
+        const { collectionKey = 'knowledge', topK = 5 } = options;
 
-  /**
-   * Get AI pipeline statistics
-   */
-  async getStats() {
-    const embeddingStats = embeddingService.getStats();
-    const chromaStats = await chromaService.getStats();
+        const results = await chromaService.search(collectionKey, query, { topK });
 
-    return {
-      initialized: this.isInitialized,
-      embeddings: embeddingStats,
-      vectorStore: chromaStats,
-      model: aiConfig.llm.model,
-      cost: {
-        embeddings: 0, // Always $0
-        total: embeddingStats.service.totalCost || 0,
-      },
-    };
-  }
+        return {
+            query,
+            results: results.results,
+            count: results.count,
+            cached: results.queryCached,
+        };
+    }
 
-  /**
-   * Health check
-   */
-  async healthCheck() {
-    const embeddingHealth = await embeddingService.healthCheck();
-    const chromaHealth = await chromaService.healthCheck();
+    /**
+     * Ingest content into vector store
+     */
+    async ingestContent(type, content, metadata = {}) {
+        if (!chromaService.isInitialized) {
+            throw new Error('Content ingestion requires ChromaDB server. Please start ChromaDB server first.');
+        }
 
-    return {
-      status: this.isInitialized ? 'healthy' : 'not_initialized',
-      embeddings: embeddingHealth,
-      vectorStore: chromaHealth,
-      model: aiConfig.llm.model,
-    };
-  }
+        return await ingestionService.ingestContent(type, content, metadata);
+    }
 
-  /**
-   * Cleanup
-   */
-  async cleanup() {
-    console.log('🧹 Cleaning up AI Pipeline...');
-    await embeddingService.cleanup();
-    await chromaService.cleanup();
-    this.isInitialized = false;
-    console.log('✅ AI Pipeline cleaned up');
-  }
+    /**
+     * Calculate text similarity
+     */
+    async calculateSimilarity(text1, text2) {
+        return await embeddingService.similarity(text1, text2);
+    }
+
+    /**
+     * Get AI pipeline statistics
+     */
+    async getStats() {
+        const embeddingStats = embeddingService.getStats();
+        const chromaStats = await chromaService.getStats();
+
+        return {
+            initialized: this.isInitialized,
+            embeddings: embeddingStats,
+            vectorStore: chromaStats,
+            model: aiConfig.llm.model,
+            cost: {
+                embeddings: 0, // Always $0
+                total: embeddingStats.service.totalCost || 0,
+            },
+        };
+    }
+
+    /**
+     * Health check
+     */
+    async healthCheck() {
+        const embeddingHealth = await embeddingService.healthCheck();
+        const chromaHealth = await chromaService.healthCheck();
+
+        return {
+            status: this.isInitialized ? 'healthy' : 'not_initialized',
+            embeddings: embeddingHealth,
+            vectorStore: chromaHealth,
+            model: aiConfig.llm.model,
+        };
+    }
+
+    /**
+     * Cleanup
+     */
+    async cleanup() {
+        console.log('🧹 Cleaning up AI Pipeline...');
+        await embeddingService.cleanup();
+        await chromaService.cleanup();
+        this.isInitialized = false;
+        console.log('✅ AI Pipeline cleaned up');
+    }
 }
 
 // Singleton instance

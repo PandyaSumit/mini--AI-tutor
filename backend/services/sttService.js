@@ -2,43 +2,157 @@ import axios from 'axios';
 import FormData from 'form-data';
 
 /**
- * Speech-to-Text Service using OpenAI Whisper API
- * Free tier: Limited requests, use wisely
+ * Speech-to-Text Service with Multiple FREE Providers
+ * Fallback chain: Hugging Face (Free) → OpenAI Whisper → Browser API
  */
 class STTService {
     constructor() {
-        // Do not cache the API key at construction time. Read from
-        // `process.env` at call time to avoid import-order issues where
-        // dotenv may not have been loaded before this module was imported.
-        this.model = 'whisper-1';
-        this.apiUrl = 'https://api.openai.com/v1/audio/transcriptions';
+        // Read API keys at call time to avoid import-order issues
+        this.openaiModel = 'whisper-1';
+        this.openaiUrl = 'https://api.openai.com/v1/audio/transcriptions';
+        this.hfModel = 'openai/whisper-large-v3';
+        this.hfUrl = 'https://api-inference.huggingface.co/models/openai/whisper-large-v3';
     }
 
     /**
-     * Transcribe audio buffer to text
+     * Get available providers
+     */
+    getProviders() {
+        const providers = [];
+
+        // Check Hugging Face
+        const hfKey = process.env.HUGGINGFACE_API_KEY || process.env.HF_TOKEN;
+        if (hfKey) {
+            providers.push('huggingface');
+        }
+
+        // Check OpenAI
+        const openaiKey = process.env.OPENAI_API_KEY;
+        if (openaiKey) {
+            providers.push('openai');
+        }
+
+        // Browser is always available as fallback
+        providers.push('browser');
+
+        return providers;
+    }
+
+    /**
+     * Transcribe audio with automatic fallback
      * @param {Buffer} audioBuffer - Audio file buffer
      * @param {string} language - Language code (e.g., 'en', 'es')
-     * @returns {Promise<{text: string, language: string}>}
+     * @returns {Promise<{text: string, language: string, provider: string}>}
      */
     async transcribe(audioBuffer, language = 'en') {
+        const providers = this.getProviders();
+        const errors = [];
+
+        console.log(`🎤 STT providers available: ${providers.join(' → ')}`);
+
+        // Try Hugging Face first (Free!)
+        if (providers.includes('huggingface')) {
+            try {
+                console.log('🔄 Trying Hugging Face STT (Free)...');
+                const result = await this.transcribeWithHuggingFace(audioBuffer, language);
+                console.log('✅ Hugging Face STT succeeded');
+                return { ...result, provider: 'huggingface' };
+            } catch (error) {
+                console.warn('⚠️ Hugging Face STT failed:', error.message);
+                errors.push({ provider: 'huggingface', error: error.message });
+            }
+        }
+
+        // Try OpenAI Whisper (if configured)
+        if (providers.includes('openai')) {
+            try {
+                console.log('🔄 Trying OpenAI Whisper STT...');
+                const result = await this.transcribeWithOpenAI(audioBuffer, language);
+                console.log('✅ OpenAI Whisper STT succeeded');
+                return { ...result, provider: 'openai' };
+            } catch (error) {
+                console.warn('⚠️ OpenAI Whisper STT failed:', error.message);
+                errors.push({ provider: 'openai', error: error.message });
+            }
+        }
+
+        // All server-side options failed, suggest browser STT
+        console.log('⚠️ All server-side STT options failed, suggesting browser STT');
+        return {
+            text: null,
+            language,
+            provider: 'browser',
+            useBrowserSTT: true,
+            fallbackInstructions: this.getFallbackInstructions(),
+            errors
+        };
+    }
+
+    /**
+     * Transcribe using Hugging Face Inference API (FREE!)
+     */
+    async transcribeWithHuggingFace(audioBuffer, language = 'en') {
+        const hfKey = process.env.HUGGINGFACE_API_KEY || process.env.HF_TOKEN;
+
+        if (!hfKey) {
+            throw new Error('Hugging Face API key not configured');
+        }
+
         try {
-            const apiKey = process.env.OPENAI_API_KEY;
-            if (!apiKey) {
-                throw new Error('OpenAI API key not configured');
+            const response = await axios.post(this.hfUrl, audioBuffer, {
+                headers: {
+                    'Authorization': `Bearer ${hfKey}`,
+                    'Content-Type': 'audio/webm'
+                },
+                timeout: 60000 // 60 seconds
+            });
+
+            // HF returns: { text: "transcribed text" }
+            const text = response.data.text || response.data;
+
+            return {
+                text: typeof text === 'string' ? text : JSON.stringify(text),
+                language: language
+            };
+        } catch (error) {
+            // Check if model is loading
+            if (error.response?.status === 503) {
+                throw new Error('Model is loading, please try again in 10-20 seconds');
             }
 
+            // Check quota
+            if (error.response?.status === 429) {
+                throw new Error('Hugging Face rate limit exceeded');
+            }
+
+            console.error('Hugging Face STT Error:', error.response?.data || error.message);
+            throw new Error(`Hugging Face STT failed: ${error.message}`);
+        }
+    }
+
+    /**
+     * Transcribe using OpenAI Whisper API
+     */
+    async transcribeWithOpenAI(audioBuffer, language = 'en') {
+        const apiKey = process.env.OPENAI_API_KEY;
+
+        if (!apiKey) {
+            throw new Error('OpenAI API key not configured');
+        }
+
+        try {
             // Create form data
             const formData = new FormData();
             formData.append('file', audioBuffer, {
                 filename: 'audio.webm',
                 contentType: 'audio/webm'
             });
-            formData.append('model', this.model);
+            formData.append('model', this.openaiModel);
             formData.append('language', language);
             formData.append('response_format', 'json');
 
             // Call Whisper API
-            const response = await axios.post(this.apiUrl, formData, {
+            const response = await axios.post(this.openaiUrl, formData, {
                 headers: {
                     ...formData.getHeaders(),
                     'Authorization': `Bearer ${apiKey}`
@@ -51,41 +165,43 @@ class STTService {
                 language: response.data.language || language
             };
         } catch (error) {
-            console.error('STT Error:', error.response?.data || error.message);
-
-            // Fallback: return empty transcript
-            if (error.response?.status === 429) {
-                throw new Error('STT rate limit exceeded. Please try again later.');
+            // Check for quota error
+            if (error.response?.data?.error?.code === 'insufficient_quota') {
+                throw new Error('OpenAI quota exceeded');
             }
 
-            throw new Error(`STT failed: ${error.message}`);
+            // Check rate limit
+            if (error.response?.status === 429) {
+                throw new Error('OpenAI rate limit exceeded');
+            }
+
+            console.error('OpenAI STT Error:', error.response?.data || error.message);
+            throw new Error(`OpenAI STT failed: ${error.message}`);
         }
     }
 
     /**
      * Transcribe with timestamp segments (for detailed analysis)
-     * @param {Buffer} audioBuffer
-     * @param {string} language
-     * @returns {Promise<{text: string, segments: Array}>}
      */
     async transcribeWithTimestamps(audioBuffer, language = 'en') {
-        try {
-            const apiKey = process.env.OPENAI_API_KEY;
-            if (!apiKey) {
-                throw new Error('OpenAI API key not configured');
-            }
+        const apiKey = process.env.OPENAI_API_KEY;
 
+        if (!apiKey) {
+            throw new Error('Timestamps only available with OpenAI API key');
+        }
+
+        try {
             const formData = new FormData();
             formData.append('file', audioBuffer, {
                 filename: 'audio.webm',
                 contentType: 'audio/webm'
             });
-            formData.append('model', this.model);
+            formData.append('model', this.openaiModel);
             formData.append('language', language);
             formData.append('response_format', 'verbose_json');
             formData.append('timestamp_granularities', 'segment');
 
-            const response = await axios.post(this.apiUrl, formData, {
+            const response = await axios.post(this.openaiUrl, formData, {
                 headers: {
                     ...formData.getHeaders(),
                     'Authorization': `Bearer ${apiKey}`
@@ -96,7 +212,8 @@ class STTService {
             return {
                 text: response.data.text,
                 language: response.data.language,
-                segments: response.data.segments || []
+                segments: response.data.segments || [],
+                provider: 'openai'
             };
         } catch (error) {
             console.error('STT with timestamps error:', error.response?.data || error.message);
@@ -106,12 +223,12 @@ class STTService {
 
     /**
      * Browser-based fallback STT (client-side Web Speech API)
-     * This is returned as instructions to client
      */
     getFallbackInstructions() {
         return {
             useBrowserSTT: true,
-            message: 'Use Web Speech API on client side',
+            message: 'Use Web Speech API on client side (100% FREE)',
+            instructions: 'All server-side STT providers are unavailable. Use browser-based speech recognition.',
             example: `
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.continuous = true;

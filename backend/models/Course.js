@@ -281,4 +281,122 @@ courseSchema.statics.findPublished = function(filters = {}) {
   return this.find({ isPublished: true, ...filters }).sort({ 'statistics.enrollmentCount': -1 });
 };
 
+// Calculate revenue distribution among contributors
+courseSchema.methods.calculateRevenueDistribution = function(totalRevenue) {
+  const distribution = {};
+
+  this.contributors.forEach(contributor => {
+    if (contributor.approvalStatus === 'approved' && contributor.revenueShare > 0) {
+      const userId = contributor.user.toString();
+      const amount = (totalRevenue * contributor.revenueShare) / 100;
+
+      if (!distribution[userId]) {
+        distribution[userId] = {
+          userId: contributor.user,
+          type: contributor.contributionType,
+          share: contributor.revenueShare,
+          amount: 0
+        };
+      }
+
+      distribution[userId].amount += amount;
+    }
+  });
+
+  return Object.values(distribution);
+};
+
+// Calculate contribution-based revenue share for new co-creator
+courseSchema.methods.calculateCoCreatorRevenue = async function(userId) {
+  // Base share for co-creators: 10-20%
+  // Calculated based on:
+  // - Content added (lessons, modules)
+  // - Quality ratings
+  // - Student engagement with their content
+
+  const Lesson = mongoose.model('Lesson');
+  const Module = mongoose.model('Module');
+
+  // Count lessons created by this user
+  const lessonsCreated = await Lesson.countDocuments({
+    course: this._id,
+    createdBy: userId
+  });
+
+  // Count modules created by this user
+  const modulesCreated = await Module.countDocuments({
+    course: this._id,
+    createdBy: userId
+  });
+
+  // Calculate contribution percentage
+  const totalLessons = this.statistics.totalLessons || 1;
+  const totalModules = this.statistics.totalModules || 1;
+
+  const lessonContribution = lessonsCreated / totalLessons;
+  const moduleContribution = modulesCreated / totalModules;
+
+  // Average contribution
+  const avgContribution = (lessonContribution + moduleContribution) / 2;
+
+  // Map to 10-20% range
+  const revenueShare = Math.min(Math.max(10 + (avgContribution * 10), 10), 20);
+
+  return Math.round(revenueShare * 10) / 10; // Round to 1 decimal
+};
+
+// Calculate contributor revenue share based on implementations
+courseSchema.methods.calculateContributorRevenue = function(implementationsCount) {
+  // Contributors earn 2-5% based on number of implemented suggestions
+  // 1-2 implementations: 2%
+  // 3-5 implementations: 3%
+  // 6-10 implementations: 4%
+  // 11+ implementations: 5%
+
+  if (implementationsCount >= 11) return 5;
+  if (implementationsCount >= 6) return 4;
+  if (implementationsCount >= 3) return 3;
+  return 2;
+};
+
+// Adjust revenue shares to ensure total doesn't exceed 100%
+courseSchema.methods.normalizeRevenueShares = function() {
+  const totalShare = this.contributors.reduce((sum, c) => sum + (c.revenueShare || 0), 0);
+
+  if (totalShare > 100) {
+    // Proportionally reduce all shares
+    const factor = 100 / totalShare;
+    this.contributors.forEach(contributor => {
+      if (contributor.revenueShare > 0) {
+        contributor.revenueShare = Math.round(contributor.revenueShare * factor * 10) / 10;
+      }
+    });
+  }
+
+  return this.save();
+};
+
+// Get founder's current revenue share
+courseSchema.methods.getFounderRevenue = function() {
+  const founder = this.contributors.find(c => c.contributionType === 'founder');
+  return founder ? founder.revenueShare : 0;
+};
+
+// Update founder's revenue based on co-creators
+courseSchema.methods.updateFounderRevenue = function() {
+  const founder = this.contributors.find(c => c.contributionType === 'founder');
+  if (!founder) return;
+
+  // Founder gets 50-60% base, reduced as co-creators are added
+  const coCreatorCount = this.contributors.filter(
+    c => c.contributionType === 'co-creator' && c.approvalStatus === 'approved'
+  ).length;
+
+  // Start at 60%, reduce by 2% per co-creator (min 50%)
+  const founderShare = Math.max(60 - (coCreatorCount * 2), 50);
+
+  founder.revenueShare = founderShare;
+  return this.save();
+};
+
 export default mongoose.model('Course', courseSchema);

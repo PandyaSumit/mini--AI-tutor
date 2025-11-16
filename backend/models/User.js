@@ -129,6 +129,46 @@ const userSchema = new mongoose.Schema({
       default: null
     }
   },
+  contributorActivity: {
+    errorReports: {
+      type: Number,
+      default: 0
+    },
+    suggestionsSubmitted: {
+      type: Number,
+      default: 0
+    },
+    suggestionsImplemented: {
+      type: Number,
+      default: 0
+    },
+    questionsAsked: {
+      type: Number,
+      default: 0
+    },
+    forumParticipation: {
+      type: Number,
+      default: 0
+    },
+    qualityScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100
+    },
+    lastContributionDate: {
+      type: Date,
+      default: null
+    },
+    invitedToContribute: {
+      type: Boolean,
+      default: false
+    },
+    invitedAt: {
+      type: Date,
+      default: null
+    }
+  },
   isVerified: {
     type: Boolean,
     default: false
@@ -238,6 +278,84 @@ userSchema.methods.awardReputation = function(points, reason) {
   }
 
   return this.save();
+};
+
+// Check if student should be invited to become contributor
+userSchema.methods.shouldBeInvitedAsContributor = function() {
+  // Don't invite if already invited
+  if (this.contributorActivity.invitedToContribute) {
+    return false;
+  }
+
+  // Calculate quality score based on activity
+  const errorReportWeight = 2;
+  const suggestionWeight = 3;
+  const questionWeight = 1;
+  const forumWeight = 1.5;
+
+  const totalActivity =
+    (this.contributorActivity.errorReports * errorReportWeight) +
+    (this.contributorActivity.suggestionsSubmitted * suggestionWeight) +
+    (this.contributorActivity.questionsAsked * questionWeight) +
+    (this.contributorActivity.forumParticipation * forumWeight);
+
+  // Criteria: High quality activity
+  const hasEnoughActivity = totalActivity >= 50;
+  const hasGoodImplementationRate =
+    this.contributorActivity.suggestionsSubmitted > 0 &&
+    (this.contributorActivity.suggestionsImplemented / this.contributorActivity.suggestionsSubmitted) >= 0.3;
+
+  return hasEnoughActivity || hasGoodImplementationRate;
+};
+
+// Update contributor quality score
+userSchema.methods.updateContributorQuality = function() {
+  const implemented = this.contributorActivity.suggestionsImplemented;
+  const submitted = this.contributorActivity.suggestionsSubmitted;
+  const errors = this.contributorActivity.errorReports;
+
+  // Quality score = implementation rate * 60 + error reports * 20 + activity * 20
+  let score = 0;
+
+  if (submitted > 0) {
+    score += (implemented / submitted) * 60;
+  }
+
+  score += Math.min(errors * 2, 20);
+  score += Math.min((this.contributorActivity.forumParticipation / 10) * 20, 20);
+
+  this.contributorActivity.qualityScore = Math.min(Math.round(score), 100);
+  return this.save();
+};
+
+// Record contribution activity
+userSchema.methods.recordContribution = function(type) {
+  this.contributorActivity.lastContributionDate = new Date();
+
+  switch(type) {
+    case 'error_report':
+      this.contributorActivity.errorReports += 1;
+      this.awardReputation(5, 'error_report');
+      break;
+    case 'suggestion':
+      this.contributorActivity.suggestionsSubmitted += 1;
+      this.awardReputation(10, 'suggestion_submitted');
+      break;
+    case 'suggestion_implemented':
+      this.contributorActivity.suggestionsImplemented += 1;
+      this.reputation.improvementsImplemented += 1;
+      this.awardReputation(50, 'suggestion_implemented');
+      break;
+    case 'question':
+      this.contributorActivity.questionsAsked += 1;
+      break;
+    case 'forum':
+      this.contributorActivity.forumParticipation += 1;
+      this.awardReputation(2, 'forum_participation');
+      break;
+  }
+
+  return this.updateContributorQuality();
 };
 
 export default mongoose.model('User', userSchema);

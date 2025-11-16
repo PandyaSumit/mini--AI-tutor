@@ -24,13 +24,54 @@ export const CourseRoleProvider = ({ children, courseId }) => {
         const courseRes = await api.get(`/courses/${courseId}`);
         const course = courseRes.data.data;
 
-        // Get current user ID from auth context
-        const userId = localStorage.getItem('userId');
+        // Get current user ID from localStorage or parse from token
+        let userId = localStorage.getItem('userId');
+
+        // If userId not found, try to get from user object in localStorage
+        if (!userId) {
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            try {
+              const user = JSON.parse(userStr);
+              userId = user._id || user.id;
+            } catch (e) {
+              console.error('Failed to parse user from localStorage:', e);
+            }
+          }
+        }
+
+        console.log('🔍 [CourseRole] Debug Info:', {
+          courseId,
+          courseTitle: course.title,
+          currentUserId: userId,
+          contributorsCount: course.contributors?.length || 0,
+          contributors: course.contributors?.map(c => ({
+            userId: c.user?._id || c.user,
+            userName: c.user?.name,
+            role: c.contributionType,
+            revenue: c.revenueShare
+          }))
+        });
 
         // Find user's contributor entry in the course
         const contributor = course.contributors?.find(
-          c => c.user._id === userId || c.user === userId
+          c => {
+            const contributorUserId = c.user?._id || c.user;
+            const match = contributorUserId === userId || contributorUserId?.toString() === userId?.toString();
+            console.log('🔍 [CourseRole] Comparing:', {
+              contributorUserId,
+              currentUserId: userId,
+              match
+            });
+            return match;
+          }
         );
+
+        console.log('🔍 [CourseRole] Role Detection Result:', {
+          found: !!contributor,
+          role: contributor?.contributionType || 'student',
+          revenue: contributor?.revenueShare || 0
+        });
 
         if (contributor) {
           setUserRole(contributor.contributionType);

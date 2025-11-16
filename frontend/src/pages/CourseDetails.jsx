@@ -28,6 +28,7 @@ import CoCreatorRequests from '../components/course/CoCreatorRequests';
 import CourseImprovements from '../components/course/CourseImprovements';
 import RevenueDistribution from '../components/course/RevenueDistribution';
 import ContributorStatus from '../components/course/ContributorStatus';
+import RoleDebug from '../components/course/RoleDebug';
 
 const CourseDetails = () => {
     const { courseId } = useParams();
@@ -338,6 +339,9 @@ const CourseDetails = () => {
 
             {/* Course Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Debug Info - Remove this after testing */}
+                <RoleDebug />
+
                 {/* Role Badge */}
                 <RoleBadge />
 

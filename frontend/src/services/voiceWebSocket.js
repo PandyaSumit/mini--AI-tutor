@@ -101,12 +101,20 @@ class VoiceWebSocket {
 
       // Automatically speak if TTS is enabled
       if (data.shouldSpeak) {
+        console.log('🔊 Starting TTS for AI response...');
         try {
-          await ttsService.speak(data.text);
+          const result = await ttsService.speak(data.text);
+          console.log('✅ TTS completed:', result);
           this.notifyTTSComplete();
         } catch (error) {
-          console.error('TTS error:', error);
+          console.error('❌ TTS error:', error);
+          // Notify server that TTS failed but don't break the flow
+          this.notifyTTSComplete();
         }
+      } else {
+        console.log('🔇 TTS disabled, skipping speech');
+        // Immediately notify ready if TTS is disabled
+        this.notifyTTSComplete();
       }
     });
 

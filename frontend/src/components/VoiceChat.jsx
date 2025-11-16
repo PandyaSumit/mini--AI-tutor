@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Volume2, VolumeX, Send, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, Send, Loader2, StopCircle } from 'lucide-react';
 import voiceWebSocket from '../services/voiceWebSocket';
 import browserSTT from '../services/browserSTT';
+import ttsService from '../services/ttsService';
 
 /**
  * VoiceChat Component
@@ -236,6 +237,12 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
     setTtsEnabled(!ttsEnabled);
   };
 
+  // Stop TTS speaking
+  const stopSpeaking = () => {
+    ttsService.stop();
+    setIsSpeaking(false);
+  };
+
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Header */}
@@ -309,9 +316,16 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
         {/* Speaking indicator */}
         {isSpeaking && (
           <div className="flex justify-start">
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 flex items-center gap-2">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 flex items-center gap-3">
               <Volume2 className="animate-pulse text-blue-600" size={16} />
               <span className="text-sm text-blue-600 dark:text-blue-400">Speaking...</span>
+              <button
+                onClick={stopSpeaking}
+                className="ml-auto p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded transition-colors"
+                title="Stop speaking"
+              >
+                <StopCircle size={16} className="text-blue-600 dark:text-blue-400" />
+              </button>
             </div>
           </div>
         )}

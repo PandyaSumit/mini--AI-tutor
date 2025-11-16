@@ -62,12 +62,31 @@ class TTSService {
   async speak(text, settings = {}) {
     return new Promise(async (resolve, reject) => {
       if (!this.isSupported()) {
+        console.warn('⚠️ Text-to-speech not supported in this browser');
         reject(new Error('Text-to-speech not supported in this browser'));
+        return;
+      }
+
+      if (!text || text.trim().length === 0) {
+        console.warn('⚠️ No text to speak');
+        resolve({ success: false, message: 'No text to speak' });
         return;
       }
 
       // Stop any current speech
       this.stop();
+
+      // For long text, use chunked speaking
+      if (text.length > 300) {
+        console.log('🔊 Speaking long text in chunks...');
+        try {
+          await this.speakLongText(text, settings);
+          resolve({ success: true });
+        } catch (error) {
+          reject(error);
+        }
+        return;
+      }
 
       // Create utterance
       this.currentUtterance = new SpeechSynthesisUtterance(text);
@@ -93,7 +112,7 @@ class TTSService {
       this.currentUtterance.onstart = () => {
         this.isSpeaking = true;
         this.isPaused = false;
-        console.log('🔊 TTS started');
+        console.log('🔊 TTS started:', text.substring(0, 50) + '...');
       };
 
       this.currentUtterance.onend = () => {
@@ -106,20 +125,34 @@ class TTSService {
       this.currentUtterance.onerror = (error) => {
         this.isSpeaking = false;
         this.isPaused = false;
-        console.error('TTS error:', error);
-        reject(error);
+        console.error('❌ TTS error:', error);
+
+        // Don't reject on 'canceled' or 'interrupted' errors
+        if (error.error === 'canceled' || error.error === 'interrupted') {
+          resolve({ success: false, message: 'TTS was canceled' });
+        } else {
+          reject(error);
+        }
       };
 
       this.currentUtterance.onpause = () => {
         this.isPaused = true;
+        console.log('⏸️  TTS paused');
       };
 
       this.currentUtterance.onresume = () => {
         this.isPaused = false;
+        console.log('▶️  TTS resumed');
       };
 
       // Speak
-      this.synthesis.speak(this.currentUtterance);
+      try {
+        this.synthesis.speak(this.currentUtterance);
+      } catch (error) {
+        this.isSpeaking = false;
+        console.error('❌ Failed to start TTS:', error);
+        reject(error);
+      }
     });
   }
 

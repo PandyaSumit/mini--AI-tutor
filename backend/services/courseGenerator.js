@@ -206,16 +206,26 @@ Requirements:
         // Parse JSON response
         try {
             // Remove markdown code blocks if present
-            const cleanedResponse = response
+            let cleanedResponse = response
                 .replace(/```json\n?/g, '')
                 .replace(/```\n?/g, '')
                 .trim();
 
+            // Try to extract JSON if it's embedded in other text
+            const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                cleanedResponse = jsonMatch[0];
+            }
+
+            console.log('Attempting to parse AI response...');
             const courseStructure = JSON.parse(cleanedResponse);
+            console.log('Successfully parsed course structure:', courseStructure.title);
             return courseStructure;
         } catch (parseError) {
-            console.error('Failed to parse AI response:', response);
-            throw new Error('Failed to parse course structure from AI response');
+            console.error('Failed to parse AI response. Parse error:', parseError.message);
+            console.error('Raw AI response (first 500 chars):', response.substring(0, 500));
+            console.error('Cleaned response (first 500 chars):', response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim().substring(0, 500));
+            throw new Error(`Failed to parse course structure from AI response: ${parseError.message}`);
         }
     }
 
@@ -353,12 +363,29 @@ Return ONLY a valid JSON object:
         });
 
         const response = completion.choices[0]?.message?.content;
-        const cleanedResponse = response
-            .replace(/```json\n?/g, '')
-            .replace(/```\n?/g, '')
-            .trim();
 
-        return JSON.parse(cleanedResponse);
+        if (!response) {
+            throw new Error('No preview response from AI');
+        }
+
+        try {
+            let cleanedResponse = response
+                .replace(/```json\n?/g, '')
+                .replace(/```\n?/g, '')
+                .trim();
+
+            // Try to extract JSON if it's embedded in other text
+            const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                cleanedResponse = jsonMatch[0];
+            }
+
+            return JSON.parse(cleanedResponse);
+        } catch (parseError) {
+            console.error('Failed to parse preview response. Parse error:', parseError.message);
+            console.error('Raw preview response (first 300 chars):', response.substring(0, 300));
+            throw new Error(`Failed to parse preview: ${parseError.message}`);
+        }
     }
 
     /**

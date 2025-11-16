@@ -43,7 +43,7 @@ const CreateCourse = () => {
             setLoading(true);
             setError(null);
 
-            const response = await api.post('/api/courses/check-similar', {
+            const response = await api.post('/courses/check-similar', {
                 prompt,
                 level
             });
@@ -69,7 +69,7 @@ const CreateCourse = () => {
             setLoading(true);
             setError(null);
 
-            const response = await api.post('/api/courses/generate/preview', {
+            const response = await api.post('/courses/generate/preview', {
                 prompt,
                 level,
                 numModules
@@ -91,7 +91,7 @@ const CreateCourse = () => {
             setError(null);
             setStep(4);
 
-            const response = await api.post('/api/courses/generate', {
+            const response = await api.post('/courses/generate', {
                 prompt,
                 level,
                 numModules,
@@ -112,7 +112,7 @@ const CreateCourse = () => {
 
     const handlePublish = async () => {
         try {
-            await api.post(`/api/courses/${generatedCourse._id}/publish`);
+            await api.post(`/courses/${generatedCourse._id}/publish`);
             navigate(`/courses/${generatedCourse._id}`);
         } catch (err) {
             console.error('Error publishing course:', err);
@@ -122,7 +122,7 @@ const CreateCourse = () => {
 
     const handleEnroll = async (courseId) => {
         try {
-            await api.post(`/api/courses/${courseId}/enroll`);
+            await api.post(`/courses/${courseId}/enroll`);
             navigate(`/courses/${courseId}`);
         } catch (err) {
             console.error('Error enrolling:', err);

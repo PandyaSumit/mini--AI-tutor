@@ -7,6 +7,7 @@ class BrowserSTTService {
     this.recognition = null;
     this.isListening = false;
     this.transcript = '';
+    this.interimTranscript = '';
   }
 
   /**
@@ -46,6 +47,7 @@ class BrowserSTTService {
       }
 
       this.transcript = '';
+      this.interimTranscript = '';
       this.isListening = true;
 
       // Event handlers
@@ -72,10 +74,13 @@ class BrowserSTTService {
           this.transcript += finalTranscript;
         }
 
+        // Store latest interim transcript
+        this.interimTranscript = interimTranscript;
+
         // Call callbacks
         if (callbacks.onResult) {
           callbacks.onResult({
-            transcript: this.transcript,
+            transcript: this.transcript + interimTranscript, // Include interim for real-time display
             interimTranscript,
             isFinal: !!finalTranscript
           });
@@ -121,7 +126,10 @@ class BrowserSTTService {
     if (this.recognition && this.isListening) {
       this.recognition.stop();
     }
-    return this.transcript;
+    // Include any pending interim results in the final transcript
+    const finalTranscript = this.transcript + (this.interimTranscript || '');
+    console.log('🎤 Browser STT stop() returning:', finalTranscript);
+    return finalTranscript.trim();
   }
 
   /**
@@ -146,6 +154,7 @@ class BrowserSTTService {
    */
   reset() {
     this.transcript = '';
+    this.interimTranscript = '';
   }
 }
 

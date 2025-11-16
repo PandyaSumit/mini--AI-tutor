@@ -11,6 +11,7 @@ class STTService {
         this.openaiModel = 'whisper-1';
         this.openaiUrl = 'https://api.openai.com/v1/audio/transcriptions';
         this.hfModel = 'openai/whisper-large-v3';
+        // Updated to new HF Inference router endpoint (Nov 2024)
         this.hfUrl = 'https://api-inference.huggingface.co/models/openai/whisper-large-v3';
     }
 

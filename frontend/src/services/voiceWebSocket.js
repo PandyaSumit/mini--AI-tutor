@@ -129,6 +129,12 @@ class VoiceWebSocket {
       this.emit('session-left', data);
     });
 
+    // Browser STT fallback notification
+    this.socket.on('voice:use-browser-stt', (data) => {
+      console.log('⚡ Switching to browser STT mode:', data.message);
+      this.emit('use-browser-stt', data);
+    });
+
     // Errors
     this.socket.on('voice:error', (data) => {
       console.error('❌ Voice error:', data.error);

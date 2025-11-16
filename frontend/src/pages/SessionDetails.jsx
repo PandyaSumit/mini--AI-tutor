@@ -122,8 +122,12 @@ const SessionDetails = () => {
         }
 
         console.log('🔌 Attempting to connect to socket...');
-        const socketUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        console.log('Socket URL:', socketUrl);
+        // Socket.IO needs the base URL without /api suffix
+        let socketUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        // Remove /api suffix if present (Socket.IO doesn't use it)
+        socketUrl = socketUrl.replace(/\/api\/?$/, '');
+        console.log('Original VITE_API_URL:', import.meta.env.VITE_API_URL);
+        console.log('Socket URL (cleaned):', socketUrl);
         console.log('Token (first 20 chars):', token?.substring(0, 20));
 
         // Connect to WebSocket

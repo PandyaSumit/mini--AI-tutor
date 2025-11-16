@@ -68,14 +68,25 @@ const SessionDetails = () => {
                 setSession(sessionRes.data.session);
                 console.log('💾 Session set in state');
 
-                // Fetch conversation messages
+                // Fetch conversation messages (don't fail if this errors)
                 if (sessionRes.data.session.conversationId) {
-                    console.log('💬 Fetching messages for conversation:', sessionRes.data.session.conversationId);
-                    const messagesRes = await api.get(
-                        `/conversations/${sessionRes.data.session.conversationId}/messages`
-                    );
-                    console.log('✅ Messages received:', messagesRes.data.data?.length || 0);
-                    setMessages(messagesRes.data.data || []);
+                    try {
+                        console.log('💬 Fetching messages for conversation:', sessionRes.data.session.conversationId);
+                        const messagesRes = await api.get(
+                            `/conversations/${sessionRes.data.session.conversationId}/messages`
+                        );
+                        console.log('✅ Messages received:', messagesRes.data.data?.length || 0);
+                        setMessages(messagesRes.data.data || []);
+                    } catch (msgError) {
+                        console.error('⚠️ Error fetching messages (non-fatal):', msgError);
+                        console.error('Message fetch error details:', {
+                            message: msgError.message,
+                            response: msgError.response?.data,
+                            status: msgError.response?.status
+                        });
+                        // Continue loading session even if messages fail
+                        setMessages([]);
+                    }
                 }
 
                 // Fetch lesson data if session is linked to a lesson

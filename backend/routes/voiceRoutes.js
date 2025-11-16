@@ -143,6 +143,9 @@ router.post('/sessions', async (req, res) => {
  */
 router.get('/sessions/:sessionId', async (req, res) => {
   try {
+    console.log('📥 GET /sessions/:sessionId - Fetching session:', req.params.sessionId);
+    console.log('👤 User:', req.user._id);
+
     const Session = (await import('../models/Session.js')).default;
 
     const session = await Session.findById(req.params.sessionId)
@@ -155,27 +158,44 @@ router.get('/sessions/:sessionId', async (req, res) => {
       })
       .populate('enrollment');
 
+    console.log('📦 Session found:', !!session);
+
     if (!session) {
+      console.log('❌ Session not found in database');
       return res.status(404).json({
         success: false,
         error: 'Session not found'
       });
     }
 
+    console.log('🔍 Session details:', {
+      id: session._id,
+      userId: session.userId,
+      hasLesson: !!session.lesson,
+      lessonId: session.lesson?._id,
+      hasModule: !!session.lesson?.module,
+      moduleId: session.lesson?.module?._id,
+      hasCourse: !!session.lesson?.module?.course,
+      courseId: session.lesson?.module?.course?._id
+    });
+
     // Check if user owns this session
     if (session.userId.toString() !== req.user._id.toString()) {
+      console.log('❌ Authorization failed - User does not own session');
       return res.status(403).json({
         success: false,
         error: 'Not authorized to access this session'
       });
     }
 
+    console.log('✅ Sending session response');
     res.json({
       success: true,
       session
     });
   } catch (error) {
-    console.error('Error fetching session:', error);
+    console.error('❌ Error fetching session:', error);
+    console.error('Stack:', error.stack);
     res.status(500).json({
       success: false,
       error: error.message

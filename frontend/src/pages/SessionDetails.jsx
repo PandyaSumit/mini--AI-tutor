@@ -54,36 +54,60 @@ const SessionDetails = () => {
     useEffect(() => {
         const fetchSessionData = async () => {
             try {
+                console.log('🔄 Starting session data fetch...');
+                console.log('📋 Session ID:', sessionId);
+                console.log('🔑 Token exists:', !!token);
+
                 setLoading(true);
 
                 // Fetch session details
+                console.log('📥 Fetching session from:', `/voice/sessions/${sessionId}`);
                 const sessionRes = await api.get(`/voice/sessions/${sessionId}`);
+                console.log('✅ Session response received:', sessionRes.data);
+
                 setSession(sessionRes.data.session);
+                console.log('💾 Session set in state');
 
                 // Fetch conversation messages
                 if (sessionRes.data.session.conversationId) {
+                    console.log('💬 Fetching messages for conversation:', sessionRes.data.session.conversationId);
                     const messagesRes = await api.get(
                         `/conversations/${sessionRes.data.session.conversationId}/messages`
                     );
+                    console.log('✅ Messages received:', messagesRes.data.data?.length || 0);
                     setMessages(messagesRes.data.data || []);
                 }
 
                 // Fetch lesson data if session is linked to a lesson
                 if (sessionRes.data.session.lesson) {
+                    console.log('📚 Lesson found in session:', sessionRes.data.session.lesson);
                     // Lesson is already populated with module and course, so just use it directly
                     setLesson(sessionRes.data.session.lesson);
+                    console.log('💾 Lesson set in state');
                 }
 
+                console.log('✅ All data loaded, setting loading to false');
                 setLoading(false);
             } catch (err) {
-                console.error('Error fetching session data:', err);
+                console.error('❌ Error fetching session data:', err);
+                console.error('Error details:', {
+                    message: err.message,
+                    response: err.response?.data,
+                    status: err.response?.status
+                });
                 setError('Failed to load session details');
                 setLoading(false);
             }
         };
 
+        console.log('🎬 useEffect triggered');
+        console.log('Conditions - sessionId:', sessionId, 'token:', !!token);
+
         if (sessionId && token) {
+            console.log('✅ Conditions met, calling fetchSessionData');
             fetchSessionData();
+        } else {
+            console.log('❌ Conditions not met, skipping fetch');
         }
     }, [sessionId, token]);
 

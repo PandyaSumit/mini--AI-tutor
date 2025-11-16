@@ -288,28 +288,23 @@ class VoiceOrchestrator {
         .limit(20); // Last 20 messages for context
 
       const conversationHistory = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
+        question: msg.role === 'user' ? msg.content : '',
+        answer: msg.role === 'assistant' ? msg.content : ''
+      })).filter(h => h.question || h.answer);
 
-      // Use AI orchestrator (already implemented)
-      const response = await aiOrchestrator.processMessage(
-        userMessage,
-        {
-          conversationHistory,
-          context: {
-            ...context,
-            mode: 'voice',
-            responseStyle: 'conversational' // More natural for voice
-          }
-        }
-      );
+      // Use AI orchestrator tutorChat method
+      const response = await aiOrchestrator.tutorChat(userMessage, {
+        subject: context.currentTopic || 'general',
+        level: context.level || 'intermediate',
+        phase: context.phase || 'explanation',
+        conversationHistory
+      });
 
       return {
-        text: response.content || response.text || response,
-        model: response.model || 'llama-3.1-70b-versatile',
-        thinkingProcess: response.thinkingProcess || [],
-        tokensUsed: response.usage?.total_tokens || 0
+        text: response.response,
+        model: response.model || 'llama-3.3-70b-versatile',
+        thinkingProcess: response.thinking?.steps || [],
+        tokensUsed: 0 // Groq doesn't always provide token usage
       };
     } catch (error) {
       console.error('Error generating AI response:', error);

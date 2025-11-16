@@ -17,6 +17,7 @@ import Flashcards from './pages/Flashcards';
 import StudyFlashcards from './pages/StudyFlashcards';
 import NotFound from './pages/NotFound';
 import SessionDetails from './pages/SessionDetails';
+import VoiceTutorTest from './pages/VoiceTutorTest';
 
 function App() {
     const { user, loading } = useAuth();
@@ -131,6 +132,14 @@ function App() {
                             element={
                                 <PrivateRoute>
                                     <StudyFlashcards />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/voice-tutor"
+                            element={
+                                <PrivateRoute>
+                                    <VoiceTutorTest />
                                 </PrivateRoute>
                             }
                         />

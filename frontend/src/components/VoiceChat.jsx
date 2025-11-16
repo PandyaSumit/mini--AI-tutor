@@ -18,6 +18,7 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
   const [textInput, setTextInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [error, setError] = useState(null);
+  const [infoMessage, setInfoMessage] = useState(null);
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [useBrowserSTT, setUseBrowserSTT] = useState(false);
@@ -82,10 +83,10 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
           setIsProcessing(false);
           setIsRecording(false);
 
-          // Show informative message (not an error!)
-          const infoMessage = data.message || 'Using browser speech recognition (100% FREE, instant!)\n\nClick the microphone button to try again with browser STT.';
-          setError(infoMessage);
-          setTimeout(() => setError(null), 6000); // Clear after 6s
+          // Show success message
+          const message = data.message || 'Using browser speech recognition (100% FREE, instant!)';
+          setInfoMessage(`✅ ${message}\n\nClick the microphone button to try again with browser STT.`);
+          setTimeout(() => setInfoMessage(null), 6000); // Clear after 6s
         });
 
         // Join session
@@ -143,7 +144,8 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
             setIsProcessing(true);
           } else {
             console.warn('⚠️ No transcript captured');
-            setError('No speech detected. Please try again.');
+            setInfoMessage('ℹ️ No speech detected. Please speak clearly and try again.');
+            setTimeout(() => setInfoMessage(null), 4000);
           }
         } else {
           // Stop server-side recording
@@ -319,6 +321,15 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
           <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 border border-yellow-200 dark:border-yellow-800">
             <p className="text-sm text-yellow-800 dark:text-yellow-200">
               <strong>Listening:</strong> {transcript}
+            </p>
+          </div>
+        )}
+
+        {/* Info Message */}
+        {infoMessage && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-blue-800 dark:text-blue-200 whitespace-pre-line">
+              {infoMessage}
             </p>
           </div>
         )}

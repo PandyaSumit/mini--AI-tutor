@@ -39,7 +39,7 @@ class VoiceOrchestrator {
       }
 
       // Store in active sessions
-      this.activeSessions.set(sessionId, {
+      this.activeSessions.set(session._id.toString(), {
         userId,
         conversationHistory: [],
         isProcessing: false,
@@ -65,7 +65,7 @@ class VoiceOrchestrator {
         throw new Error('Session not found');
       }
 
-      const sessionState = this.activeSessions.get(sessionId);
+      const sessionState = this.activeSessions.get(sessionId.toString());
       if (!sessionState) {
         throw new Error('Session not initialized');
       }
@@ -312,7 +312,7 @@ class VoiceOrchestrator {
       });
 
       // Remove from active sessions
-      this.activeSessions.delete(sessionId);
+      this.activeSessions.delete(sessionId.toString());
 
       // Update session duration
       const duration = Math.floor((Date.now() - session.startedAt) / 1000);
@@ -356,12 +356,12 @@ class VoiceOrchestrator {
    */
   async getSessionStatus(sessionId) {
     const session = await Session.findById(sessionId);
-    const sessionState = this.activeSessions.get(sessionId);
+    const sessionState = this.activeSessions.get(sessionId.toString());
 
     return {
       session: session,
       state: sessionState,
-      isActive: this.activeSessions.has(sessionId)
+      isActive: this.activeSessions.has(sessionId.toString())
     };
   }
 }

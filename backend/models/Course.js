@@ -21,6 +21,26 @@ const courseSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  contributors: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    contributionType: {
+      type: String,
+      enum: ['creator', 'editor', 'reviewer', 'content_improver'],
+      default: 'editor'
+    },
+    contributionDate: {
+      type: Date,
+      default: Date.now
+    },
+    contributionScore: {
+      type: Number,
+      default: 0 // For future revenue sharing
+    }
+  }],
   category: {
     type: String,
     enum: ['programming', 'mathematics', 'science', 'language', 'business', 'design', 'other'],
@@ -138,6 +158,41 @@ courseSchema.methods.updateStatistics = async function() {
   this.statistics.totalDuration = totalDuration;
 
   return this.save();
+};
+
+// Method to add contributor
+courseSchema.methods.addContributor = function(userId, contributionType = 'editor') {
+  // Check if user is already a contributor
+  const existingContributor = this.contributors.find(
+    c => c.user.toString() === userId.toString()
+  );
+
+  if (!existingContributor) {
+    this.contributors.push({
+      user: userId,
+      contributionType,
+      contributionDate: new Date(),
+      contributionScore: 0
+    });
+    return this.save();
+  }
+
+  return Promise.resolve(this);
+};
+
+// Method to check if user can contribute
+courseSchema.methods.canUserContribute = function(userId) {
+  // Creator can always contribute
+  if (this.createdBy.toString() === userId.toString()) {
+    return true;
+  }
+
+  // Check if user is already a contributor
+  const isContributor = this.contributors.some(
+    c => c.user.toString() === userId.toString()
+  );
+
+  return isContributor;
 };
 
 // Static method to find published courses

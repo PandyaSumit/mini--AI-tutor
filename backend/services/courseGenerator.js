@@ -142,6 +142,12 @@ Requirements:
       level: structure.level || 'beginner',
       tags: structure.tags || [],
       createdBy: userId,
+      contributors: [{
+        user: userId,
+        contributionType: 'creator',
+        contributionDate: new Date(),
+        contributionScore: 100
+      }],
       isPublished: false,
       metadata: {
         language: 'en-US',
@@ -252,6 +258,101 @@ Return ONLY a valid JSON object:
       .trim();
 
     return JSON.parse(cleanedResponse);
+  }
+
+  /**
+   * Find similar existing courses using AI
+   * @param {string} prompt - User's course creation prompt
+   * @param {string} level - Course level
+   * @returns {Promise<Array>} - Array of similar courses with similarity scores
+   */
+  async findSimilarCourses(prompt, level) {
+    try {
+      // Get all published courses
+      const allCourses = await Course.find({ isPublished: true })
+        .populate('createdBy', 'name')
+        .select('title description category level tags statistics createdBy')
+        .limit(100);
+
+      if (allCourses.length === 0) {
+        return [];
+      }
+
+      // Use AI to calculate similarity scores
+      const systemPrompt = `You are a course similarity analyzer. Compare the user's course request with existing courses and calculate similarity scores.
+
+For each existing course, determine how similar it is to the requested course on a scale of 0-100.
+
+Return ONLY a valid JSON array of objects:
+[
+  {
+    "courseId": "course_id_here",
+    "similarityScore": 85,
+    "reason": "Brief explanation of why this is similar"
+  }
+]
+
+Only include courses with similarity >= 70. If no courses are similar enough, return an empty array.`;
+
+      const existingCoursesInfo = allCourses.map(c => ({
+        id: c._id.toString(),
+        title: c.title,
+        description: c.description,
+        category: c.category,
+        level: c.level,
+        tags: c.tags
+      }));
+
+      const completion = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          {
+            role: 'user',
+            content: `User wants to create: "${prompt}" (Level: ${level})\n\nExisting courses:\n${JSON.stringify(existingCoursesInfo, null, 2)}`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 2000
+      });
+
+      const response = completion.choices[0]?.message?.content;
+      const cleanedResponse = response
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      const similarityResults = JSON.parse(cleanedResponse);
+
+      // Merge with full course data and sort by similarity
+      const similarCourses = similarityResults
+        .map(result => {
+          const course = allCourses.find(c => c._id.toString() === result.courseId);
+          if (!course) return null;
+
+          return {
+            _id: course._id,
+            title: course.title,
+            description: course.description,
+            category: course.category,
+            level: course.level,
+            tags: course.tags,
+            statistics: course.statistics,
+            createdBy: course.createdBy,
+            similarityScore: result.similarityScore,
+            similarityReason: result.reason
+          };
+        })
+        .filter(c => c !== null)
+        .sort((a, b) => b.similarityScore - a.similarityScore)
+        .slice(0, 5); // Top 5 similar courses
+
+      return similarCourses;
+    } catch (error) {
+      console.error('Error finding similar courses:', error);
+      // Return empty array on error - don't block course creation
+      return [];
+    }
   }
 }
 

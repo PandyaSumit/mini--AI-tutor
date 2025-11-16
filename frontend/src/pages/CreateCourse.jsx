@@ -8,7 +8,10 @@ import {
     AlertCircle,
     BookOpen,
     Target,
-    Clock
+    Clock,
+    Users,
+    TrendingUp,
+    XCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -17,23 +20,51 @@ const CreateCourse = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const [step, setStep] = useState(1); // 1: Input, 2: Preview, 3: Generating
+    // Steps: 1=Input, 2=SimilarCourses, 3=Preview, 4=Generating, 5=Success
+    const [step, setStep] = useState(1);
     const [prompt, setPrompt] = useState('');
     const [level, setLevel] = useState('beginner');
     const [numModules, setNumModules] = useState(5);
     const [lessonsPerModule, setLessonsPerModule] = useState(4);
+    const [similarCourses, setSimilarCourses] = useState([]);
     const [preview, setPreview] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
     const [generatedCourse, setGeneratedCourse] = useState(null);
 
-    const handleGeneratePreview = async () => {
+    const handleCheckSimilar = async () => {
         if (!prompt.trim()) {
             setError('Please describe what you want to learn');
             return;
         }
 
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await api.post('/api/courses/check-similar', {
+                prompt,
+                level
+            });
+
+            setSimilarCourses(response.data.data.similarCourses);
+
+            // If no similar courses or low similarity, skip to preview
+            if (response.data.data.similarCourses.length === 0) {
+                handleGeneratePreview();
+            } else {
+                setStep(2); // Show similar courses
+                setLoading(false);
+            }
+        } catch (err) {
+            console.error('Error checking similar courses:', err);
+            // On error, proceed to preview anyway
+            handleGeneratePreview();
+        }
+    };
+
+    const handleGeneratePreview = async () => {
         try {
             setLoading(true);
             setError(null);
@@ -45,7 +76,7 @@ const CreateCourse = () => {
             });
 
             setPreview(response.data.data);
-            setStep(2);
+            setStep(3);
             setLoading(false);
         } catch (err) {
             console.error('Error generating preview:', err);
@@ -58,7 +89,7 @@ const CreateCourse = () => {
         try {
             setLoading(true);
             setError(null);
-            setStep(3);
+            setStep(4);
 
             const response = await api.post('/api/courses/generate', {
                 prompt,
@@ -69,12 +100,13 @@ const CreateCourse = () => {
 
             setGeneratedCourse(response.data.data);
             setSuccess(true);
+            setStep(5);
             setLoading(false);
         } catch (err) {
             console.error('Error generating course:', err);
             setError(err.response?.data?.error || 'Failed to generate course');
             setLoading(false);
-            setStep(2);
+            setStep(3);
         }
     };
 
@@ -85,6 +117,16 @@ const CreateCourse = () => {
         } catch (err) {
             console.error('Error publishing course:', err);
             alert('Failed to publish course');
+        }
+    };
+
+    const handleEnroll = async (courseId) => {
+        try {
+            await api.post(`/api/courses/${courseId}/enroll`);
+            navigate(`/courses/${courseId}`);
+        } catch (err) {
+            console.error('Error enrolling:', err);
+            alert(err.response?.data?.error || 'Failed to enroll in course');
         }
     };
 
@@ -209,29 +251,139 @@ const CreateCourse = () => {
                             </div>
                         )}
 
-                        {/* Generate Button */}
+                        {/* Continue Button */}
                         <button
-                            onClick={handleGeneratePreview}
+                            onClick={handleCheckSimilar}
                             disabled={loading || !prompt.trim()}
                             className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold text-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <>
                                     <Loader className="w-5 h-5 animate-spin" />
-                                    <span>Generating Preview...</span>
+                                    <span>Checking for similar courses...</span>
                                 </>
                             ) : (
                                 <>
                                     <Sparkles className="w-5 h-5" />
-                                    <span>Generate Course Preview</span>
+                                    <span>Continue</span>
                                 </>
                             )}
                         </button>
                     </div>
                 )}
 
-                {/* Step 2: Preview */}
-                {step === 2 && preview && !success && (
+                {/* Step 2: Similar Courses Found */}
+                {step === 2 && similarCourses.length > 0 && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                        <div className="mb-6">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <TrendingUp className="w-6 h-6 text-orange-500" />
+                                <h2 className="text-2xl font-bold text-gray-900">
+                                    Similar Courses Found!
+                                </h2>
+                            </div>
+                            <p className="text-gray-600">
+                                We found {similarCourses.length} existing course{similarCourses.length > 1 ? 's' : ''} similar to what you're looking for.
+                                Consider enrolling in one of these high-quality courses instead of creating a duplicate.
+                            </p>
+                        </div>
+
+                        {/* Similar Courses List */}
+                        <div className="space-y-4 mb-6">
+                            {similarCourses.map((course) => (
+                                <div
+                                    key={course._id}
+                                    className="border border-gray-200 rounded-lg p-5 hover:border-blue-300 transition-colors"
+                                >
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="flex-1">
+                                            <div className="flex items-center space-x-2 mb-2">
+                                                <h3 className="text-lg font-semibold text-gray-900">
+                                                    {course.title}
+                                                </h3>
+                                                <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded">
+                                                    {course.similarityScore}% Match
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-gray-600 mb-2">
+                                                {course.description}
+                                            </p>
+                                            <p className="text-xs text-gray-500 italic">
+                                                Why similar: {course.similarityReason}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                            <div className="flex items-center space-x-1">
+                                                <BookOpen className="w-4 h-4" />
+                                                <span>{course.statistics.totalLessons} lessons</span>
+                                            </div>
+                                            <div className="flex items-center space-x-1">
+                                                <Users className="w-4 h-4" />
+                                                <span>{course.statistics.enrollmentCount} students</span>
+                                            </div>
+                                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded capitalize">
+                                                {course.level}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={() => navigate(`/courses/${course._id}`)}
+                                                className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                                            >
+                                                View Details
+                                            </button>
+                                            <button
+                                                onClick={() => handleEnroll(course._id)}
+                                                className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                            >
+                                                Enroll Now
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Options */}
+                        <div className="border-t border-gray-200 pt-6">
+                            <p className="text-sm text-gray-600 mb-4">
+                                None of these courses match your needs? You can still create your own course.
+                            </p>
+                            <div className="flex space-x-4">
+                                <button
+                                    onClick={() => setStep(1)}
+                                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                >
+                                    Back to Edit
+                                </button>
+                                <button
+                                    onClick={handleGeneratePreview}
+                                    disabled={loading}
+                                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold flex items-center justify-center space-x-2 disabled:opacity-50"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader className="w-5 h-5 animate-spin" />
+                                            <span>Loading...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="w-5 h-5" />
+                                            <span>Create New Course Anyway</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 3: Preview */}
+                {step === 3 && preview && !success && (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">
                             {preview.title}
@@ -300,8 +452,8 @@ const CreateCourse = () => {
                     </div>
                 )}
 
-                {/* Step 3: Generating */}
-                {step === 3 && loading && (
+                {/* Step 4: Generating */}
+                {step === 4 && loading && (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                         <Loader className="w-16 h-16 animate-spin text-blue-600 mx-auto mb-6" />
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -313,8 +465,8 @@ const CreateCourse = () => {
                     </div>
                 )}
 
-                {/* Success */}
-                {success && generatedCourse && (
+                {/* Step 5: Success */}
+                {step === 5 && success && generatedCourse && (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                         <div className="text-center mb-6">
                             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />

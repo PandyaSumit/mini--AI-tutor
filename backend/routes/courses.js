@@ -157,6 +157,41 @@ router.post('/generate/preview', protect, async (req, res) => {
 });
 
 /**
+ * @route   POST /api/courses/check-similar
+ * @desc    Check for similar existing courses
+ * @access  Private
+ */
+router.post('/check-similar', protect, async (req, res) => {
+  try {
+    const { prompt, level } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({
+        success: false,
+        error: 'Prompt is required'
+      });
+    }
+
+    const similarCourses = await courseGenerator.findSimilarCourses(prompt, level);
+
+    res.json({
+      success: true,
+      data: {
+        similarCourses,
+        hasSimilarCourses: similarCourses.length > 0,
+        highSimilarity: similarCourses.some(c => c.similarityScore >= 85)
+      }
+    });
+  } catch (error) {
+    console.error('Error checking similar courses:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to check similar courses'
+    });
+  }
+});
+
+/**
  * @route   POST /api/courses
  * @desc    Create new course manually
  * @access  Private

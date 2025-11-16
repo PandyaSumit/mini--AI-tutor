@@ -55,6 +55,18 @@ const conversationSchema = new mongoose.Schema({
     averageResponseTime: {
       type: Number,
       default: 0
+    },
+    isVoiceSession: {
+      type: Boolean,
+      default: false
+    },
+    sessionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'VoiceSession'
+    },
+    language: {
+      type: String,
+      default: 'en-US'
     }
   },
   createdAt: {
@@ -73,10 +85,10 @@ conversationSchema.pre('save', function(next) {
   next();
 });
 
-// Index for faster queries
+// Compound indexes for efficient queries
+conversationSchema.index({ user: 1, isActive: 1, lastMessageAt: -1 });
 conversationSchema.index({ user: 1, createdAt: -1 });
-conversationSchema.index({ user: 1, topic: 1 });
-conversationSchema.index({ user: 1, isActive: 1 });
+conversationSchema.index({ 'metadata.sessionId': 1 });
 
 // Virtual for messages
 conversationSchema.virtual('messages', {

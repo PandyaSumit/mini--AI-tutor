@@ -80,11 +80,12 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
           setUseBrowserSTT(true);
           setSTTMode('browser');
           setIsProcessing(false);
+          setIsRecording(false);
 
           // Show informative message (not an error!)
-          const infoMessage = data.message || 'Using browser speech recognition (100% FREE, instant!)';
+          const infoMessage = data.message || 'Using browser speech recognition (100% FREE, instant!)\n\nClick the microphone button to try again with browser STT.';
           setError(infoMessage);
-          setTimeout(() => setError(null), 4000); // Clear after 4s
+          setTimeout(() => setError(null), 6000); // Clear after 6s
         });
 
         // Join session

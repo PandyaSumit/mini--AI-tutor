@@ -111,7 +111,12 @@ export const registerVoiceHandlers = (io) => {
             metadata
           );
 
-          console.log(`✅ Voice processed: "${result.transcription}"`);
+          // Log result based on mode
+          if (result.useBrowserSTT) {
+            console.log(`⚡ ${result.message || 'Switched to browser STT mode'}`);
+          } else if (result.transcription) {
+            console.log(`✅ Voice processed: "${result.transcription}"`);
+          }
         }
       } catch (error) {
         console.error('Error stopping recording:', error);

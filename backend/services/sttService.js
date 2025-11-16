@@ -50,6 +50,19 @@ class STTService {
 
         console.log(`🎤 STT providers available: ${providers.join(' → ')}`);
 
+        // If only browser is available, return immediately
+        if (providers.length === 1 && providers[0] === 'browser') {
+            console.log('⚡ No server-side STT configured, using browser STT immediately');
+            return {
+                text: null,
+                language,
+                provider: 'browser',
+                useBrowserSTT: true,
+                fallbackInstructions: this.getFallbackInstructions(),
+                errors: []
+            };
+        }
+
         // Try Hugging Face first (Free!)
         if (providers.includes('huggingface')) {
             try {
@@ -104,7 +117,7 @@ class STTService {
                     'Authorization': `Bearer ${hfKey}`,
                     'Content-Type': 'audio/webm'
                 },
-                timeout: 60000 // 60 seconds
+                timeout: 20000 // 20 seconds (faster fallback)
             });
 
             // HF returns: { text: "transcribed text" }
@@ -157,7 +170,7 @@ class STTService {
                     ...formData.getHeaders(),
                     'Authorization': `Bearer ${apiKey}`
                 },
-                timeout: 30000 // 30 seconds
+                timeout: 15000 // 15 seconds (faster fallback)
             });
 
             return {

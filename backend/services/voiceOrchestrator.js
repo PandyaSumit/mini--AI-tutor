@@ -88,11 +88,14 @@ class VoiceOrchestrator {
 
       // Check if we need to fall back to browser STT
       if (transcription.useBrowserSTT) {
+        console.log('⚡ Switching to browser STT mode');
+
         // Notify client to use browser-based STT
         emitToUser(session.userId, 'voice:use-browser-stt', {
           sessionId,
           instructions: transcription.fallbackInstructions,
-          errors: transcription.errors
+          errors: transcription.errors,
+          message: 'Using browser speech recognition (100% FREE, instant!)'
         });
 
         await session.updateVoiceState({
@@ -102,7 +105,7 @@ class VoiceOrchestrator {
 
         return {
           useBrowserSTT: true,
-          message: 'Please use browser-based speech recognition'
+          message: 'Switched to browser-based speech recognition'
         };
       }
 

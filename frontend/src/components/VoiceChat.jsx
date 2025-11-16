@@ -76,11 +76,15 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
 
         // Handle fallback to browser STT
         voiceWebSocket.on('use-browser-stt', (data) => {
-          console.log('⚠️ Falling back to browser STT:', data);
+          console.log('⚡ Switching to browser STT:', data);
           setUseBrowserSTT(true);
           setSTTMode('browser');
-          setError('Server STT unavailable. Using browser speech recognition (100% FREE)');
-          setTimeout(() => setError(null), 5000); // Clear error after 5s
+          setIsProcessing(false);
+
+          // Show informative message (not an error!)
+          const infoMessage = data.message || 'Using browser speech recognition (100% FREE, instant!)';
+          setError(infoMessage);
+          setTimeout(() => setError(null), 4000); // Clear after 4s
         });
 
         // Join session

@@ -111,6 +111,20 @@ app.use('/api/courses/:courseId/modules', moduleRoutes);
 app.use('/api/courses/:courseId/modules/:moduleId/lessons', lessonRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
 
+// Co-creator management routes
+const coCreatorRoutes = (await import('./routes/coCreatorRoutes.js')).default;
+app.use('/api/courses', coCreatorRoutes);
+app.use('/api/co-creators', coCreatorRoutes);
+
+// Contributor improvement suggestions routes
+const contributorRoutes = (await import('./routes/contributorRoutes.js')).default;
+app.use('/api/courses', contributorRoutes);
+app.use('/api/contributors', contributorRoutes);
+
+// Contributor invitation routes
+const invitationRoutes = (await import('./routes/invitationRoutes.js')).default;
+app.use('/api/invitations', invitationRoutes);
+
 // Initialize async routes
 (async () => {
     try {

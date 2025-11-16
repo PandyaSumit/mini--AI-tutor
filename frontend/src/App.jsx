@@ -18,6 +18,8 @@ import StudyFlashcards from './pages/StudyFlashcards';
 import NotFound from './pages/NotFound';
 import SessionDetails from './pages/SessionDetails';
 import VoiceTutorTest from './pages/VoiceTutorTest';
+import CourseCatalog from './pages/CourseCatalog';
+import CourseDetails from './pages/CourseDetails';
 
 function App() {
     const { user, loading } = useAuth();
@@ -80,10 +82,26 @@ function App() {
                             }
                         />
                         <Route
-                            path="/session"
+                            path="/session/:sessionId"
                             element={
                                 <PrivateRoute>
                                     <SessionDetails />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/courses"
+                            element={
+                                <PrivateRoute>
+                                    <CourseCatalog />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/courses/:courseId"
+                            element={
+                                <PrivateRoute>
+                                    <CourseDetails />
                                 </PrivateRoute>
                             }
                         />

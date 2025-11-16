@@ -17,7 +17,17 @@ import {
     AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { CourseRoleProvider } from '../context/CourseRoleContext';
 import api from '../services/api';
+
+// Role-based components
+import RoleBadge from '../components/course/RoleBadge';
+import CourseRoleNav from '../components/course/CourseRoleNav';
+import CoCreatorApplication from '../components/course/CoCreatorApplication';
+import CoCreatorRequests from '../components/course/CoCreatorRequests';
+import CourseImprovements from '../components/course/CourseImprovements';
+import RevenueDistribution from '../components/course/RevenueDistribution';
+import ContributorStatus from '../components/course/ContributorStatus';
 
 const CourseDetails = () => {
     const { courseId } = useParams();
@@ -30,6 +40,7 @@ const CourseDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [enrolling, setEnrolling] = useState(false);
+    const [activeTab, setActiveTab] = useState('overview');
 
     // Fetch course and enrollment data
     useEffect(() => {
@@ -180,7 +191,8 @@ const CourseDetails = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <CourseRoleProvider courseId={courseId}>
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -326,13 +338,45 @@ const CourseDetails = () => {
 
             {/* Course Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Role Badge */}
+                <RoleBadge />
+
+                {/* Contributor Status Widget */}
+                <ContributorStatus />
+
+                {/* Navigation Tabs */}
+                <CourseRoleNav activeTab={activeTab} onTabChange={setActiveTab} />
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                                Course Curriculum
-                            </h2>
+                        {/* Overview Tab */}
+                        {activeTab === 'overview' && (
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                                    About This Course
+                                </h2>
+                                <p className="text-gray-600 mb-4">{course.description}</p>
+
+                                {course.metadata?.prerequisites && course.metadata.prerequisites.length > 0 && (
+                                    <div className="mb-4">
+                                        <h3 className="font-semibold text-gray-900 mb-2">Prerequisites</h3>
+                                        <ul className="list-disc list-inside text-gray-600 space-y-1">
+                                            {course.metadata.prerequisites.map((prereq, idx) => (
+                                                <li key={idx}>{prereq}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Lessons Tab */}
+                        {activeTab === 'lessons' && (
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                                    Course Curriculum
+                                </h2>
 
                             <div className="space-y-4">
                                 {course.modules && course.modules.length > 0 ? (
@@ -459,7 +503,50 @@ const CourseDetails = () => {
                                     </div>
                                 )}
                             </div>
-                        </div>
+                            </div>
+                        )}
+
+                        {/* Improvements Tab */}
+                        {activeTab === 'improvements' && (
+                            <>
+                                <CourseImprovements courseId={courseId} />
+                                <CoCreatorApplication courseId={courseId} />
+                            </>
+                        )}
+
+                        {/* Revenue Tab */}
+                        {activeTab === 'revenue' && (
+                            <RevenueDistribution courseId={courseId} />
+                        )}
+
+                        {/* Co-Creator Requests Tab (Founders only) */}
+                        {activeTab === 'co-creator-requests' && (
+                            <CoCreatorRequests courseId={courseId} />
+                        )}
+
+                        {/* Analytics Tab (Founders only) */}
+                        {activeTab === 'analytics' && (
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                                    Course Analytics
+                                </h2>
+                                <p className="text-gray-600">
+                                    Analytics dashboard coming soon...
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Edit Content Tab (Founders and Co-Creators) */}
+                        {activeTab === 'edit' && (
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                                    Edit Course Content
+                                </h2>
+                                <p className="text-gray-600">
+                                    Content editor coming soon...
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Sidebar */}
@@ -513,6 +600,7 @@ const CourseDetails = () => {
                 </div>
             </div>
         </div>
+        </CourseRoleProvider>
     );
 };
 

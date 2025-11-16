@@ -184,9 +184,34 @@ export const registerVoiceHandlers = (io) => {
           language: session.settings.language
         });
 
+        // Create conversation if it doesn't exist
+        const Conversation = (await import('../models/Conversation.js')).default;
+        let conversation;
+
+        if (session.conversationId) {
+          conversation = await Conversation.findById(session.conversationId);
+        }
+
+        if (!conversation) {
+          console.log('📝 Creating new conversation for text message');
+          conversation = new Conversation({
+            userId: session.userId,
+            title: `Voice Chat - ${new Date().toLocaleString()}`,
+            metadata: {
+              isVoiceSession: true,
+              sessionId: session._id,
+              language: session.settings.language
+            }
+          });
+          await conversation.save();
+
+          session.conversationId = conversation._id;
+          await session.save();
+        }
+
         // Process as if it were voice input (without STT step)
         const response = await voiceOrchestrator.generateAIResponse(
-          session.conversationId,
+          conversation._id,
           text,
           session.context
         );
@@ -195,7 +220,7 @@ export const registerVoiceHandlers = (io) => {
         const Message = (await import('../models/Message.js')).default;
 
         const userMessage = new Message({
-          conversation: session.conversationId,
+          conversation: conversation._id,
           user: session.userId,
           role: 'user',
           content: text,
@@ -204,7 +229,7 @@ export const registerVoiceHandlers = (io) => {
         await userMessage.save();
 
         const aiMessage = new Message({
-          conversation: session.conversationId,
+          conversation: conversation._id,
           user: session.userId,
           role: 'assistant',
           content: response.text,

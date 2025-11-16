@@ -26,7 +26,7 @@ export const initializeSocketIO = (httpServer) => {
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      socket.userId = decoded.userId;
+      socket.userId = decoded.id;
       socket.userEmail = decoded.email;
 
       console.log(`✅ User ${decoded.email} authenticated via WebSocket`);

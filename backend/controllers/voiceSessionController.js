@@ -12,7 +12,7 @@ import { emitToUser } from '../config/socket.js';
  */
 export const initializeVoiceSession = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const { settings } = req.body;
 
     // Check if user has an active voice session
@@ -48,7 +48,7 @@ export const initializeVoiceSession = async (req, res) => {
 export const getSessionDetails = async (req, res) => {
   try {
     const { sessionId } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const session = await Session.findById(sessionId).populate('conversationId');
 
@@ -86,7 +86,7 @@ export const getSessionDetails = async (req, res) => {
 export const updateSessionSettings = async (req, res) => {
   try {
     const { sessionId } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const { settings } = req.body;
 
     const session = await Session.findById(sessionId);
@@ -134,7 +134,7 @@ export const updateSessionSettings = async (req, res) => {
 export const endVoiceSession = async (req, res) => {
   try {
     const { sessionId } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const session = await Session.findById(sessionId);
 
@@ -173,7 +173,7 @@ export const endVoiceSession = async (req, res) => {
  */
 export const getSessionHistory = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const { limit = 10, skip = 0 } = req.query;
 
     const sessions = await Session.find({ userId })
@@ -208,7 +208,7 @@ export const getSessionHistory = async (req, res) => {
 export const updateSessionContext = async (req, res) => {
   try {
     const { sessionId } = req.params;
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const { context } = req.body;
 
     const session = await Session.findById(sessionId);

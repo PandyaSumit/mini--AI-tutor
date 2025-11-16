@@ -8,7 +8,7 @@ import {
   getSessionHistory,
   updateSessionContext
 } from '../controllers/voiceSessionController.js';
-import { authenticateToken } from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -30,7 +30,7 @@ const upload = multer({
 });
 
 // All routes require authentication
-router.use(authenticateToken);
+router.use(protect);
 
 /**
  * @route   POST /api/voice/session/init

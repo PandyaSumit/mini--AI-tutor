@@ -113,20 +113,35 @@ const SessionDetails = () => {
 
     // Initialize Socket.IO connection
     useEffect(() => {
-        if (!token || !sessionId) return;
+        console.log('🔄 Socket useEffect triggered');
+        console.log('Token exists:', !!token, 'SessionId:', sessionId);
+
+        if (!token || !sessionId) {
+            console.log('❌ Missing token or sessionId, skipping socket connection');
+            return;
+        }
+
+        console.log('🔌 Attempting to connect to socket...');
+        const socketUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        console.log('Socket URL:', socketUrl);
+        console.log('Token (first 20 chars):', token?.substring(0, 20));
 
         // Connect to WebSocket
-        const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+        const socket = io(socketUrl, {
             auth: { token },
             transports: ['websocket', 'polling']
         });
 
         socketRef.current = socket;
+        console.log('✅ Socket instance created and stored in ref');
 
         // Socket event handlers
         socket.on('connect', () => {
-            console.log('✅ Connected to voice server');
+            console.log('✅✅✅ Connected to voice server! Socket ID:', socket.id);
+            console.log('Socket connected state:', socket.connected);
+
             // Join the session
+            console.log('📤 Sending voice:join event...');
             socket.emit('voice:join', {
                 sessionId,
                 settings: {
@@ -136,8 +151,18 @@ const SessionDetails = () => {
             });
         });
 
+        socket.on('connect_error', (error) => {
+            console.error('❌❌❌ Socket connection error:', error);
+            console.error('Error message:', error.message);
+            console.error('Error type:', error.type);
+        });
+
+        socket.on('connect_timeout', () => {
+            console.error('❌ Socket connection timeout');
+        });
+
         socket.on('voice:joined', (data) => {
-            console.log('Joined voice session:', data);
+            console.log('✅ Joined voice session:', data);
         });
 
         socket.on('voice:transcribed', (data) => {

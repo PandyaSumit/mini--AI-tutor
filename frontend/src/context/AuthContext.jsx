@@ -24,6 +24,10 @@ export const AuthProvider = ({ children }) => {
         if (storedToken && storedUser) {
             setUser(storedUser);
             setToken(storedToken);
+            // Ensure userId is stored (for existing sessions)
+            if (!localStorage.getItem('userId')) {
+                localStorage.setItem('userId', storedUser._id || storedUser.id);
+            }
         }
         setLoading(false);
     }, []);
@@ -66,6 +70,7 @@ export const AuthProvider = ({ children }) => {
     const updateUser = (userData) => {
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('userId', userData._id || userData.id); // Update userId
     };
 
     const value = {

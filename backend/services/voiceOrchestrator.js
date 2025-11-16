@@ -86,9 +86,33 @@ class VoiceOrchestrator {
       // Step 1: Transcribe audio using STT
       const transcription = await this.transcribeAudio(audioBuffer, session.settings.language);
 
+      // Check if we need to fall back to browser STT
+      if (transcription.useBrowserSTT) {
+        // Notify client to use browser-based STT
+        emitToUser(session.userId, 'voice:use-browser-stt', {
+          sessionId,
+          instructions: transcription.fallbackInstructions,
+          errors: transcription.errors
+        });
+
+        await session.updateVoiceState({
+          isProcessing: false,
+          isRecording: false
+        });
+
+        return {
+          useBrowserSTT: true,
+          message: 'Please use browser-based speech recognition'
+        };
+      }
+
       if (!transcription.text || transcription.text.trim().length === 0) {
         throw new Error('No speech detected');
       }
+
+      // Log which provider was used
+      console.log(`✅ STT Provider used: ${transcription.provider}`);
+
 
       // Emit transcription to user
       emitToUser(session.userId, 'voice:transcribed', {

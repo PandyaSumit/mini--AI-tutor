@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Volume2, VolumeX, Send, Loader2 } from 'lucide-react';
 import voiceWebSocket from '../services/voiceWebSocket';
+import browserSTT from '../services/browserSTT';
 
 /**
  * VoiceChat Component
@@ -19,6 +20,8 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
   const [error, setError] = useState(null);
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [useBrowserSTT, setUseBrowserSTT] = useState(false);
+  const [sttMode, setSTTMode] = useState('server'); // 'server' or 'browser'
 
   const messagesEndRef = useRef(null);
 
@@ -71,6 +74,15 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
           setIsRecording(false);
         });
 
+        // Handle fallback to browser STT
+        voiceWebSocket.on('use-browser-stt', (data) => {
+          console.log('⚠️ Falling back to browser STT:', data);
+          setUseBrowserSTT(true);
+          setSTTMode('browser');
+          setError('Server STT unavailable. Using browser speech recognition (100% FREE)');
+          setTimeout(() => setError(null), 5000); // Clear error after 5s
+        });
+
         // Join session
         await voiceWebSocket.joinSession(null, {
           voiceEnabled: true,
@@ -113,14 +125,53 @@ const VoiceChat = ({ token, onMessage, className = '' }) => {
     try {
       if (isRecording) {
         // Stop recording
-        await voiceWebSocket.stopRecording();
+        if (sttMode === 'browser') {
+          // Stop browser STT
+          const finalTranscript = browserSTT.stop();
+          if (finalTranscript && finalTranscript.trim()) {
+            // Send transcript as text message
+            voiceWebSocket.sendTextMessage(finalTranscript);
+            addMessage('user', finalTranscript);
+            setIsProcessing(true);
+          }
+        } else {
+          // Stop server-side recording
+          await voiceWebSocket.stopRecording();
+        }
         setIsRecording(false);
         setTranscript('');
       } else {
         // Start recording
         setError(null);
-        await voiceWebSocket.startRecording();
-        setIsRecording(true);
+
+        if (sttMode === 'browser') {
+          // Use browser STT
+          if (!browserSTT.isSupported()) {
+            setError('Browser speech recognition not supported');
+            return;
+          }
+
+          browserSTT.start({
+            onStart: () => {
+              setIsRecording(true);
+            },
+            onResult: (result) => {
+              setTranscript(result.transcript);
+            },
+            onError: (error) => {
+              console.error('Browser STT error:', error);
+              setError(`Speech recognition error: ${error}`);
+              setIsRecording(false);
+            },
+            onEnd: (finalTranscript) => {
+              setIsRecording(false);
+            }
+          });
+        } else {
+          // Use server-side recording
+          await voiceWebSocket.startRecording();
+          setIsRecording(true);
+        }
       }
     } catch (error) {
       console.error('Recording error:', error);

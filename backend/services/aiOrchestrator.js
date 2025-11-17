@@ -16,6 +16,7 @@ import thinkingGenerator from '../ai/thinking/thinkingGenerator.js';
 import tutorPrompts from '../ai/prompts/tutorPrompts.js';
 import queryClassifier from '../ai/classifiers/queryClassifier.js';
 import semanticQueryClassifier from '../ai/classifiers/semanticQueryClassifier.js';
+import mcpHandler from '../ai/handlers/mcpHandler.js';
 import logger from '../utils/logger.js';
 
 class AIOrchestrator {
@@ -65,6 +66,11 @@ class AIOrchestrator {
             // Initialize ChromaDB (optional - graceful degradation)
             const chromaResult = await chromaService.initialize();
             const chromaAvailable = chromaResult.success;
+
+            // Initialize semantic query classifier embeddings (async, non-blocking)
+            semanticQueryClassifier.initializeIntentEmbeddings().catch(error => {
+                console.warn('⚠️  Semantic classifier initialization failed, will use pattern-based:', error.message);
+            });
 
             this.isInitialized = true;
             console.log('✅ AI Pipeline initialized successfully');
@@ -189,19 +195,38 @@ class AIOrchestrator {
 
         // Step 1: Classify the query to determine mode
         // Use semantic classifier (embeddings-based) or pattern-based classifier
-        const classifier = useSemanticClassifier ? semanticQueryClassifier : queryClassifier;
-        const classification = await classifier.classify(sanitizedMessage, {
-            conversationHistory,
-            forceMode,
-            useLLM: useLLMClassifier, // Only used by pattern-based classifier
-        });
+        let classification;
+        let classifierUsed = useSemanticClassifier ? 'semantic' : 'pattern';
+
+        try {
+            const classifier = useSemanticClassifier ? semanticQueryClassifier : queryClassifier;
+            classification = await classifier.classify(sanitizedMessage, {
+                conversationHistory,
+                forceMode,
+                useLLM: useLLMClassifier, // Only used by pattern-based classifier
+            });
+        } catch (error) {
+            // Fallback to pattern-based classifier if semantic fails
+            if (useSemanticClassifier) {
+                logger.warn('Semantic classifier failed, falling back to pattern-based:', error.message);
+                classifierUsed = 'pattern';
+
+                classification = await queryClassifier.classify(sanitizedMessage, {
+                    conversationHistory,
+                    forceMode,
+                    useLLM: useLLMClassifier,
+                });
+            } else {
+                throw error; // Re-throw if pattern-based also fails
+            }
+        }
 
         logger.info('Smart chat mode selected:', {
             query: sanitizedMessage.substring(0, 50),
             mode: classification.mode,
             confidence: classification.confidence,
             method: classification.method,
-            classifier: useSemanticClassifier ? 'semantic' : 'pattern',
+            classifier: classifierUsed,
             reasoning: classification.reasoning,
         });
 
@@ -230,19 +255,64 @@ class AIOrchestrator {
         if (classification.mode === 'platformAction') {
             logger.info('Platform action detected:', classification.action);
 
-            // For now, use simple chat (future: integrate with MCP tools)
-            const result = await this.chat(sanitizedMessage, options);
+            try {
+                // Attempt to handle via MCP tools
+                const mcpResult = await mcpHandler.handlePlatformAction(sanitizedMessage, {
+                    userId: options.userId,
+                    conversationHistory,
+                });
 
-            return {
-                ...result,
-                modeDetection: {
-                    ...classification,
-                    selectedMode: 'platformAction',
-                    actualMode: 'simple',
-                    fallback: false,
-                    note: 'Platform actions coming soon - handled as conversation for now',
-                },
-            };
+                if (mcpResult.handled && mcpResult.success) {
+                    // MCP tool successfully handled the request
+                    return {
+                        response: mcpResult.message,
+                        data: mcpResult.data,
+                        model: aiConfig.llm.model,
+                        platformAction: true,
+                        tool: mcpResult.tool,
+                        modeDetection: {
+                            ...classification,
+                            selectedMode: 'platformAction',
+                            actualMode: 'mcp',
+                            fallback: false,
+                            tool: mcpResult.tool,
+                            confidence: mcpResult.confidence,
+                        },
+                    };
+                }
+
+                // MCP couldn't handle or tools not available - fallback to LLM
+                logger.warn('MCP handler could not process platform action, falling back to LLM');
+
+                const result = await this.chat(sanitizedMessage, options);
+
+                return {
+                    ...result,
+                    modeDetection: {
+                        ...classification,
+                        selectedMode: 'platformAction',
+                        actualMode: 'simple',
+                        fallback: true,
+                        reason: mcpResult.message || 'MCP tools not available',
+                    },
+                };
+            } catch (error) {
+                logger.error('Platform action handling failed:', error);
+
+                // Error fallback to simple chat
+                const result = await this.chat(sanitizedMessage, options);
+
+                return {
+                    ...result,
+                    modeDetection: {
+                        ...classification,
+                        selectedMode: 'platformAction',
+                        actualMode: 'simple',
+                        fallback: true,
+                        reason: 'MCP error: ' + error.message,
+                    },
+                };
+            }
         }
 
         // Handle RAG queries

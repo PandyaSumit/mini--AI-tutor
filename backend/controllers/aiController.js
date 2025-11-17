@@ -34,6 +34,7 @@ class AIController {
         forceMode,
         useLLMClassifier: useLLMClassifier || false,
         useSemanticClassifier: useSemanticClassifier !== false, // Default: true (semantic)
+        userId: req.user?._id || req.user?.id, // Pass user ID for MCP tools
       });
 
       res.json({

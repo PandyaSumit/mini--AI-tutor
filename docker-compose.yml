@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Redis - Caching, Socket.IO adapter, BullMQ queues
@@ -36,7 +36,7 @@ services:
     volumes:
       - mongo-data:/data/db
       - mongo-config:/data/configdb
-    command: mongod --replSet rs0 --bind_ip_all
+    command: mongod --replSet rs0 --bind_ip_all --noauth
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -123,14 +123,16 @@ services:
       NODE_ENV: production
       PORT: 5000
       INSTANCE_ID: backend-1
-      MONGODB_URI: mongodb://admin:admin_password_change_in_production@mongodb:27017/ai-tutor?replicaSet=rs0&authSource=admin
+      MONGODB_URI: mongodb://mongodb:27017/ai-tutor?replicaSet=rs0
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
       MINIO_ENDPOINT: minio
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin_change_in_production
-      MINIO_USE_SSL: 'false'
+      MINIO_USE_SSL: "false"
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production-min-32-chars}
       GROQ_API_KEY: ${GROQ_API_KEY}
       HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY:-}
@@ -144,23 +146,12 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      chromadb:
+        condition: service_healthy
       mongo-init:
         condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
-    volumes:
-      - ./backend/logs:/app/logs
-    networks:
-      - voice-tutor-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # Backend instance 2
   backend-2:
     build:
       context: ./backend
@@ -170,14 +161,16 @@ services:
       NODE_ENV: production
       PORT: 5000
       INSTANCE_ID: backend-2
-      MONGODB_URI: mongodb://admin:admin_password_change_in_production@mongodb:27017/ai-tutor?replicaSet=rs0&authSource=admin
+      MONGODB_URI: mongodb://mongodb:27017/ai-tutor?replicaSet=rs0
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
       MINIO_ENDPOINT: minio
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin_change_in_production
-      MINIO_USE_SSL: 'false'
+      MINIO_USE_SSL: "false"
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production-min-32-chars}
       GROQ_API_KEY: ${GROQ_API_KEY}
       HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY:-}
@@ -191,6 +184,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      chromadb:
+        condition: service_healthy
       mongo-init:
         condition: service_completed_successfully
       minio-init:
@@ -201,7 +196,15 @@ services:
       - voice-tutor-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:5000/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -217,14 +220,16 @@ services:
       NODE_ENV: production
       PORT: 5000
       INSTANCE_ID: backend-3
-      MONGODB_URI: mongodb://admin:admin_password_change_in_production@mongodb:27017/ai-tutor?replicaSet=rs0&authSource=admin
+      MONGODB_URI: mongodb://mongodb:27017/ai-tutor?replicaSet=rs0
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
       MINIO_ENDPOINT: minio
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin_change_in_production
-      MINIO_USE_SSL: 'false'
+      MINIO_USE_SSL: "false"
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production-min-32-chars}
       GROQ_API_KEY: ${GROQ_API_KEY}
       HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY:-}
@@ -238,6 +243,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      chromadb:
+        condition: service_healthy
       mongo-init:
         condition: service_completed_successfully
       minio-init:
@@ -248,11 +255,46 @@ services:
       - voice-tutor-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:5000/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # ChromaDB - Vector Database for RAG features
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: voice-tutor-chromadb
+    ports:
+      - "8000:8000"
+    environment:
+      # ChromaDB configuration
+      CHROMA_HOST: 0.0.0.0
+      CHROMA_PORT: 8000
+      ALLOW_RESET: "true"
+      IS_PERSISTENT: "true"
+      PERSIST_DIRECTORY: /chroma/data
+      CHROMA_DB_IMPL: duckdb+parquet
+      ANONYMIZED_TELEMETRY: "false"
+    volumes:
+      - chroma-data:/chroma/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - voice-tutor-network
+    restart: unless-stopped
 
   # NGINX - Reverse proxy and load balancer
   nginx:
@@ -271,11 +313,21 @@ services:
         condition: service_healthy
       backend-3:
         condition: service_healthy
+      chromadb:
+        condition: service_healthy
     networks:
       - voice-tutor-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/health",
+        ]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -288,6 +340,8 @@ volumes:
   mongo-config:
     driver: local
   minio-data:
+    driver: local
+  chroma-data:
     driver: local
 
 networks:

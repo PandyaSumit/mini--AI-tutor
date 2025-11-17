@@ -14,6 +14,8 @@ import envValidator from '../config/envValidator.js';
 import aiConfig from '../config/ai.js';
 import thinkingGenerator from '../ai/thinking/thinkingGenerator.js';
 import tutorPrompts from '../ai/prompts/tutorPrompts.js';
+import queryClassifier from '../ai/classifiers/queryClassifier.js';
+import logger from '../utils/logger.js';
 
 class AIOrchestrator {
     constructor() {
@@ -163,6 +165,92 @@ class AIOrchestrator {
     }
 
     /**
+     * Smart Chat - Automatic Mode Detection
+     * Intelligently routes to RAG or simple chat based on query analysis
+     */
+    async smartChat(message, options = {}) {
+        const startTime = Date.now();
+
+        const {
+            conversationHistory = [],
+            forceMode = null, // For testing/override
+            useLLMClassifier = false, // Use LLM for classification (more accurate but slower)
+        } = options;
+
+        // Security check
+        const injectionCheck = sanitizer.detectInjection(message);
+        if (injectionCheck.detected) {
+            throw new Error('Potential prompt injection detected');
+        }
+
+        const sanitizedMessage = sanitizer.sanitizeText(message);
+
+        // Step 1: Classify the query to determine mode
+        const classification = await queryClassifier.classify(sanitizedMessage, {
+            conversationHistory,
+            forceMode,
+            useLLM: useLLMClassifier,
+        });
+
+        logger.info('Smart chat mode selected:', {
+            query: sanitizedMessage.substring(0, 50),
+            mode: classification.mode,
+            confidence: classification.confidence,
+            method: classification.method,
+        });
+
+        // Step 2: Route to appropriate handler based on classification
+        if (classification.mode === 'rag') {
+            // Use RAG mode - but gracefully fallback to simple if ChromaDB unavailable
+            if (!chromaService.isInitialized) {
+                logger.warn('RAG mode selected but ChromaDB not available, falling back to simple chat');
+
+                const result = await this.chat(sanitizedMessage, options);
+
+                return {
+                    ...result,
+                    modeDetection: {
+                        ...classification,
+                        selectedMode: 'rag',
+                        actualMode: 'simple',
+                        fallback: true,
+                        reason: 'ChromaDB not available',
+                    },
+                };
+            }
+
+            // Execute RAG query
+            const result = await this.chatWithRAG(sanitizedMessage, {
+                topK: 5,
+                collectionKey: 'knowledge',
+            });
+
+            return {
+                ...result,
+                modeDetection: {
+                    ...classification,
+                    selectedMode: 'rag',
+                    actualMode: 'rag',
+                    fallback: false,
+                },
+            };
+        } else {
+            // Use simple chat mode
+            const result = await this.chat(sanitizedMessage, options);
+
+            return {
+                ...result,
+                modeDetection: {
+                    ...classification,
+                    selectedMode: 'simple',
+                    actualMode: 'simple',
+                    fallback: false,
+                },
+            };
+        }
+    }
+
+    /**
      * Tutor Chat - Socratic teaching method
      * Uses comprehensive tutor system prompt for educational conversations
      */
@@ -283,17 +371,26 @@ class AIOrchestrator {
     async getStats() {
         const embeddingStats = embeddingService.getStats();
         const chromaStats = await chromaService.getStats();
+        const classifierStats = queryClassifier.getStats();
 
         return {
             initialized: this.isInitialized,
             embeddings: embeddingStats,
             vectorStore: chromaStats,
+            classifier: classifierStats,
             model: aiConfig.llm.model,
             cost: {
                 embeddings: 0, // Always $0
                 total: embeddingStats.service.totalCost || 0,
             },
         };
+    }
+
+    /**
+     * Get query classifier statistics
+     */
+    getClassifierStats() {
+        return queryClassifier.getStats();
     }
 
     /**

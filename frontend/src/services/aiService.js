@@ -7,12 +7,16 @@ import api from './api';
 
 export const aiService = {
   /**
-   * Chat with AI (simple completion)
+   * Chat with AI (automatic mode detection)
+   * Intelligently routes to RAG or simple chat based on query analysis
    */
-  chat: async (message, context = {}) => {
+  chat: async (message, options = {}) => {
     const response = await api.post('/ai/chat', {
       message,
-      context,
+      context: options.context,
+      conversationHistory: options.conversationHistory,
+      forceMode: options.forceMode, // Optional: 'rag' or 'simple'
+      useLLMClassifier: options.useLLMClassifier, // Optional: Use LLM for classification
     });
     return response.data;
   },

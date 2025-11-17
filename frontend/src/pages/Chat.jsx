@@ -41,7 +41,6 @@ const Chat = () => {
     const [selectedTopic, setSelectedTopic] = useState('general');
     const [conversationTitle, setConversationTitle] = useState('');
     const [generatingFlashcards, setGeneratingFlashcards] = useState(false);
-    const [aiMode, setAiMode] = useState('rag'); // 'rag' or 'simple'
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -88,51 +87,39 @@ const Chat = () => {
         setLoading(true);
 
         try {
-            let aiResponse;
+            // Use smart chat with automatic mode detection
+            // Pass conversation history for better context-aware classification
+            const conversationHistory = messages.map(msg => ({
+                role: msg.role,
+                content: msg.content,
+                isRAG: msg.isRAG || false,
+                sources: msg.sources || []
+            }));
 
-            // Use AI Service with RAG or simple mode
-            if (aiMode === 'rag') {
-                // RAG mode - get answer with sources
-                aiResponse = await aiService.ragQuery(userMessageText, {
-                    topK: 5,
-                    collectionKey: 'knowledge'
-                });
+            const aiResponse = await aiService.chat(userMessageText, {
+                conversationHistory: conversationHistory.slice(-5) // Last 5 messages for context
+            });
 
-                const aiMessage = {
-                    role: 'assistant',
-                    content: aiResponse.answer,
-                    createdAt: new Date(),
-                    _id: `ai-${Date.now()}`,
-                    sources: aiResponse.sources || [],
-                    confidence: aiResponse.confidence,
-                    model: aiResponse.model,
-                    thinking: aiResponse.thinking, // Include thinking data
-                    isRAG: true
-                };
+            // Handle response based on detected mode
+            const isRAGMode = aiResponse.modeDetection?.actualMode === 'rag';
 
-                setMessages(prev => {
-                    const filtered = prev.filter(msg => msg._id !== tempUserMessage._id);
-                    return [...filtered, tempUserMessage, aiMessage];
-                });
-            } else {
-                // Simple mode - direct AI chat
-                aiResponse = await aiService.chat(userMessageText);
+            const aiMessage = {
+                role: 'assistant',
+                content: isRAGMode ? aiResponse.answer : aiResponse.response,
+                createdAt: new Date(),
+                _id: `ai-${Date.now()}`,
+                sources: aiResponse.sources || [],
+                confidence: aiResponse.confidence,
+                model: aiResponse.model,
+                thinking: aiResponse.thinking,
+                isRAG: isRAGMode,
+                modeDetection: aiResponse.modeDetection // Include mode detection info
+            };
 
-                const aiMessage = {
-                    role: 'assistant',
-                    content: aiResponse.response,
-                    createdAt: new Date(),
-                    _id: `ai-${Date.now()}`,
-                    model: aiResponse.model,
-                    thinking: aiResponse.thinking, // Include thinking data
-                    isRAG: false
-                };
-
-                setMessages(prev => {
-                    const filtered = prev.filter(msg => msg._id !== tempUserMessage._id);
-                    return [...filtered, tempUserMessage, aiMessage];
-                });
-            }
+            setMessages(prev => {
+                const filtered = prev.filter(msg => msg._id !== tempUserMessage._id);
+                return [...filtered, tempUserMessage, aiMessage];
+            });
 
             // Optional: Save to database if conversationId exists
             if (conversationId) {
@@ -263,28 +250,6 @@ const Chat = () => {
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2 flex-shrink-0">
-                            {/* AI Mode Toggle */}
-                            <button
-                                onClick={() => setAiMode(aiMode === 'rag' ? 'simple' : 'rag')}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${aiMode === 'rag'
-                                        ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                    }`}
-                                title={aiMode === 'rag' ? 'RAG Mode: Smart answers with sources' : 'Simple Mode: Direct AI responses'}
-                            >
-                                {aiMode === 'rag' ? (
-                                    <>
-                                        <Sparkles className="w-4 h-4" strokeWidth={2} />
-                                        <span className="hidden sm:inline">RAG</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Zap className="w-4 h-4" strokeWidth={2} />
-                                        <span className="hidden sm:inline">Simple</span>
-                                    </>
-                                )}
-                            </button>
-
                             {conversationId && (
                                 <>
                                     <button

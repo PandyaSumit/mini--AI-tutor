@@ -18,11 +18,12 @@ const aiRateLimit = rateLimitMiddleware({
   windowSeconds: 3600, // per hour
 });
 
-// Chat endpoints
-router.post('/chat', protect, aiRateLimit, aiController.chat);
+// Chat endpoints (automatic mode detection)
+router.post('/chat', protect, aiRateLimit, aiController.chat); // Smart chat with auto-detection
+router.post('/chat/simple', protect, aiRateLimit, aiController.chatSimple); // Explicit simple chat
 router.post('/chat/stream', protect, aiRateLimit, chatStream); // Streaming endpoint
 router.post('/tutor', protect, aiRateLimit, aiController.tutorChat); // AI Tutor endpoint
-router.post('/rag/query', protect, aiRateLimit, aiController.ragQuery);
+router.post('/rag/query', protect, aiRateLimit, aiController.ragQuery); // Explicit RAG query
 
 // Embeddings
 router.post('/embeddings', protect, aiRateLimit, aiController.generateEmbeddings);
@@ -35,6 +36,7 @@ router.post('/ingest', protect, aiController.ingestContent);
 
 // Stats and health
 router.get('/stats', protect, aiController.getStats);
+router.get('/classifier/stats', protect, aiController.getClassifierStats); // Query classifier stats
 router.get('/health', aiController.healthCheck);
 
 export default router;

@@ -15,9 +15,41 @@ import {
 class AIController {
   /**
    * POST /api/ai/chat
-   * Simple chat completion
+   * Smart chat with automatic mode detection (RAG or simple)
    */
   async chat(req, res) {
+    try {
+      const validation = validate(chatMessageSchema, req.body);
+      if (!validation.success) {
+        return res.status(400).json({ error: validation.error });
+      }
+
+      const { message, context } = validation.data;
+      const { conversationHistory, forceMode, useLLMClassifier } = req.body;
+
+      // Use smart chat by default for automatic mode detection
+      const result = await aiOrchestrator.smartChat(message, {
+        ...context,
+        conversationHistory: conversationHistory || [],
+        forceMode,
+        useLLMClassifier: useLLMClassifier || false,
+      });
+
+      res.json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      console.error('Smart chat error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/ai/chat/simple
+   * Simple chat completion (explicit, for legacy/testing)
+   */
+  async chatSimple(req, res) {
     try {
       const validation = validate(chatMessageSchema, req.body);
       if (!validation.success) {
@@ -33,7 +65,7 @@ class AIController {
         ...result,
       });
     } catch (error) {
-      console.error('Chat error:', error);
+      console.error('Simple chat error:', error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -158,6 +190,24 @@ class AIController {
       });
     } catch (error) {
       console.error('Stats error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
+   * GET /api/ai/classifier/stats
+   * Get query classifier statistics
+   */
+  async getClassifierStats(req, res) {
+    try {
+      const stats = aiOrchestrator.getClassifierStats();
+
+      res.json({
+        success: true,
+        ...stats,
+      });
+    } catch (error) {
+      console.error('Classifier stats error:', error);
       res.status(500).json({ error: error.message });
     }
   }

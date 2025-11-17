@@ -6,8 +6,11 @@ export default {
   // Use node environment
   testEnvironment: 'node',
 
-  // Transform ESM modules
+  // Transform ESM modules - empty transform for native ESM
   transform: {},
+
+  // Explicitly tell Jest this is an ESM project
+  preset: null,
 
   // File extensions
   moduleFileExtensions: ['js', 'json'],
@@ -31,7 +34,7 @@ export default {
 
   coverageReporters: ['text', 'lcov', 'html'],
 
-  coverageThresholds: {
+  coverageThreshold: {
     global: {
       branches: 50,
       functions: 50,

@@ -148,6 +148,15 @@ app.use('/api/invitations', invitationRoutes);
                 app.use('/api/ai', aiRoutes.default);
                 console.log('✅ AI routes mounted at /api/ai');
 
+                // Mount AI Workflow routes (Advanced RAG, LangGraph, MCP)
+                try {
+                    const aiWorkflowRoutes = await import('./routes/aiWorkflowRoutes.js');
+                    app.use('/api/ai/workflows', aiWorkflowRoutes.default);
+                    console.log('✅ AI Workflow routes mounted at /api/ai/workflows');
+                } catch (error) {
+                    console.warn('⚠️  AI Workflow routes not available:', error.message);
+                }
+
                 // Add cleanup on shutdown
                 const aiShutdown = async () => {
                     console.log('\n🛑 Shutting down AI pipeline...');

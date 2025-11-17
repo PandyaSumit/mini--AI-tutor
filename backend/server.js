@@ -148,6 +148,20 @@ app.use('/api/invitations', invitationRoutes);
                 app.use('/api/ai', aiRoutes.default);
                 console.log('✅ AI routes mounted at /api/ai');
 
+                // Initialize MCP tools for platform actions
+                try {
+                    const setupMCPTools = await import('./ai/mcp/setupMCPTools.js');
+                    const mcpResult = setupMCPTools.default();
+
+                    if (mcpResult.success) {
+                        console.log(`✅ MCP tools initialized (${mcpResult.toolsRegistered} tools registered)`);
+                    } else {
+                        console.warn('⚠️  MCP tools initialization failed:', mcpResult.error);
+                    }
+                } catch (mcpError) {
+                    console.warn('⚠️  MCP tools not available:', mcpError.message);
+                }
+
                 // Mount AI Workflow routes (Advanced RAG, LangGraph, MCP)
                 try {
                     const aiWorkflowRoutes = await import('./routes/aiWorkflowRoutes.js');

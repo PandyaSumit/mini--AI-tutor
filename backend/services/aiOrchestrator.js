@@ -16,6 +16,7 @@ import thinkingGenerator from '../ai/thinking/thinkingGenerator.js';
 import tutorPrompts from '../ai/prompts/tutorPrompts.js';
 import queryClassifier from '../ai/classifiers/queryClassifier.js';
 import semanticQueryClassifier from '../ai/classifiers/semanticQueryClassifier.js';
+import mcpHandler from '../ai/handlers/mcpHandler.js';
 import logger from '../utils/logger.js';
 
 class AIOrchestrator {
@@ -230,19 +231,64 @@ class AIOrchestrator {
         if (classification.mode === 'platformAction') {
             logger.info('Platform action detected:', classification.action);
 
-            // For now, use simple chat (future: integrate with MCP tools)
-            const result = await this.chat(sanitizedMessage, options);
+            try {
+                // Attempt to handle via MCP tools
+                const mcpResult = await mcpHandler.handlePlatformAction(sanitizedMessage, {
+                    userId: options.userId,
+                    conversationHistory,
+                });
 
-            return {
-                ...result,
-                modeDetection: {
-                    ...classification,
-                    selectedMode: 'platformAction',
-                    actualMode: 'simple',
-                    fallback: false,
-                    note: 'Platform actions coming soon - handled as conversation for now',
-                },
-            };
+                if (mcpResult.handled && mcpResult.success) {
+                    // MCP tool successfully handled the request
+                    return {
+                        response: mcpResult.message,
+                        data: mcpResult.data,
+                        model: aiConfig.llm.model,
+                        platformAction: true,
+                        tool: mcpResult.tool,
+                        modeDetection: {
+                            ...classification,
+                            selectedMode: 'platformAction',
+                            actualMode: 'mcp',
+                            fallback: false,
+                            tool: mcpResult.tool,
+                            confidence: mcpResult.confidence,
+                        },
+                    };
+                }
+
+                // MCP couldn't handle or tools not available - fallback to LLM
+                logger.warn('MCP handler could not process platform action, falling back to LLM');
+
+                const result = await this.chat(sanitizedMessage, options);
+
+                return {
+                    ...result,
+                    modeDetection: {
+                        ...classification,
+                        selectedMode: 'platformAction',
+                        actualMode: 'simple',
+                        fallback: true,
+                        reason: mcpResult.message || 'MCP tools not available',
+                    },
+                };
+            } catch (error) {
+                logger.error('Platform action handling failed:', error);
+
+                // Error fallback to simple chat
+                const result = await this.chat(sanitizedMessage, options);
+
+                return {
+                    ...result,
+                    modeDetection: {
+                        ...classification,
+                        selectedMode: 'platformAction',
+                        actualMode: 'simple',
+                        fallback: true,
+                        reason: 'MCP error: ' + error.message,
+                    },
+                };
+            }
         }
 
         // Handle RAG queries

@@ -67,6 +67,11 @@ class AIOrchestrator {
             const chromaResult = await chromaService.initialize();
             const chromaAvailable = chromaResult.success;
 
+            // Initialize semantic query classifier embeddings (async, non-blocking)
+            semanticQueryClassifier.initializeIntentEmbeddings().catch(error => {
+                console.warn('⚠️  Semantic classifier initialization failed, will use pattern-based:', error.message);
+            });
+
             this.isInitialized = true;
             console.log('✅ AI Pipeline initialized successfully');
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -190,19 +195,38 @@ class AIOrchestrator {
 
         // Step 1: Classify the query to determine mode
         // Use semantic classifier (embeddings-based) or pattern-based classifier
-        const classifier = useSemanticClassifier ? semanticQueryClassifier : queryClassifier;
-        const classification = await classifier.classify(sanitizedMessage, {
-            conversationHistory,
-            forceMode,
-            useLLM: useLLMClassifier, // Only used by pattern-based classifier
-        });
+        let classification;
+        let classifierUsed = useSemanticClassifier ? 'semantic' : 'pattern';
+
+        try {
+            const classifier = useSemanticClassifier ? semanticQueryClassifier : queryClassifier;
+            classification = await classifier.classify(sanitizedMessage, {
+                conversationHistory,
+                forceMode,
+                useLLM: useLLMClassifier, // Only used by pattern-based classifier
+            });
+        } catch (error) {
+            // Fallback to pattern-based classifier if semantic fails
+            if (useSemanticClassifier) {
+                logger.warn('Semantic classifier failed, falling back to pattern-based:', error.message);
+                classifierUsed = 'pattern';
+
+                classification = await queryClassifier.classify(sanitizedMessage, {
+                    conversationHistory,
+                    forceMode,
+                    useLLM: useLLMClassifier,
+                });
+            } else {
+                throw error; // Re-throw if pattern-based also fails
+            }
+        }
 
         logger.info('Smart chat mode selected:', {
             query: sanitizedMessage.substring(0, 50),
             mode: classification.mode,
             confidence: classification.confidence,
             method: classification.method,
-            classifier: useSemanticClassifier ? 'semantic' : 'pattern',
+            classifier: classifierUsed,
             reasoning: classification.reasoning,
         });
 

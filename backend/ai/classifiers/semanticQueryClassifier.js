@@ -48,7 +48,8 @@ class SemanticQueryClassifier {
 
     // Pre-compute embeddings for intent examples
     this.intentEmbeddings = null;
-    this.initializeIntentEmbeddings();
+    this.isInitializing = false;
+    this.initializationPromise = null;
 
     // Statistics
     this.stats = {
@@ -69,48 +70,79 @@ class SemanticQueryClassifier {
    * Pre-compute intent embeddings for faster classification
    */
   async initializeIntentEmbeddings() {
-    try {
-      const allExamples = [
-        ...this.intentExamples.rag,
-        ...this.intentExamples.conversational,
-        ...this.intentExamples.sessionMemory,
-        ...this.intentExamples.platformAction,
-      ];
-
-      const embeddings = await embeddingService.embedBatch(allExamples);
-
-      this.intentEmbeddings = {
-        rag: embeddings.slice(0, this.intentExamples.rag.length),
-        conversational: embeddings.slice(
-          this.intentExamples.rag.length,
-          this.intentExamples.rag.length + this.intentExamples.conversational.length
-        ),
-        sessionMemory: embeddings.slice(
-          this.intentExamples.rag.length + this.intentExamples.conversational.length,
-          this.intentExamples.rag.length + this.intentExamples.conversational.length + this.intentExamples.sessionMemory.length
-        ),
-        platformAction: embeddings.slice(
-          this.intentExamples.rag.length + this.intentExamples.conversational.length + this.intentExamples.sessionMemory.length
-        ),
-      };
-
-      logger.info('Semantic intent embeddings initialized');
-    } catch (error) {
-      logger.error('Failed to initialize intent embeddings:', error);
+    // Prevent multiple simultaneous initializations
+    if (this.isInitializing) {
+      return this.initializationPromise;
     }
+
+    if (this.intentEmbeddings) {
+      return; // Already initialized
+    }
+
+    this.isInitializing = true;
+
+    this.initializationPromise = (async () => {
+      try {
+        logger.info('Initializing semantic intent embeddings...');
+
+        const allExamples = [
+          ...this.intentExamples.rag,
+          ...this.intentExamples.conversational,
+          ...this.intentExamples.sessionMemory,
+          ...this.intentExamples.platformAction,
+        ];
+
+        const embeddings = await embeddingService.embedBatch(allExamples);
+
+        this.intentEmbeddings = {
+          rag: embeddings.slice(0, this.intentExamples.rag.length),
+          conversational: embeddings.slice(
+            this.intentExamples.rag.length,
+            this.intentExamples.rag.length + this.intentExamples.conversational.length
+          ),
+          sessionMemory: embeddings.slice(
+            this.intentExamples.rag.length + this.intentExamples.conversational.length,
+            this.intentExamples.rag.length + this.intentExamples.conversational.length + this.intentExamples.sessionMemory.length
+          ),
+          platformAction: embeddings.slice(
+            this.intentExamples.rag.length + this.intentExamples.conversational.length + this.intentExamples.sessionMemory.length
+          ),
+        };
+
+        logger.info('Semantic intent embeddings initialized successfully');
+      } catch (error) {
+        logger.error('Failed to initialize intent embeddings:', error);
+        // Don't throw - let classifier fall back gracefully
+      } finally {
+        this.isInitializing = false;
+      }
+    })();
+
+    return this.initializationPromise;
   }
 
   /**
    * Calculate semantic similarity between query and intent examples
    */
   async calculateIntentSimilarity(queryEmbedding) {
+    // Ensure embeddings are initialized
     if (!this.intentEmbeddings) {
       await this.initializeIntentEmbeddings();
+    }
+
+    // If still not initialized, throw error to trigger fallback
+    if (!this.intentEmbeddings) {
+      throw new Error('Intent embeddings not initialized');
     }
 
     const similarities = {};
 
     for (const [intent, embeddings] of Object.entries(this.intentEmbeddings)) {
+      if (!embeddings || embeddings.length === 0) {
+        similarities[intent] = 0;
+        continue;
+      }
+
       const scores = embeddings.map(intentEmb =>
         embeddingService.cosineSimilarity(queryEmbedding, intentEmb)
       );

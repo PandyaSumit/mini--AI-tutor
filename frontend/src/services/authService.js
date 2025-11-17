@@ -5,8 +5,10 @@ export const authService = {
   register: async (userData) => {
     const response = await api.post('/auth/register', userData);
     if (response.data.success) {
-      localStorage.setItem('token', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      const { token, user } = response.data.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('userId', user._id || user.id); // Store userId for role checking
     }
     return response.data;
   },
@@ -15,8 +17,10 @@ export const authService = {
   login: async (credentials) => {
     const response = await api.post('/auth/login', credentials);
     if (response.data.success) {
-      localStorage.setItem('token', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      const { token, user } = response.data.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('userId', user._id || user.id); // Store userId for role checking
     }
     return response.data;
   },
@@ -28,6 +32,7 @@ export const authService = {
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('userId'); // Remove userId on logout
     }
   },
 

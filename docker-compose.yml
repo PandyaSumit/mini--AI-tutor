@@ -1,0 +1,349 @@
+version: "3.8"
+
+services:
+  # Redis - Caching, Socket.IO adapter, BullMQ queues
+  redis:
+    image: redis:7-alpine
+    container_name: voice-tutor-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - voice-tutor-network
+    restart: unless-stopped
+
+  # MongoDB - Data persistence with replica set
+  mongodb:
+    image: mongo:7
+    container_name: voice-tutor-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin_password_change_in_production
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+    command: mongod --replSet rs0 --bind_ip_all --noauth
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - voice-tutor-network
+    restart: unless-stopped
+
+  # MongoDB replica set initialization
+  mongo-init:
+    image: mongo:7
+    container_name: voice-tutor-mongo-init
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - voice-tutor-network
+    command: >
+      mongosh --host mongodb:27017 -u admin -p admin_password_change_in_production --eval "
+        try {
+          rs.status();
+          print('Replica set already initialized');
+        } catch(e) {
+          rs.initiate({
+            _id: 'rs0',
+            members: [{_id: 0, host: 'mongodb:27017'}]
+          });
+          print('Replica set initialized successfully');
+        }
+      "
+    restart: on-failure
+
+  # MinIO - S3-compatible object storage for audio files
+  minio:
+    image: minio/minio:latest
+    container_name: voice-tutor-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin_change_in_production
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - voice-tutor-network
+    restart: unless-stopped
+
+  # MinIO bucket creation
+  minio-init:
+    image: minio/mc:latest
+    container_name: voice-tutor-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - voice-tutor-network
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin_change_in_production;
+      /usr/bin/mc mb myminio/voice-audio --ignore-existing;
+      /usr/bin/mc anonymous set download myminio/voice-audio;
+      echo 'MinIO bucket created and configured successfully';
+      "
+    restart: on-failure
+
+  # Backend instance 1
+  backend-1:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: voice-tutor-backend-1
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      INSTANCE_ID: backend-1
+      MONGODB_URI: mongodb://mongodb:27017/ai-tutor?replicaSet=rs0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin_change_in_production
+      MINIO_USE_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production-min-32-chars}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      LOG_LEVEL: info
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      chromadb:
+        condition: service_healthy
+      mongo-init:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+  backend-2:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: voice-tutor-backend-2
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      INSTANCE_ID: backend-2
+      MONGODB_URI: mongodb://mongodb:27017/ai-tutor?replicaSet=rs0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin_change_in_production
+      MINIO_USE_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production-min-32-chars}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      LOG_LEVEL: info
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      chromadb:
+        condition: service_healthy
+      mongo-init:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./backend/logs:/app/logs
+    networks:
+      - voice-tutor-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:5000/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Backend instance 3
+  backend-3:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: voice-tutor-backend-3
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      INSTANCE_ID: backend-3
+      MONGODB_URI: mongodb://mongodb:27017/ai-tutor?replicaSet=rs0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin_change_in_production
+      MINIO_USE_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production-min-32-chars}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      LOG_LEVEL: info
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      chromadb:
+        condition: service_healthy
+      mongo-init:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./backend/logs:/app/logs
+    networks:
+      - voice-tutor-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:5000/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ChromaDB - Vector Database for RAG features
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: voice-tutor-chromadb
+    ports:
+      - "8000:8000"
+    environment:
+      # ChromaDB configuration
+      CHROMA_HOST: 0.0.0.0
+      CHROMA_PORT: 8000
+      ALLOW_RESET: "true"
+      IS_PERSISTENT: "true"
+      PERSIST_DIRECTORY: /chroma/data
+      CHROMA_DB_IMPL: duckdb+parquet
+      ANONYMIZED_TELEMETRY: "false"
+    volumes:
+      - chroma-data:/chroma/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - voice-tutor-network
+    restart: unless-stopped
+
+  # NGINX - Reverse proxy and load balancer
+  nginx:
+    image: nginx:alpine
+    container_name: voice-tutor-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      backend-1:
+        condition: service_healthy
+      backend-2:
+        condition: service_healthy
+      backend-3:
+        condition: service_healthy
+      chromadb:
+        condition: service_healthy
+    networks:
+      - voice-tutor-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/health",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  redis-data:
+    driver: local
+  mongo-data:
+    driver: local
+  mongo-config:
+    driver: local
+  minio-data:
+    driver: local
+  chroma-data:
+    driver: local
+
+networks:
+  voice-tutor-network:
+    driver: bridge

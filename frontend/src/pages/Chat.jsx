@@ -4,6 +4,7 @@ import { chatService } from '../services/chatService';
 import { studyMaterialService } from '../services/studyMaterialService';
 import aiService from '../services/aiService';
 import ThinkingProcess from '../components/ThinkingProcess';
+import CourseRecommendationCard from '../components/chat/CourseRecommendationCard';
 import {
     Send,
     Loader,
@@ -21,7 +22,7 @@ import {
     Zap
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const topics = [
@@ -466,6 +467,45 @@ const Chat = () => {
                                                         >
                                                             {message.content}
                                                         </ReactMarkdown>
+                                                    </div>
+                                                )}
+
+                                                {/* Course Recommendations Display */}
+                                                {message.metadata?.type === 'course_recommendation' && message.metadata?.recommendations && (
+                                                    <div className="mt-4 pt-4 border-t border-gray-300">
+                                                        <p className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                                            <BookOpen className="w-4 h-4" />
+                                                            Found {message.metadata.recommendations.courses?.length || 0} Relevant Course{(message.metadata.recommendations.courses?.length || 0) !== 1 ? 's' : ''} on Our Platform:
+                                                        </p>
+                                                        <div className="grid grid-cols-1 gap-3">
+                                                            {message.metadata.recommendations.courses?.map((course) => (
+                                                                <CourseRecommendationCard
+                                                                    key={course.id}
+                                                                    course={course}
+                                                                />
+                                                            ))}
+                                                        </div>
+
+                                                        {/* Lessons if available */}
+                                                        {message.metadata.recommendations.lessons && message.metadata.recommendations.lessons.length > 0 && (
+                                                            <div className="mt-4">
+                                                                <p className="text-sm font-semibold text-gray-900 mb-2">Specific Lessons:</p>
+                                                                <div className="space-y-2">
+                                                                    {message.metadata.recommendations.lessons.map((lesson) => (
+                                                                        <div
+                                                                            key={lesson.id}
+                                                                            className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 cursor-pointer hover:bg-indigo-100 transition-colors"
+                                                                            onClick={() => navigate(lesson.url)}
+                                                                        >
+                                                                            <h5 className="font-medium text-indigo-900">{lesson.title}</h5>
+                                                                            <p className="text-xs text-indigo-700 mt-1">
+                                                                                {lesson.courseTitle} • {lesson.duration} min
+                                                                            </p>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
 

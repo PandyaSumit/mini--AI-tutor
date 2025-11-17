@@ -1,4 +1,5 @@
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -20,15 +21,28 @@ import userRoutes from './routes/userRoutes.js';
 import conversationRoutes from './routes/conversationRoutes.js';
 import roadmapRoutes from './routes/roadmapRoutes.js';
 import studyMaterialRoutes from './routes/studyMaterialRoutes.js';
+import voiceRoutes from './routes/voiceRoutes.js';
+import courseRoutes from './routes/courses.js';
+import moduleRoutes from './routes/modules.js';
+import lessonRoutes from './routes/lessons.js';
+import enrollmentRoutes from './routes/enrollments.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import rateLimiter from './middleware/rateLimiter.js';
 import moderateContent from './middleware/contentModeration.js';
+import { initializeSocketIO } from './config/socket.js';
+import registerVoiceHandlers from './socketHandlers/voiceHandlers.js';
 
 // Initialize Express app
 const app = express();
+const httpServer = createServer(app);
 
 // Connect to MongoDB
 connectDB();
+
+// Initialize Socket.IO
+const io = initializeSocketIO(httpServer);
+registerVoiceHandlers(io);
+console.log('✅ WebSocket (Socket.IO) initialized for voice sessions');
 
 // Initialize Cache System
 let cacheInitialized = false;
@@ -89,6 +103,27 @@ app.use('/api/user', userRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/study', studyMaterialRoutes);
+app.use('/api/voice', voiceRoutes); // Voice session routes
+
+// Course system routes
+app.use('/api/courses', courseRoutes);
+app.use('/api/courses/:courseId/modules', moduleRoutes);
+app.use('/api/courses/:courseId/modules/:moduleId/lessons', lessonRoutes);
+app.use('/api/enrollments', enrollmentRoutes);
+
+// Co-creator management routes
+const coCreatorRoutes = (await import('./routes/coCreatorRoutes.js')).default;
+app.use('/api/courses', coCreatorRoutes);
+app.use('/api/co-creators', coCreatorRoutes);
+
+// Contributor improvement suggestions routes
+const contributorRoutes = (await import('./routes/contributorRoutes.js')).default;
+app.use('/api/courses', contributorRoutes);
+app.use('/api/contributors', contributorRoutes);
+
+// Contributor invitation routes
+const invitationRoutes = (await import('./routes/invitationRoutes.js')).default;
+app.use('/api/invitations', invitationRoutes);
 
 // Initialize async routes
 (async () => {
@@ -144,10 +179,11 @@ app.use('/api/study', studyMaterialRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📚 Mini AI Tutor API`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔌 WebSocket server ready for voice sessions`);
 });
 
 export default app;

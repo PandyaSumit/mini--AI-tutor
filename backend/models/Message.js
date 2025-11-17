@@ -27,6 +27,20 @@ const messageSchema = new mongoose.Schema({
     model: String,
     tokens: Number,
     responseTime: Number, // in milliseconds
+    isVoice: {
+      type: Boolean,
+      default: false
+    },
+    sttProvider: {
+      type: String,
+      enum: ['browser', 'huggingface', 'openai', null],
+      default: null
+    },
+    confidence: {
+      type: Number,
+      min: 0,
+      max: 1
+    },
     isEdited: {
       type: Boolean,
       default: false
@@ -59,8 +73,9 @@ messageSchema.pre('save', function(next) {
   next();
 });
 
-// Index for efficient queries
+// Compound indexes for efficient queries
 messageSchema.index({ conversation: 1, createdAt: 1 });
 messageSchema.index({ user: 1, createdAt: -1 });
+messageSchema.index({ conversation: 1, role: 1 });
 
 export default mongoose.model('Message', messageSchema);

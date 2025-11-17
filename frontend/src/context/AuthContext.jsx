@@ -13,15 +13,21 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [token, setToken] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Check if user is logged in on mount
         const storedUser = authService.getStoredUser();
-        const token = localStorage.getItem('token');
+        const storedToken = localStorage.getItem('token');
 
-        if (token && storedUser) {
+        if (storedToken && storedUser) {
             setUser(storedUser);
+            setToken(storedToken);
+            // Ensure userId is stored (for existing sessions)
+            if (!localStorage.getItem('userId')) {
+                localStorage.setItem('userId', storedUser._id || storedUser.id);
+            }
         }
         setLoading(false);
     }, []);
@@ -30,6 +36,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authService.register(userData);
             setUser(response.data.user);
+            setToken(response.data.token);
             return response;
         } catch (error) {
             throw error;
@@ -40,6 +47,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authService.login(credentials);
             setUser(response.data.user);
+            setToken(response.data.token);
             return response;
         } catch (error) {
             throw error;
@@ -50,20 +58,24 @@ export const AuthProvider = ({ children }) => {
         try {
             await authService.logout();
             setUser(null);
+            setToken(null);
         } catch (error) {
             console.error('Logout error:', error);
             // Still clear local state even if API call fails
             setUser(null);
+            setToken(null);
         }
     };
 
     const updateUser = (userData) => {
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('userId', userData._id || userData.id); // Update userId
     };
 
     const value = {
         user,
+        token,
         loading,
         register,
         login,

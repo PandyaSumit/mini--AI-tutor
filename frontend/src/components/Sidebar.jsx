@@ -16,7 +16,8 @@ import {
     Search,
     HelpCircle,
     Bell,
-    Command
+    Command,
+    Mic
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -98,6 +99,13 @@ const Sidebar = () => {
             label: 'Flashcards',
             icon: Brain,
             match: (path) => path.startsWith('/flashcards')
+        },
+        {
+            to: '/voice-tutor',
+            label: 'Voice Tutor',
+            icon: Mic,
+            match: (path) => path === '/voice-tutor',
+            badge: 'NEW'
         },
         {
             to: '/conversations',
@@ -229,9 +237,16 @@ const Sidebar = () => {
                                     strokeWidth={2}
                                 />
                                 {(!collapsed || isMobile) && (
-                                    <span className="text-[14px] font-medium flex-1">
-                                        {item.label}
-                                    </span>
+                                    <>
+                                        <span className="text-[14px] font-medium flex-1">
+                                            {item.label}
+                                        </span>
+                                        {item.badge && (
+                                            <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded">
+                                                {item.badge}
+                                            </span>
+                                        )}
+                                    </>
                                 )}
 
                                 {/* Tooltip for collapsed state */}

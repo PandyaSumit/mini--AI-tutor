@@ -17,6 +17,10 @@ import Flashcards from './pages/Flashcards';
 import StudyFlashcards from './pages/StudyFlashcards';
 import NotFound from './pages/NotFound';
 import SessionDetails from './pages/SessionDetails';
+import VoiceTutorTest from './pages/VoiceTutorTest';
+import CourseCatalog from './pages/CourseCatalog';
+import CourseDetails from './pages/CourseDetails';
+import CreateCourse from './pages/CreateCourse';
 
 function App() {
     const { user, loading } = useAuth();
@@ -79,10 +83,34 @@ function App() {
                             }
                         />
                         <Route
-                            path="/session"
+                            path="/session/:sessionId"
                             element={
                                 <PrivateRoute>
                                     <SessionDetails />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/courses"
+                            element={
+                                <PrivateRoute>
+                                    <CourseCatalog />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/courses/create"
+                            element={
+                                <PrivateRoute>
+                                    <CreateCourse />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/courses/:courseId"
+                            element={
+                                <PrivateRoute>
+                                    <CourseDetails />
                                 </PrivateRoute>
                             }
                         />
@@ -131,6 +159,14 @@ function App() {
                             element={
                                 <PrivateRoute>
                                     <StudyFlashcards />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/voice-tutor"
+                            element={
+                                <PrivateRoute>
+                                    <VoiceTutorTest />
                                 </PrivateRoute>
                             }
                         />

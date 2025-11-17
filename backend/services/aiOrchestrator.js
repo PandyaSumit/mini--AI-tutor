@@ -225,6 +225,28 @@ class AIOrchestrator {
                 collectionKey: 'knowledge',
             });
 
+            // Check if knowledge collection is empty or no relevant docs - fallback to simple chat
+            if (result.collectionEmpty || (result.confidence === 0 && result.sources?.length === 0)) {
+                const reason = result.collectionEmpty
+                    ? 'Knowledge collection empty'
+                    : 'No relevant documents found';
+
+                logger.warn(`${reason}, falling back to simple chat`);
+
+                const simpleResult = await this.chat(sanitizedMessage, options);
+
+                return {
+                    ...simpleResult,
+                    modeDetection: {
+                        ...classification,
+                        selectedMode: 'rag',
+                        actualMode: 'simple',
+                        fallback: true,
+                        reason,
+                    },
+                };
+            }
+
             return {
                 ...result,
                 modeDetection: {

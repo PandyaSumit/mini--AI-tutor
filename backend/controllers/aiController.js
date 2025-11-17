@@ -25,7 +25,7 @@ class AIController {
       }
 
       const { message, context } = validation.data;
-      const { conversationHistory, forceMode, useLLMClassifier } = req.body;
+      const { conversationHistory, forceMode, useLLMClassifier, useSemanticClassifier } = req.body;
 
       // Use smart chat by default for automatic mode detection
       const result = await aiOrchestrator.smartChat(message, {
@@ -33,6 +33,7 @@ class AIController {
         conversationHistory: conversationHistory || [],
         forceMode,
         useLLMClassifier: useLLMClassifier || false,
+        useSemanticClassifier: useSemanticClassifier !== false, // Default: true (semantic)
       });
 
       res.json({
@@ -200,7 +201,10 @@ class AIController {
    */
   async getClassifierStats(req, res) {
     try {
-      const stats = aiOrchestrator.getClassifierStats();
+      const { useSemanticClassifier } = req.query;
+      const useSemantic = useSemanticClassifier !== 'false'; // Default: true
+
+      const stats = aiOrchestrator.getClassifierStats(useSemantic);
 
       res.json({
         success: true,

@@ -15,6 +15,7 @@ import aiConfig from '../config/ai.js';
 import thinkingGenerator from '../ai/thinking/thinkingGenerator.js';
 import tutorPrompts from '../ai/prompts/tutorPrompts.js';
 import queryClassifier from '../ai/classifiers/queryClassifier.js';
+import semanticQueryClassifier from '../ai/classifiers/semanticQueryClassifier.js';
 import logger from '../utils/logger.js';
 
 class AIOrchestrator {
@@ -175,6 +176,7 @@ class AIOrchestrator {
             conversationHistory = [],
             forceMode = null, // For testing/override
             useLLMClassifier = false, // Use LLM for classification (more accurate but slower)
+            useSemanticClassifier = true, // Use semantic embeddings instead of patterns (recommended)
         } = options;
 
         // Security check
@@ -186,10 +188,12 @@ class AIOrchestrator {
         const sanitizedMessage = sanitizer.sanitizeText(message);
 
         // Step 1: Classify the query to determine mode
-        const classification = await queryClassifier.classify(sanitizedMessage, {
+        // Use semantic classifier (embeddings-based) or pattern-based classifier
+        const classifier = useSemanticClassifier ? semanticQueryClassifier : queryClassifier;
+        const classification = await classifier.classify(sanitizedMessage, {
             conversationHistory,
             forceMode,
-            useLLM: useLLMClassifier,
+            useLLM: useLLMClassifier, // Only used by pattern-based classifier
         });
 
         logger.info('Smart chat mode selected:', {
@@ -197,9 +201,51 @@ class AIOrchestrator {
             mode: classification.mode,
             confidence: classification.confidence,
             method: classification.method,
+            classifier: useSemanticClassifier ? 'semantic' : 'pattern',
+            reasoning: classification.reasoning,
         });
 
         // Step 2: Route to appropriate handler based on classification
+
+        // Handle session memory queries (references to previous messages)
+        if (classification.mode === 'sessionMemory') {
+            logger.info('Session memory query detected');
+
+            // Use simple chat with conversation history context
+            const result = await this.chat(sanitizedMessage, options);
+
+            return {
+                ...result,
+                modeDetection: {
+                    ...classification,
+                    selectedMode: 'sessionMemory',
+                    actualMode: 'simple',
+                    fallback: false,
+                    note: 'Session memory handled via conversation context',
+                },
+            };
+        }
+
+        // Handle platform action requests
+        if (classification.mode === 'platformAction') {
+            logger.info('Platform action detected:', classification.action);
+
+            // For now, use simple chat (future: integrate with MCP tools)
+            const result = await this.chat(sanitizedMessage, options);
+
+            return {
+                ...result,
+                modeDetection: {
+                    ...classification,
+                    selectedMode: 'platformAction',
+                    actualMode: 'simple',
+                    fallback: false,
+                    note: 'Platform actions coming soon - handled as conversation for now',
+                },
+            };
+        }
+
+        // Handle RAG queries
         if (classification.mode === 'rag') {
             // Use RAG mode - but gracefully fallback to simple if ChromaDB unavailable
             if (!chromaService.isInitialized) {
@@ -411,8 +457,12 @@ class AIOrchestrator {
     /**
      * Get query classifier statistics
      */
-    getClassifierStats() {
-        return queryClassifier.getStats();
+    getClassifierStats(useSemanticClassifier = true) {
+        const classifier = useSemanticClassifier ? semanticQueryClassifier : queryClassifier;
+        return {
+            ...classifier.getStats(),
+            classifierType: useSemanticClassifier ? 'semantic' : 'pattern',
+        };
     }
 
     /**

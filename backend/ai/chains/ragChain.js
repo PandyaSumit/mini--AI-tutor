@@ -62,16 +62,29 @@ class RAGChain {
             await vectorCache.set(question, collectionKey, searchResults, { topK });
         }
 
+        // Check if collection is empty
+        if (searchResults.count === 0) {
+            return {
+                answer: `The ${collectionKey} collection is currently empty. Please add some content first to enable knowledge search.`,
+                sources: [],
+                confidence: 0,
+                collectionEmpty: true,
+            };
+        }
+
         // Filter by minimum score
         const relevantDocs = searchResults.results.filter(
             (doc) => doc.score >= aiConfig.rag.minScore
         );
 
         if (relevantDocs.length === 0) {
+            const bestScore = searchResults.results[0]?.score || 0;
             return {
-                answer: 'I don\'t have enough information to answer this question accurately.',
+                answer: `I don't have enough information to answer this question accurately. The closest match had a relevance score of ${(bestScore * 100).toFixed(1)}%, but the minimum threshold is ${(aiConfig.rag.minScore * 100)}%.`,
                 sources: [],
                 confidence: 0,
+                bestScore,
+                threshold: aiConfig.rag.minScore,
             };
         }
 

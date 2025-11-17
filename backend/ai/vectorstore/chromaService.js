@@ -219,7 +219,11 @@ class ChromaService {
       id: ids[idx],
       content: doc,
       metadata: metadatas[idx],
-      score: 1 - distances[idx], // Convert distance to similarity score (0-1)
+      // Convert cosine distance [0, 2] to similarity score [0, 1]
+      // Distance 0 = perfect match (score 1.0)
+      // Distance 1 = neutral (score 0.5)
+      // Distance 2 = opposite (score 0.0)
+      score: 1 - (distances[idx] / 2),
       distance: distances[idx],
     }));
 

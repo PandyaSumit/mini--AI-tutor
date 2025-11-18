@@ -12,7 +12,7 @@ import api from './api';
  */
 const getDashboardSummary = async () => {
   try {
-    const response = await api.get('/api/dashboard/summary');
+    const response = await api.get('/dashboard/summary');
     return response.data;
   } catch (error) {
     console.error('Error fetching dashboard summary:', error);
@@ -26,7 +26,7 @@ const getDashboardSummary = async () => {
  */
 const getDashboardStats = async () => {
   try {
-    const response = await api.get('/api/dashboard/stats');
+    const response = await api.get('/dashboard/stats');
     return response.data;
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);

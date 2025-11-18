@@ -121,7 +121,7 @@ class AIOrchestrator {
         // Extract context
         const userId = context.userId || 'anonymous';
         const conversationId = context.conversationId || 'default';
-        const useIndustryMemory = context.useIndustryMemory !== false; // Enabled by default
+        let useIndustryMemory = context.useIndustryMemory !== false; // Enabled by default
 
         let optimizedContext, metadata;
 

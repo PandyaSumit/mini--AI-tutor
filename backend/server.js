@@ -18,6 +18,7 @@ import aiService from './config/aiService.js';
 import authRoutes from './routes/authRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
 import conversationRoutes from './routes/conversationRoutes.js';
 import roadmapRoutes from './routes/roadmapRoutes.js';
 import studyMaterialRoutes from './routes/studyMaterialRoutes.js';
@@ -156,6 +157,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', moderateContent, chatRoutes); // Apply content moderation to chat
 app.use('/api/user', userRoutes);
+app.use('/api/dashboard', dashboardRoutes); // Optimized dashboard endpoint
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/study', studyMaterialRoutes);

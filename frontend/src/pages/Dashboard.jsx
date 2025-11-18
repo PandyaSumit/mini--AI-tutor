@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { userService } from '../services/userService';
-import { chatService } from '../services/chatService';
-import { roadmapService } from '../services/roadmapService';
-import { studyMaterialService } from '../services/studyMaterialService';
+import { dashboardService } from '../services/dashboardService';
 import {
     BookOpen,
     MessageSquare,
@@ -40,24 +37,55 @@ const Dashboard = () => {
 
     const fetchDashboardData = async () => {
         try {
-            const [statsRes, conversationsRes, roadmapsRes, decksRes] = await Promise.all([
-                userService.getStats(),
-                chatService.getConversations({ limit: 3 }),
-                roadmapService.getRoadmaps().catch(() => ({ data: [] })),
-                studyMaterialService.getDecks().catch(() => ({ data: [] }))
-            ]);
+            // Single optimized API call for all dashboard data
+            const response = await dashboardService.getDashboardSummary();
 
-            setStats(statsRes.data.stats);
-            setRecentConversations(Array.isArray(conversationsRes.data.conversations) ? conversationsRes.data.conversations : []);
-            setRoadmaps(Array.isArray(roadmapsRes.data) ? roadmapsRes.data : []);
+            // Check if the response was successful
+            if (response.success && response.data) {
+                const { stats, conversations, roadmaps, flashcards, metadata } = response.data;
 
-            // Calculate flashcard stats
-            const decks = Array.isArray(decksRes.data) ? decksRes.data : [];
-            const totalCards = decks.reduce((sum, deck) => sum + (deck.totalCards || 0), 0);
-            const dueCards = decks.reduce((sum, deck) => sum + (deck.dueCount || 0), 0);
-            setFlashcardStats({ totalCards, dueCards, decks: decks.length });
+                // Set stats
+                if (stats) {
+                    setStats(stats);
+                }
+
+                // Set conversations
+                if (conversations && conversations.conversations) {
+                    setRecentConversations(Array.isArray(conversations.conversations)
+                        ? conversations.conversations
+                        : []);
+                }
+
+                // Set roadmaps
+                if (roadmaps) {
+                    setRoadmaps(Array.isArray(roadmaps) ? roadmaps : []);
+                }
+
+                // Calculate flashcard stats
+                if (flashcards) {
+                    const decks = Array.isArray(flashcards) ? flashcards : [];
+                    const totalCards = decks.reduce((sum, deck) => sum + (deck.totalCards || 0), 0);
+                    const dueCards = decks.reduce((sum, deck) => sum + (deck.dueCount || deck.dueCards || 0), 0);
+                    setFlashcardStats({ totalCards, dueCards, decks: decks.length });
+                }
+
+                // Log performance metrics if available
+                if (metadata && metadata.executionTime) {
+                    console.log(`✨ Dashboard loaded in ${metadata.executionTime}`);
+                }
+
+                // Warn about partial failures
+                if (metadata && metadata.partial && metadata.errors) {
+                    console.warn('⚠️ Some dashboard data failed to load:', metadata.errors);
+                }
+            }
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
+            // Set empty defaults on error to prevent UI crashes
+            setStats({});
+            setRecentConversations([]);
+            setRoadmaps([]);
+            setFlashcardStats({ totalCards: 0, dueCards: 0, decks: 0 });
         } finally {
             setLoading(false);
         }

@@ -4,6 +4,11 @@ import Module from '../models/Module.js';
 import Lesson from '../models/Lesson.js';
 import embeddingService from '../ai/embeddings/embeddingService.js';
 import bgeSmallModel from '../ai/embeddings/models/bgeSmall.js';
+import {
+    getCourseStructurePrompt,
+    getCoursePreviewPrompt,
+    getLessonTutorPrompt
+} from '../ai/prompts/coursePrompts.js';
 
 // Lazy initialization of Groq client to avoid import-time errors
 // when GROQ_API_KEY is not yet available (before dotenv loads)
@@ -85,54 +90,19 @@ class CourseGeneratorService {
      * Generate course structure using Groq AI
      */
     async generateCourseStructure(prompt, level, numModules, lessonsPerModule) {
-        const systemPrompt = `You are an expert course curriculum designer. Create a comprehensive course structure based on the user's request.
-
-Return ONLY a valid JSON object (no markdown, no code blocks) with this exact structure:
-{
-  "title": "Course Title",
-  "description": "Detailed course description (2-3 sentences)",
-  "category": "one of: programming, mathematics, science, language, business, design, other",
-  "level": "${level}",
-  "tags": ["tag1", "tag2", "tag3"],
-  "learningOutcomes": ["outcome1", "outcome2", "outcome3"],
-  "modules": [
-    {
-      "title": "Module 1 Title",
-      "description": "Module description",
-      "objectives": ["objective1", "objective2"],
-      "lessons": [
-        {
-          "title": "Lesson 1 Title",
-          "content": "Detailed lesson content (5-8 paragraphs explaining the topic thoroughly)",
-          "duration": 15,
-          "objectives": ["Learn X", "Understand Y"],
-          "keyPoints": ["Point 1", "Point 2", "Point 3"],
-          "examples": [
-            {
-              "title": "Example Title",
-              "code": "code example if applicable",
-              "explanation": "What this example demonstrates"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-
-Requirements:
-- Create exactly ${numModules} modules
-- Each module should have exactly ${lessonsPerModule} lessons
-- Lesson content must be comprehensive (minimum 300 words)
-- Include practical examples
-- Tailor difficulty to ${level} level
-- Make it engaging and educational`;
+        // Use centralized prompt
+        const prompts = getCourseStructurePrompt({
+            level,
+            numModules,
+            lessonsPerModule,
+            userPrompt: prompt
+        });
 
         const completion = await getGroqClient().chat.completions.create({
             model: 'llama-3.3-70b-versatile',
             messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: prompt }
+                { role: 'system', content: prompts.system },
+                { role: 'user', content: prompts.user }
             ],
             temperature: 0.7,
             max_tokens: 8000
@@ -229,6 +199,13 @@ Requirements:
             for (let lessonIndex = 0; lessonIndex < moduleData.lessons.length; lessonIndex++) {
                 const lessonData = moduleData.lessons[lessonIndex];
 
+                // Use centralized lesson tutor prompt
+                const lessonPrompts = getLessonTutorPrompt({
+                    lessonTitle: lessonData.title,
+                    level: structure.level,
+                    objectives: lessonData.objectives || []
+                });
+
                 const lesson = await Lesson.create({
                     module: module._id,
                     title: lessonData.title,
@@ -243,7 +220,7 @@ Requirements:
                         examples: lessonData.examples || []
                     },
                     aiInstructions: {
-                        systemPrompt: `You are an expert tutor teaching "${lessonData.title}". Provide clear, detailed explanations and encourage questions. Tailor your responses to ${structure.level} level students.`,
+                        systemPrompt: lessonPrompts.system,
                         teachingStyle: 'conversational',
                         contextGuidelines: `Always refer back to the lesson content when answering questions. The key learning objectives are: ${lessonData.objectives?.join(', ') || 'understanding the fundamentals'}.`
                     }
@@ -281,23 +258,17 @@ Requirements:
      * Useful for showing user what will be created before confirmation
      */
     async generatePreview(prompt, level = 'beginner', numModules = 5) {
-        const systemPrompt = `Generate a brief course outline based on this request.
-
-Return ONLY a valid JSON object:
-{
-  "title": "Course Title",
-  "description": "Course description",
-  "category": "category",
-  "level": "${level}",
-  "modulesTitles": ["Module 1", "Module 2", ...],
-  "estimatedDuration": 120
-}`;
+        // Use centralized prompt
+        const prompts = getCoursePreviewPrompt({
+            level,
+            userPrompt: prompt
+        });
 
         const completion = await getGroqClient().chat.completions.create({
             model: 'llama-3.3-70b-versatile',
             messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: prompt }
+                { role: 'system', content: prompts.system },
+                { role: 'user', content: prompts.user }
             ],
             temperature: 0.7,
             max_tokens: 1000

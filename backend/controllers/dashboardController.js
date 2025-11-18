@@ -57,7 +57,7 @@ export const getDashboardSummary = async (req, res) => {
       Conversation.countDocuments({ user: userId }),
       Message.countDocuments({ user: userId, role: 'user' }),
       Conversation.aggregate([
-        { $match: { user: userId } },
+        { $match: { user: new mongoose.Types.ObjectId(userId) } },
         { $group: { _id: '$topic', count: { $sum: 1 } } },
         { $sort: { count: -1 } }
       ]),
@@ -84,7 +84,7 @@ export const getDashboardSummary = async (req, res) => {
 
       // Flashcard decks
       Flashcard.aggregate([
-        { $match: { user: userId, isActive: true } },
+        { $match: { user: new mongoose.Types.ObjectId(userId), isActive: true } },
         {
           $group: {
             _id: '$deck',

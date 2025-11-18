@@ -41,17 +41,16 @@ export const getDashboardSummary = async (req, res) => {
 
   try {
     // Execute all queries in parallel for maximum performance
-    const [
-      user,
-      totalConversations,
-      totalMessages,
-      conversationsByTopic,
-      recentMessages,
-      recentConversations,
-      conversationCount,
-      roadmaps,
-      flashcardDecks
-    ] = await Promise.allSettled([
+    logger.info('Starting dashboard queries for user:', userId.toString());
+
+    // Test if Promise.allSettled works
+    const testResult = await Promise.allSettled([
+      Promise.resolve('test1'),
+      Promise.resolve('test2')
+    ]);
+    logger.info('Promise.allSettled test:', testResult.length);
+
+    const queryResults = await Promise.allSettled([
       // User stats queries
       User.findById(userId).select('learningStats').lean(),
       Conversation.countDocuments({ user: userId }),
@@ -113,6 +112,21 @@ export const getDashboardSummary = async (req, res) => {
         { $sort: { totalCards: -1 } }
       ])
     ]);
+
+    logger.info('Query results received, count:', queryResults.length);
+
+    // Destructure results
+    const [
+      user,
+      totalConversations,
+      totalMessages,
+      conversationsByTopic,
+      recentMessages,
+      recentConversations,
+      conversationCount,
+      roadmaps,
+      flashcardDecks
+    ] = queryResults;
 
     // Process stats data
     if (user.status === 'fulfilled' &&

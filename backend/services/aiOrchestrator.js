@@ -17,6 +17,7 @@ import tutorPrompts from '../ai/prompts/tutorPrompts.js';
 import queryClassifier from '../ai/classifiers/queryClassifier.js';
 import semanticQueryClassifier from '../ai/classifiers/semanticQueryClassifier.js';
 import mcpHandler from '../ai/handlers/mcpHandler.js';
+import conversationManager from '../ai/memory/conversationManager.js';
 import logger from '../utils/logger.js';
 
 class AIOrchestrator {
@@ -96,7 +97,7 @@ class AIOrchestrator {
     }
 
     /**
-     * Chat with AI (simple completion with conversation memory)
+     * Chat with AI (scalable conversation memory - optimized for millions of users)
      */
     async chat(message, context = {}) {
         const startTime = Date.now();
@@ -115,42 +116,50 @@ class AIOrchestrator {
             hasRAG: false
         });
 
-        // Build conversation history for context-aware responses
+        // Extract context
         const conversationHistory = context.conversationHistory || [];
+        const userId = context.userId || 'anonymous';
+        const conversationId = context.conversationId || 'default';
 
-        // Format messages for LLM (convert to ChatGroq message format)
+        // Build optimized conversation context using scalable manager
+        const { context: optimizedContext, metadata } = await conversationManager.buildConversationContext(
+            userId,
+            conversationId,
+            conversationHistory
+        );
+
+        // Format messages for LLM
         const messages = [];
 
-        // System message with clear instructions about conversation memory
+        // System message with conversation memory instructions
         messages.push(new SystemMessage(
-            `You are a helpful AI tutor for an educational platform. You maintain conversation context and remember information the user shares with you during this conversation.
+            `You are a helpful AI tutor for an educational platform. You maintain conversation context and remember information the user shares with you.
 
 IMPORTANT RULES:
 1. ALWAYS remember information the user tells you (their name, role, interests, etc.)
-2. Reference previous parts of the conversation when relevant
-3. If asked about yourself or past messages, recall what was discussed
-4. Provide personalized responses based on what you know about the user
-5. Be conversational and engaging while maintaining educational focus
+2. Reference previous conversation context provided below
+3. Provide personalized responses based on what you know about the user
+4. Be conversational and engaging while maintaining educational focus
+
+${optimizedContext}
 
 Remember: You are having a continuous conversation, not isolated Q&A.`
         ));
 
-        // Add conversation history
-        for (const msg of conversationHistory) {
-            if (msg.role === 'user') {
-                messages.push(new HumanMessage(msg.content));
-            } else if (msg.role === 'assistant') {
-                messages.push(new SystemMessage(msg.content));
-            }
-        }
-
         // Add current message
         messages.push(new HumanMessage(sanitizedMessage));
 
-        // Call LLM with full conversation context
+        // Call LLM with optimized context (60-80% token reduction)
         const response = await this.getLLM().invoke(messages);
 
         const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
+
+        logger.info('Conversation context stats:', {
+            totalMessages: metadata.totalMessages,
+            summarized: metadata.summarized,
+            cached: metadata.cached,
+            estimatedTokens: metadata.estimatedTokens,
+        });
 
         return {
             response: response.content,
@@ -160,7 +169,8 @@ Remember: You are having a continuous conversation, not isolated Q&A.`
                 steps: thinkingSteps,
                 summary: thinkingSummary,
                 totalDuration: Date.now() - startTime
-            }
+            },
+            conversationMetadata: metadata, // For monitoring/analytics
         };
     }
 

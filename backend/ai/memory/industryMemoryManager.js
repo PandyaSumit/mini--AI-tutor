@@ -111,7 +111,7 @@ class IndustryMemoryManager {
       metadata: {
         totalTokens: 0,
         cached: false,
-        tier Breakdown: {}
+        tierBreakdown: {}
       }
     };
 

@@ -17,7 +17,8 @@ import tutorPrompts from '../ai/prompts/tutorPrompts.js';
 import queryClassifier from '../ai/classifiers/queryClassifier.js';
 import semanticQueryClassifier from '../ai/classifiers/semanticQueryClassifier.js';
 import mcpHandler from '../ai/handlers/mcpHandler.js';
-import conversationManager from '../ai/memory/conversationManager.js';
+import conversationManager from '../ai/memory/conversationManager.js'; // Legacy - simple caching
+import industryMemoryManager from '../ai/memory/industryMemoryManager.js'; // Industry-level memory
 import logger from '../utils/logger.js';
 
 class AIOrchestrator {
@@ -97,7 +98,8 @@ class AIOrchestrator {
     }
 
     /**
-     * Chat with AI (scalable conversation memory - optimized for millions of users)
+     * Chat with AI - Industry-Level Memory System
+     * Uses multi-tiered memory architecture with semantic retrieval
      */
     async chat(message, context = {}) {
         const startTime = Date.now();
@@ -117,16 +119,65 @@ class AIOrchestrator {
         });
 
         // Extract context
-        const conversationHistory = context.conversationHistory || [];
         const userId = context.userId || 'anonymous';
         const conversationId = context.conversationId || 'default';
+        const useIndustryMemory = context.useIndustryMemory !== false; // Enabled by default
 
-        // Build optimized conversation context using scalable manager
-        const { context: optimizedContext, metadata } = await conversationManager.buildConversationContext(
-            userId,
-            conversationId,
-            conversationHistory
-        );
+        let optimizedContext, metadata;
+
+        if (useIndustryMemory && userId !== 'anonymous') {
+            // Use industry-level multi-tiered memory system
+            try {
+                const memory = await industryMemoryManager.getMultiTieredMemory(
+                    userId,
+                    conversationId,
+                    {
+                        currentMessage: sanitizedMessage,
+                        intent: context.intent
+                    }
+                );
+
+                // Format memories for injection
+                optimizedContext = industryMemoryManager.formatMemoriesForInjection(memory, {
+                    intent: context.intent,
+                    conversationType: 'educational'
+                });
+
+                metadata = {
+                    memorySystem: 'industry',
+                    totalTokens: memory.metadata.totalTokens,
+                    cached: memory.metadata.cached,
+                    tierBreakdown: memory.metadata.tierBreakdown,
+                    longTermMemoriesRetrieved: memory.longTerm.memories.length
+                };
+
+                logger.info('Using industry memory system', metadata);
+
+            } catch (error) {
+                logger.error('Industry memory system error, falling back to simple:', error);
+                // Fallback to simple system
+                useIndustryMemory = false;
+            }
+        }
+
+        if (!useIndustryMemory) {
+            // Fallback: Use simple conversation manager
+            const conversationHistory = context.conversationHistory || [];
+            const result = await conversationManager.buildConversationContext(
+                userId,
+                conversationId,
+                conversationHistory
+            );
+
+            optimizedContext = result.context;
+            metadata = {
+                memorySystem: 'simple',
+                totalMessages: result.metadata.totalMessages,
+                summarized: result.metadata.summarized,
+                cached: result.metadata.cached,
+                estimatedTokens: result.metadata.estimatedTokens
+            };
+        }
 
         // Format messages for LLM
         const messages = [];
@@ -140,6 +191,7 @@ IMPORTANT RULES:
 2. Reference previous conversation context provided below
 3. Provide personalized responses based on what you know about the user
 4. Be conversational and engaging while maintaining educational focus
+5. Use the user's name when you know it to personalize responses
 
 ${optimizedContext}
 
@@ -149,16 +201,14 @@ Remember: You are having a continuous conversation, not isolated Q&A.`
         // Add current message
         messages.push(new HumanMessage(sanitizedMessage));
 
-        // Call LLM with optimized context (60-80% token reduction)
+        // Call LLM with optimized context
         const response = await this.getLLM().invoke(messages);
 
         const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
 
-        logger.info('Conversation context stats:', {
-            totalMessages: metadata.totalMessages,
-            summarized: metadata.summarized,
-            cached: metadata.cached,
-            estimatedTokens: metadata.estimatedTokens,
+        logger.info('Conversation completed:', {
+            memorySystem: metadata.memorySystem,
+            duration: Date.now() - startTime
         });
 
         return {
@@ -170,7 +220,7 @@ Remember: You are having a continuous conversation, not isolated Q&A.`
                 summary: thinkingSummary,
                 totalDuration: Date.now() - startTime
             },
-            conversationMetadata: metadata, // For monitoring/analytics
+            memoryMetadata: metadata, // For monitoring/analytics
         };
     }
 

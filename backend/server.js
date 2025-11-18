@@ -77,6 +77,36 @@ if (aiService.isReady()) {
     console.warn('⚠️  AI Service initialization pending - will retry on first use');
 }
 
+// Initialize Memory Maintenance Jobs
+(async () => {
+    try {
+        const { default: memoryJobs } = await import('./ai/memory/memoryJobs.js');
+
+        // Start background jobs for memory consolidation, decay, and cleanup
+        memoryJobs.startAll();
+        console.log('✅ Memory maintenance jobs initialized');
+
+        // Graceful shutdown for memory jobs
+        const originalShutdown = process.listeners('SIGTERM')[0];
+        process.removeListener('SIGTERM', originalShutdown);
+
+        process.on('SIGTERM', async () => {
+            console.log('\n🛑 Stopping memory jobs...');
+            memoryJobs.stopAll();
+            if (originalShutdown) await originalShutdown();
+        });
+
+        process.on('SIGINT', async () => {
+            console.log('\n🛑 Stopping memory jobs...');
+            memoryJobs.stopAll();
+            process.exit(0);
+        });
+    } catch (error) {
+        console.error('❌ Memory jobs initialization error:', error.message);
+        console.log('⚠️  Continuing without memory maintenance jobs...');
+    }
+})();
+
 // Middleware
 app.use(helmet()); // Security headers
 app.use(cors()); // Enable CORS

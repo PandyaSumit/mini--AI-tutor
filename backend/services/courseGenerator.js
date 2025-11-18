@@ -2,6 +2,8 @@ import Groq from 'groq-sdk';
 import Course from '../models/Course.js';
 import Module from '../models/Module.js';
 import Lesson from '../models/Lesson.js';
+import embeddingService from '../ai/embeddings/embeddingService.js';
+import bgeSmallModel from '../ai/embeddings/models/bgeSmall.js';
 
 // Lazy initialization of Groq client to avoid import-time errors
 // when GROQ_API_KEY is not yet available (before dotenv loads)
@@ -22,78 +24,17 @@ function getGroqClient() {
 }
 
 /**
- * Generate embedding vector for text using AI
- * Creates a 384-dimensional vector representation
+ * Generate embedding vector for text using proper BGE-small model
+ * Creates a 384-dimensional vector representation using embeddingService
  */
 async function generateEmbedding(text) {
     try {
-        // For now, generate a simple hash-based embedding
-        // In production, use a proper embedding model like BGE-small via HuggingFace or similar
-        const hashEmbedding = createSimpleEmbedding(text);
-        return hashEmbedding;
+        const result = await embeddingService.embed(text);
+        return result.embedding;
     } catch (error) {
         console.error('Error generating embedding:', error);
         return null;
     }
-}
-
-/**
- * Simple embedding generation using text features
- * In production, replace with proper BGE-small or similar model
- */
-function createSimpleEmbedding(text) {
-    const normalized = text.toLowerCase();
-    const words = normalized.split(/\s+/);
-    const embedding = new Array(384).fill(0);
-
-    // Create feature vector based on text characteristics
-    words.forEach((word, index) => {
-        const hash = simpleHash(word);
-        const position = hash % 384;
-        embedding[position] += 1;
-    });
-
-    // Normalize the vector
-    const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
-    return embedding.map(val => magnitude > 0 ? val / magnitude : 0);
-}
-
-function simpleHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    return Math.abs(hash);
-}
-
-/**
- * Calculate cosine similarity between two vectors
- */
-function cosineSimilarity(vec1, vec2) {
-    if (!vec1 || !vec2 || vec1.length !== vec2.length) {
-        return 0;
-    }
-
-    let dotProduct = 0;
-    let mag1 = 0;
-    let mag2 = 0;
-
-    for (let i = 0; i < vec1.length; i++) {
-        dotProduct += vec1[i] * vec2[i];
-        mag1 += vec1[i] * vec1[i];
-        mag2 += vec2[i] * vec2[i];
-    }
-
-    mag1 = Math.sqrt(mag1);
-    mag2 = Math.sqrt(mag2);
-
-    if (mag1 === 0 || mag2 === 0) {
-        return 0;
-    }
-
-    return dotProduct / (mag1 * mag2);
 }
 
 /**
@@ -420,9 +361,9 @@ Return ONLY a valid JSON object:
                 return [];
             }
 
-            // Calculate cosine similarity for each course
+            // Calculate cosine similarity for each course using BGE-small model
             const coursesWithSimilarity = allCourses.map(course => {
-                const similarity = cosineSimilarity(queryEmbedding, course.embedding);
+                const similarity = bgeSmallModel.cosineSimilarity(queryEmbedding, course.embedding);
                 const similarityScore = Math.round(similarity * 100);
 
                 // Generate reason based on matching features

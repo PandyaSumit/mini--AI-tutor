@@ -399,4 +399,52 @@ courseSchema.methods.updateFounderRevenue = function() {
   return this.save();
 };
 
+// ============================================
+// Mongoose Hooks - ChromaDB Sync
+// ============================================
+
+// Post-save hook: Sync course to ChromaDB after save
+courseSchema.post('save', async function(doc) {
+  try {
+    // Dynamically import to avoid circular dependencies
+    const { default: courseSyncService } = await import('../ai/vectorstore/courseSyncService.js');
+
+    // Only sync if the service is initialized
+    if (courseSyncService.isInitialized) {
+      await courseSyncService.syncCourse(doc._id);
+    }
+  } catch (error) {
+    // Log error but don't throw - sync failures shouldn't break course operations
+    console.error(`⚠️  Failed to sync course ${doc._id} to ChromaDB:`, error.message);
+  }
+});
+
+// Post-remove hook: Remove course from ChromaDB after deletion
+courseSchema.post('remove', async function(doc) {
+  try {
+    const { default: courseSyncService } = await import('../ai/vectorstore/courseSyncService.js');
+
+    if (courseSyncService.isInitialized) {
+      await courseSyncService.removeCourse(doc._id);
+    }
+  } catch (error) {
+    console.error(`⚠️  Failed to remove course ${doc._id} from ChromaDB:`, error.message);
+  }
+});
+
+// Post-findOneAndUpdate hook: Sync updated course
+courseSchema.post('findOneAndUpdate', async function(doc) {
+  if (doc) {
+    try {
+      const { default: courseSyncService } = await import('../ai/vectorstore/courseSyncService.js');
+
+      if (courseSyncService.isInitialized) {
+        await courseSyncService.syncCourse(doc._id);
+      }
+    } catch (error) {
+      console.error(`⚠️  Failed to sync updated course ${doc._id} to ChromaDB:`, error.message);
+    }
+  }
+});
+
 export default mongoose.model('Course', courseSchema);

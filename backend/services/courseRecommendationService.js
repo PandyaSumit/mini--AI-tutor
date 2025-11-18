@@ -2,6 +2,8 @@ import Course from '../models/Course.js';
 import Lesson from '../models/Lesson.js';
 import Enrollment from '../models/Enrollment.js';
 import User from '../models/User.js';
+import courseSyncService from '../ai/vectorstore/courseSyncService.js';
+import logger from '../utils/logger.js';
 
 /**
  * Intelligent Course Recommendation Service
@@ -135,11 +137,43 @@ class CourseRecommendationService {
 
   /**
    * Search for relevant courses based on query and user profile
+   * Uses semantic search via ChromaDB for better relevance
    */
   async searchCourses(intent, userSkills) {
     const { topic, skillLevel, type } = intent;
 
-    // Build search query
+    try {
+      // Try semantic search first if courseSyncService is initialized
+      if (courseSyncService.isInitialized) {
+        logger.info(`🔍 Using semantic search for: "${topic}"`);
+
+        const semanticResults = await courseSyncService.searchCourses(topic, {
+          topK: 10,
+          level: skillLevel !== 'all' ? skillLevel : null,
+        });
+
+        // Fetch full course details from MongoDB
+        const courseIds = semanticResults.results.map(r => r.courseId);
+        const courses = await Course.find({ _id: { $in: courseIds } })
+          .populate('createdBy', 'name')
+          .lean();
+
+        // Maintain semantic search ranking order
+        const orderedCourses = courseIds
+          .map(id => courses.find(c => c._id.toString() === id))
+          .filter(Boolean)
+          .slice(0, 5);
+
+        logger.info(`   ✅ Semantic search found ${orderedCourses.length} courses`);
+        return orderedCourses;
+      }
+    } catch (error) {
+      logger.warn(`⚠️  Semantic search failed, falling back to regex: ${error.message}`);
+    }
+
+    // Fallback to regex-based search if ChromaDB not available
+    logger.info(`🔍 Using regex-based search for: "${topic}"`);
+
     const searchQuery = {
       isPublished: true,
       $or: [

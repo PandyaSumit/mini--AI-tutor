@@ -107,6 +107,32 @@ if (aiService.isReady()) {
     }
 })();
 
+// Initialize Course Sync Service
+(async () => {
+    try {
+        const { default: chromaService } = await import('./ai/vectorstore/chromaService.js');
+        const { default: courseSyncService } = await import('./ai/vectorstore/courseSyncService.js');
+
+        // Initialize ChromaDB first
+        const chromaResult = await chromaService.initialize();
+
+        if (chromaResult.success) {
+            // Initialize course sync service
+            await courseSyncService.initialize();
+            console.log('✅ Course Sync Service initialized');
+
+            // Perform initial sync if needed (optional - can be triggered manually)
+            // Uncomment the following line to auto-sync on startup:
+            // await courseSyncService.syncAllCourses({ batchSize: 50 });
+        } else {
+            console.log('⚠️  ChromaDB not available - course semantic search disabled');
+        }
+    } catch (error) {
+        console.error('❌ Course Sync Service initialization error:', error.message);
+        console.log('⚠️  Continuing without course semantic search...');
+    }
+})();
+
 // Middleware
 app.use(helmet()); // Security headers
 app.use(cors()); // Enable CORS

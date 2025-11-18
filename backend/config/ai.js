@@ -61,6 +61,7 @@ const aiConfig = {
     collections: {
       knowledge: 'knowledge_base',
       conversations: 'conversations',
+      courses: 'courses',
       roadmaps: 'roadmaps',
       flashcards: 'flashcards',
       notes: 'user_notes',

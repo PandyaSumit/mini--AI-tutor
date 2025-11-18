@@ -96,7 +96,7 @@ class AIOrchestrator {
     }
 
     /**
-     * Chat with AI (simple completion)
+     * Chat with AI (simple completion with conversation memory)
      */
     async chat(message, context = {}) {
         const startTime = Date.now();
@@ -115,7 +115,40 @@ class AIOrchestrator {
             hasRAG: false
         });
 
-        const response = await this.getLLM().invoke(sanitizedMessage);
+        // Build conversation history for context-aware responses
+        const conversationHistory = context.conversationHistory || [];
+
+        // Format messages for LLM (convert to ChatGroq message format)
+        const messages = [];
+
+        // System message with clear instructions about conversation memory
+        messages.push(new SystemMessage(
+            `You are a helpful AI tutor for an educational platform. You maintain conversation context and remember information the user shares with you during this conversation.
+
+IMPORTANT RULES:
+1. ALWAYS remember information the user tells you (their name, role, interests, etc.)
+2. Reference previous parts of the conversation when relevant
+3. If asked about yourself or past messages, recall what was discussed
+4. Provide personalized responses based on what you know about the user
+5. Be conversational and engaging while maintaining educational focus
+
+Remember: You are having a continuous conversation, not isolated Q&A.`
+        ));
+
+        // Add conversation history
+        for (const msg of conversationHistory) {
+            if (msg.role === 'user') {
+                messages.push(new HumanMessage(msg.content));
+            } else if (msg.role === 'assistant') {
+                messages.push(new SystemMessage(msg.content));
+            }
+        }
+
+        // Add current message
+        messages.push(new HumanMessage(sanitizedMessage));
+
+        // Call LLM with full conversation context
+        const response = await this.getLLM().invoke(messages);
 
         const thinkingSummary = thinkingGenerator.generateSummary(thinkingSteps);
 

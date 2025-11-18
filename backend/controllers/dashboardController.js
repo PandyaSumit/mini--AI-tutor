@@ -4,6 +4,7 @@
  * Aggregates data from multiple sources with optimized queries
  */
 
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Conversation from '../models/Conversation.js';
 import Message from '../models/Message.js';
@@ -27,7 +28,7 @@ import logger from '../utils/logger.js';
  */
 export const getDashboardSummary = async (req, res) => {
   const startTime = Date.now();
-  const userId = req.user.id;
+  const userId = req.user._id; // Use _id directly (ObjectId) for better query compatibility
 
   // Track which data sources succeeded/failed
   const results = {
@@ -242,7 +243,7 @@ export const getDashboardSummary = async (req, res) => {
  */
 export const getDashboardStats = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     const [user, totalConversations, roadmapCount, dueCards] = await Promise.all([
       User.findById(userId).select('learningStats').lean(),

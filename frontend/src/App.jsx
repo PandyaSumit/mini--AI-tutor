@@ -21,6 +21,9 @@ import VoiceTutorTest from './pages/VoiceTutorTest';
 import CourseCatalog from './pages/CourseCatalog';
 import CourseDetails from './pages/CourseDetails';
 import CreateCourse from './pages/CreateCourse';
+import EnhancedRoadmapsList from './pages/EnhancedRoadmapsList';
+import CreateEnhancedRoadmap from './pages/CreateEnhancedRoadmap';
+import EnhancedRoadmapDetail from './pages/EnhancedRoadmapDetail';
 
 function App() {
     const { user, loading } = useAuth();
@@ -159,6 +162,30 @@ function App() {
                             element={
                                 <PrivateRoute>
                                     <StudyFlashcards />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/enhanced-roadmaps"
+                            element={
+                                <PrivateRoute>
+                                    <EnhancedRoadmapsList />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/create-enhanced-roadmap"
+                            element={
+                                <PrivateRoute>
+                                    <CreateEnhancedRoadmap />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/enhanced-roadmap/:id"
+                            element={
+                                <PrivateRoute>
+                                    <EnhancedRoadmapDetail />
                                 </PrivateRoute>
                             }
                         />

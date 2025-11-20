@@ -86,14 +86,36 @@ router.get('/', protect, async (req, res) => {
     }
 
     const roadmaps = await EnhancedRoadmap.find(query)
-      .sort({ [sortBy]: order === 'desc' ? -1 : 1 })
-      .select('-phases.modules.quiz.questions.correctAnswer') // Hide answers
-      .lean();
+      .sort({ [sortBy]: order === 'desc' ? -1 : 1 });
+
+    // Calculate progress for each roadmap
+    const roadmapsWithProgress = await Promise.all(
+      roadmaps.map(async (roadmap) => {
+        roadmap.calculateOverallProgress();
+        roadmap.updateProgressMetrics();
+        await roadmap.save();
+
+        const obj = roadmap.toObject();
+        // Hide quiz answers
+        if (obj.phases) {
+          obj.phases.forEach(phase => {
+            if (phase.modules) {
+              phase.modules.forEach(module => {
+                if (module.quiz && module.quiz.questions) {
+                  delete module.quiz.questions;
+                }
+              });
+            }
+          });
+        }
+        return obj;
+      })
+    );
 
     res.json({
       success: true,
-      count: roadmaps.length,
-      roadmaps
+      count: roadmapsWithProgress.length,
+      roadmaps: roadmapsWithProgress
     });
   } catch (error) {
     console.error('Error fetching roadmaps:', error);
@@ -115,7 +137,7 @@ router.get('/:id', protect, async (req, res) => {
     const roadmap = await EnhancedRoadmap.findOne({
       _id: req.params.id,
       user: req.user._id
-    }).lean();
+    });
 
     if (!roadmap) {
       return res.status(404).json({
@@ -124,9 +146,17 @@ router.get('/:id', protect, async (req, res) => {
       });
     }
 
+    // Calculate progress before sending
+    roadmap.calculateOverallProgress();
+    roadmap.updateProgressMetrics();
+    await roadmap.save();
+
+    // Convert to plain object
+    const roadmapObj = roadmap.toObject();
+
     // Hide quiz answers
-    if (roadmap.phases) {
-      roadmap.phases.forEach(phase => {
+    if (roadmapObj.phases) {
+      roadmapObj.phases.forEach(phase => {
         if (phase.modules) {
           phase.modules.forEach(module => {
             if (module.quiz && module.quiz.questions) {
@@ -143,7 +173,7 @@ router.get('/:id', protect, async (req, res) => {
 
     res.json({
       success: true,
-      roadmap
+      roadmap: roadmapObj
     });
   } catch (error) {
     console.error('Error fetching roadmap:', error);

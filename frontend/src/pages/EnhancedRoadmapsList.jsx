@@ -165,13 +165,13 @@ const EnhancedRoadmapsList = () => {
                   <div className="mb-2 flex justify-between items-center">
                     <span className="text-sm font-medium text-gray-700">Progress</span>
                     <span className="text-sm font-bold text-indigo-600">
-                      {roadmap.overallProgress}%
+                      {roadmap.overallProgress || 0}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full transition-all"
-                      style={{ width: `${roadmap.overallProgress}%` }}
+                      style={{ width: `${roadmap.overallProgress || 0}%` }}
                     />
                   </div>
                 </div>

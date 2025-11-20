@@ -140,24 +140,24 @@ const EnhancedRoadmapDetail = () => {
           {/* Progress Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
             <div className="text-center">
-              <div className="text-3xl font-bold text-indigo-600">{roadmap.overallProgress}%</div>
+              <div className="text-3xl font-bold text-indigo-600">{roadmap.overallProgress || 0}%</div>
               <div className="text-sm text-gray-600">Overall Progress</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-600">
-                {roadmap.progressMetrics.modulesCompleted}/{roadmap.metadata.totalModules}
+                {roadmap.progressMetrics?.modulesCompleted || 0}/{roadmap.metadata?.totalModules || 0}
               </div>
               <div className="text-sm text-gray-600">Modules Completed</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-purple-600">
-                {roadmap.progressMetrics.quizzesCompleted}
+                {roadmap.progressMetrics?.quizzesCompleted || 0}
               </div>
               <div className="text-sm text-gray-600">Quizzes Passed</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-orange-600">
-                {roadmap.progressMetrics.averageQuizScore || 0}%
+                {roadmap.progressMetrics?.averageQuizScore || 0}%
               </div>
               <div className="text-sm text-gray-600">Avg Quiz Score</div>
             </div>
@@ -183,7 +183,7 @@ const EnhancedRoadmapDetail = () => {
                 <div className="flex items-center justify-center gap-2">
                   <span>Phase {index + 1}: {phase.title}</span>
                   <span className="px-2 py-0.5 bg-white bg-opacity-20 rounded text-xs">
-                    {phase.progress}%
+                    {phase.progress || 0}%
                   </span>
                 </div>
               </button>
@@ -262,10 +262,10 @@ const ModuleCard = ({ module, moduleIndex, isActive, onToggle, onCompleteTask, o
             <div className="w-24 bg-gray-200 rounded-full h-2">
               <div
                 className="bg-indigo-600 h-2 rounded-full transition-all"
-                style={{ width: `${module.progress}%` }}
+                style={{ width: `${module.progress || 0}%` }}
               />
             </div>
-            <span className="text-sm font-medium text-gray-700">{module.progress}%</span>
+            <span className="text-sm font-medium text-gray-700">{module.progress || 0}%</span>
           </div>
           <svg
             className={`w-5 h-5 text-gray-400 transition-transform ${isActive ? 'rotate-180' : ''}`}

@@ -135,9 +135,22 @@ export const generateEnhancedRoadmap = async (params) => {
 
     await enhancedRoadmap.save();
 
+    // Initialize progress for all phases and modules
+    for (const phase of enhancedRoadmap.phases) {
+      phase.progress = phase.progress || 0;
+      for (const module of phase.modules) {
+        module.progress = module.progress || 0;
+      }
+    }
+
+    // Calculate initial progress
+    enhancedRoadmap.calculateOverallProgress();
+    enhancedRoadmap.updateProgressMetrics();
+    await enhancedRoadmap.save();
+
     return {
       success: true,
-      roadmap: enhancedRoadmap,
+      roadmap: enhancedRoadmap.toObject(),
       insights: {
         skillDetection,
         domainDetection,

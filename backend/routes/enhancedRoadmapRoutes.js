@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth.js';
+import { protect } from '../middleware/authMiddleware.js';
 import { generateEnhancedRoadmap } from '../services/enhancedRoadmapService.js';
 import EnhancedRoadmap from '../models/EnhancedRoadmap.js';
 

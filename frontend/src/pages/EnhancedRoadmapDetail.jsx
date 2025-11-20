@@ -23,7 +23,7 @@ const EnhancedRoadmapDetail = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/enhanced-roadmaps/${id}`,
+        `${import.meta.env.VITE_API_URL}/enhanced-roadmaps/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -45,7 +45,7 @@ const EnhancedRoadmapDetail = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/enhanced-roadmaps/${id}/task/${taskId}/complete`,
+        `${import.meta.env.VITE_API_URL}/enhanced-roadmaps/${id}/task/${taskId}/complete`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -71,7 +71,7 @@ const EnhancedRoadmapDetail = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/enhanced-roadmaps/${id}/concept/${conceptId}/complete`,
+        `${import.meta.env.VITE_API_URL}/enhanced-roadmaps/${id}/concept/${conceptId}/complete`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` }

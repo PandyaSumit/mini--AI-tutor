@@ -18,7 +18,7 @@ const EnhancedRoadmapsList = () => {
       const token = localStorage.getItem('token');
       const params = filter !== 'all' ? `?status=${filter}` : '';
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/enhanced-roadmaps${params}`,
+        `${import.meta.env.VITE_API_URL}/enhanced-roadmaps${params}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -43,7 +43,7 @@ const EnhancedRoadmapsList = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/enhanced-roadmaps/${id}`,
+        `${import.meta.env.VITE_API_URL}/enhanced-roadmaps/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }

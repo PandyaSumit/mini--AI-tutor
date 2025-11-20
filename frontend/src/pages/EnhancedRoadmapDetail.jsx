@@ -11,6 +11,9 @@ const EnhancedRoadmapDetail = () => {
   const [activePhase, setActivePhase] = useState(0);
   const [activeModule, setActiveModule] = useState(null);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [completingTask, setCompletingTask] = useState(null);
+  const [completingConcept, setCompletingConcept] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchRoadmap();
@@ -38,34 +41,54 @@ const EnhancedRoadmapDetail = () => {
   };
 
   const completeTask = async (taskId) => {
+    setCompletingTask(taskId);
     try {
       const token = localStorage.getItem('token');
-      await axios.put(
+      const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/enhanced-roadmaps/${id}/task/${taskId}/complete`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      fetchRoadmap(); // Refresh
+
+      // Update state immediately with returned data
+      if (response.data.success && response.data.roadmap) {
+        setRoadmap(response.data.roadmap);
+        setSuccessMessage('✓ Task completed!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      }
     } catch (err) {
       console.error('Error completing task:', err);
+      alert('Failed to complete task. Please try again.');
+    } finally {
+      setCompletingTask(null);
     }
   };
 
   const completeConcept = async (conceptId) => {
+    setCompletingConcept(conceptId);
     try {
       const token = localStorage.getItem('token');
-      await axios.put(
+      const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/enhanced-roadmaps/${id}/concept/${conceptId}/complete`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      fetchRoadmap(); // Refresh
+
+      // Update state immediately with returned data
+      if (response.data.success && response.data.roadmap) {
+        setRoadmap(response.data.roadmap);
+        setSuccessMessage('✓ Concept completed!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      }
     } catch (err) {
       console.error('Error completing concept:', err);
+      alert('Failed to complete concept. Please try again.');
+    } finally {
+      setCompletingConcept(null);
     }
   };
 
@@ -128,6 +151,16 @@ const EnhancedRoadmapDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
+        {/* Success Message Toast */}
+        {successMessage && (
+          <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            {successMessage}
+          </div>
+        )}
+
         {/* Header */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <div className="flex justify-between items-start mb-4">
@@ -248,6 +281,8 @@ const EnhancedRoadmapDetail = () => {
                     }}
                     onCompleteTask={completeTask}
                     onCompleteConcept={completeConcept}
+                    completingTask={completingTask}
+                    completingConcept={completingConcept}
                     getDifficultyColor={getDifficultyColor}
                   />
                 );
@@ -261,7 +296,7 @@ const EnhancedRoadmapDetail = () => {
 };
 
 // Module Card Component
-const ModuleCard = ({ module, moduleIndex, isActive, isLocked, onToggle, onCompleteTask, onCompleteConcept, getDifficultyColor }) => {
+const ModuleCard = ({ module, moduleIndex, isActive, isLocked, onToggle, onCompleteTask, onCompleteConcept, completingTask, completingConcept, getDifficultyColor }) => {
   return (
     <div className={`bg-white rounded-lg shadow overflow-hidden ${isLocked ? 'opacity-60' : ''}`}>
       {/* Module Header */}
@@ -406,13 +441,22 @@ const ModuleCard = ({ module, moduleIndex, isActive, isLocked, onToggle, onCompl
                       </div>
                       <button
                         onClick={() => onCompleteConcept(concept.conceptId)}
-                        className={`ml-4 px-3 py-1 rounded text-sm ${
+                        disabled={concept.completed || completingConcept === concept.conceptId}
+                        className={`ml-4 px-3 py-1 rounded text-sm transition-all flex items-center gap-1 ${
                           concept.completed
-                            ? 'bg-green-200 text-green-800'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            ? 'bg-green-200 text-green-800 cursor-not-allowed'
+                            : completingConcept === concept.conceptId
+                            ? 'bg-indigo-400 text-white cursor-wait'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer'
                         }`}
                       >
-                        {concept.completed ? '✓ Done' : 'Mark Complete'}
+                        {completingConcept === concept.conceptId && (
+                          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                          </svg>
+                        )}
+                        {concept.completed ? '✓ Done' : completingConcept === concept.conceptId ? 'Saving...' : 'Mark Complete'}
                       </button>
                     </div>
                   </div>
@@ -446,13 +490,22 @@ const ModuleCard = ({ module, moduleIndex, isActive, isLocked, onToggle, onCompl
                       </div>
                       <button
                         onClick={() => onCompleteTask(task.taskId)}
-                        className={`ml-4 px-3 py-1 rounded text-sm ${
+                        disabled={task.completed || completingTask === task.taskId}
+                        className={`ml-4 px-3 py-1 rounded text-sm transition-all flex items-center gap-1 ${
                           task.completed
-                            ? 'bg-green-200 text-green-800'
-                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                            ? 'bg-green-200 text-green-800 cursor-not-allowed'
+                            : completingTask === task.taskId
+                            ? 'bg-indigo-400 text-white cursor-wait'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer'
                         }`}
                       >
-                        {task.completed ? '✓ Completed' : 'Complete'}
+                        {completingTask === task.taskId && (
+                          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                          </svg>
+                        )}
+                        {task.completed ? '✓ Completed' : completingTask === task.taskId ? 'Saving...' : 'Complete'}
                       </button>
                     </div>
                   </div>

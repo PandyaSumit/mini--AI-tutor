@@ -292,11 +292,18 @@ router.put('/:id/concept/:conceptId/complete', protect, async (req, res) => {
       });
     }
 
+    // Recalculate overall progress
+    roadmap.calculateOverallProgress();
+    roadmap.updateProgressMetrics();
     await roadmap.save();
+
+    // Return updated roadmap
+    const roadmapObj = roadmap.toObject();
 
     res.json({
       success: true,
-      message: 'Concept marked as completed'
+      message: 'Concept marked as completed',
+      roadmap: roadmapObj
     });
   } catch (error) {
     console.error('Error completing concept:', error);
@@ -386,11 +393,18 @@ router.put('/:id/task/:taskId/complete', protect, async (req, res) => {
     roadmap.progressMetrics.projectsCompleted += 1;
     roadmap.progressMetrics.lastActivityDate = new Date();
 
+    // Recalculate overall progress
+    roadmap.calculateOverallProgress();
+    roadmap.updateProgressMetrics();
     await roadmap.save();
+
+    // Return updated roadmap
+    const roadmapObj = roadmap.toObject();
 
     res.json({
       success: true,
-      message: 'Task marked as completed'
+      message: 'Task marked as completed',
+      roadmap: roadmapObj
     });
   } catch (error) {
     console.error('Error completing task:', error);

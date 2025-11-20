@@ -786,5 +786,3 @@ function extractTags(goal, roadmapData) {
 
   return Array.from(tags).slice(0, 10); // Limit to 10 tags
 }
-
-export { generateEnhancedRoadmap };

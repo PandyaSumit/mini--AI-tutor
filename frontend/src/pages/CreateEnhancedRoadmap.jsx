@@ -127,7 +127,7 @@ const CreateEnhancedRoadmap = () => {
                 required
                 value={formData.userDeclaredLevel}
                 onChange={(e) => setFormData({ ...formData, userDeclaredLevel: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white cursor-pointer"
               >
                 <option value="absolute_beginner">Absolute Beginner - No prior knowledge</option>
                 <option value="beginner">Beginner - Basic understanding</option>
@@ -244,7 +244,7 @@ const CreateEnhancedRoadmap = () => {
                       preferences: { ...formData.preferences, learningStyle: e.target.value }
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white cursor-pointer"
                 >
                   <option value="visual">Visual - Learn best through diagrams and videos</option>
                   <option value="auditory">Auditory - Learn best through listening</option>
@@ -267,7 +267,7 @@ const CreateEnhancedRoadmap = () => {
                       preferences: { ...formData.preferences, pacePreference: e.target.value }
                     })
                   }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white cursor-pointer"
                 >
                   <option value="slow">Slow - Extra time for concepts to sink in</option>
                   <option value="moderate">Moderate - Balanced pace</option>
@@ -284,19 +284,30 @@ const CreateEnhancedRoadmap = () => {
                   {['video', 'text', 'hands-on', 'interactive', 'audio'].map((type) => (
                     <label
                       key={type}
-                      className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${
+                      className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${
                         formData.preferences.contentTypes.includes(type)
-                          ? 'border-indigo-500 bg-indigo-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-indigo-500 bg-indigo-50 shadow-sm'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={formData.preferences.contentTypes.includes(type)}
                         onChange={() => toggleContentType(type)}
-                        className="mr-2"
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mr-3"
                       />
-                      <span className="capitalize font-medium text-sm">{type}</span>
+                      <span className={`capitalize font-medium text-sm ${
+                        formData.preferences.contentTypes.includes(type)
+                          ? 'text-indigo-700'
+                          : 'text-gray-700'
+                      }`}>
+                        {type}
+                      </span>
+                      {formData.preferences.contentTypes.includes(type) && (
+                        <svg className="w-5 h-5 text-indigo-600 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </label>
                   ))}
                 </div>

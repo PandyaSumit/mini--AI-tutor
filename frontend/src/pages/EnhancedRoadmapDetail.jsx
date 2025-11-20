@@ -108,6 +108,23 @@ const EnhancedRoadmapDetail = () => {
     return colors[difficulty] || 'bg-gray-100 text-gray-800';
   };
 
+  // Check if module prerequisites are met
+  const arePrerequisitesMet = (module, allModules) => {
+    if (!module.prerequisiteModules || module.prerequisiteModules.length === 0) {
+      return true;
+    }
+
+    // Check if all prerequisite modules are completed
+    for (const prereqId of module.prerequisiteModules) {
+      const prereqModule = allModules.find(m => m.moduleId === prereqId);
+      if (!prereqModule || prereqModule.status !== 'completed') {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -215,18 +232,26 @@ const EnhancedRoadmapDetail = () => {
 
             {/* Modules */}
             <div className="space-y-4">
-              {roadmap.phases[activePhase].modules.map((module, moduleIndex) => (
-                <ModuleCard
-                  key={module.moduleId}
-                  module={module}
-                  moduleIndex={moduleIndex}
-                  isActive={activeModule === module.moduleId}
-                  onToggle={() => setActiveModule(activeModule === module.moduleId ? null : module.moduleId)}
-                  onCompleteTask={completeTask}
-                  onCompleteConcept={completeConcept}
-                  getDifficultyColor={getDifficultyColor}
-                />
-              ))}
+              {roadmap.phases[activePhase].modules.map((module, moduleIndex) => {
+                const isLocked = !arePrerequisitesMet(module, roadmap.phases[activePhase].modules);
+                return (
+                  <ModuleCard
+                    key={module.moduleId}
+                    module={module}
+                    moduleIndex={moduleIndex}
+                    isActive={activeModule === module.moduleId}
+                    isLocked={isLocked}
+                    onToggle={() => {
+                      if (!isLocked) {
+                        setActiveModule(activeModule === module.moduleId ? null : module.moduleId);
+                      }
+                    }}
+                    onCompleteTask={completeTask}
+                    onCompleteConcept={completeConcept}
+                    getDifficultyColor={getDifficultyColor}
+                  />
+                );
+              })}
             </div>
           </div>
         )}
@@ -236,20 +261,43 @@ const EnhancedRoadmapDetail = () => {
 };
 
 // Module Card Component
-const ModuleCard = ({ module, moduleIndex, isActive, onToggle, onCompleteTask, onCompleteConcept, getDifficultyColor }) => {
+const ModuleCard = ({ module, moduleIndex, isActive, isLocked, onToggle, onCompleteTask, onCompleteConcept, getDifficultyColor }) => {
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className={`bg-white rounded-lg shadow overflow-hidden ${isLocked ? 'opacity-60' : ''}`}>
       {/* Module Header */}
       <button
         onClick={onToggle}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition"
+        disabled={isLocked}
+        className={`w-full px-6 py-4 flex items-center justify-between transition ${
+          isLocked ? 'cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'
+        }`}
       >
         <div className="flex items-center gap-4 flex-1">
-          <div className="flex-shrink-0 w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-            <span className="text-indigo-600 font-bold">{moduleIndex + 1}</span>
+          <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+            isLocked ? 'bg-gray-200' : 'bg-indigo-100'
+          }`}>
+            {isLocked ? (
+              <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <span className="text-indigo-600 font-bold">{moduleIndex + 1}</span>
+            )}
           </div>
           <div className="text-left flex-1">
-            <h3 className="text-lg font-semibold text-gray-900">{module.title}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-gray-900">{module.title}</h3>
+              {isLocked && (
+                <span className="px-2 py-0.5 bg-gray-200 text-gray-600 rounded text-xs font-medium">
+                  Locked
+                </span>
+              )}
+              {module.status === 'completed' && (
+                <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">
+                  ✓ Completed
+                </span>
+              )}
+            </div>
             <p className="text-sm text-gray-600">{module.description}</p>
           </div>
         </div>
@@ -278,8 +326,30 @@ const ModuleCard = ({ module, moduleIndex, isActive, onToggle, onCompleteTask, o
         </div>
       </button>
 
+      {/* Locked Module Message */}
+      {isLocked && isActive && (
+        <div className="border-t border-gray-200 p-6 bg-gray-100">
+          <div className="text-center py-8">
+            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            </svg>
+            <h4 className="text-lg font-semibold text-gray-700 mb-2">Module Locked</h4>
+            <p className="text-gray-600">
+              Complete the prerequisite modules first to unlock this content.
+            </p>
+            {module.prerequisiteModules && module.prerequisiteModules.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm text-gray-500">
+                  Required: {module.prerequisiteModules.length} previous module{module.prerequisiteModules.length > 1 ? 's' : ''}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Module Content */}
-      {isActive && (
+      {isActive && !isLocked && (
         <div className="border-t border-gray-200 p-6 bg-gray-50">
           {/* Learning Objectives */}
           {module.learningObjectives && module.learningObjectives.length > 0 && (

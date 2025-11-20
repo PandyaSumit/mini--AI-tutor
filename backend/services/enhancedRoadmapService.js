@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid';
 import aiService from '../config/aiService.js';
 import { detectSkillLevel, combineSkillLevels, detectUserDomain } from './skillDetectionService.js';
 import EnhancedRoadmap from '../models/EnhancedRoadmap.js';
@@ -549,8 +550,6 @@ Generate a premium, deeply structured roadmap that feels like a professional cou
  * Add unique IDs to all components and clean data
  */
 function addIdsAndClean(roadmapData) {
-  const { nanoid } = require('nanoid');
-
   // Add IDs to phases
   if (roadmapData.phases) {
     roadmapData.phases = roadmapData.phases.map((phase, phaseIndex) => {

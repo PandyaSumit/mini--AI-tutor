@@ -21,7 +21,6 @@ import userRoutes from './routes/userRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import conversationRoutes from './routes/conversationRoutes.js';
 import roadmapRoutes from './routes/roadmapRoutes.js';
-import enhancedRoadmapRoutes from './routes/enhancedRoadmapRoutes.js';
 import studyMaterialRoutes from './routes/studyMaterialRoutes.js';
 import voiceRoutes from './routes/voiceRoutes.js';
 import courseRoutes from './routes/courses.js';
@@ -161,7 +160,6 @@ app.use('/api/user', userRoutes);
 app.use('/api/dashboard', dashboardRoutes); // Optimized dashboard endpoint
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/roadmaps', roadmapRoutes);
-app.use('/api/enhanced-roadmaps', enhancedRoadmapRoutes);
 app.use('/api/study', studyMaterialRoutes);
 app.use('/api/voice', voiceRoutes); // Voice session routes
 

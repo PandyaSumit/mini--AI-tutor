@@ -70,7 +70,7 @@ export const getRoadmaps = async (req, res) => {
 
     const roadmaps = await LearningRoadmap.find(query)
       .sort({ createdAt: -1 })
-      .select('title goal status totalWeeks createdAt updatedAt');
+      .select('title goal status totalWeeks weeklyTimeCommitment weeklyModules createdAt updatedAt');
 
     res.status(200).json({
       success: true,
@@ -132,7 +132,7 @@ export const getRoadmap = async (req, res) => {
 export const updateProgress = async (req, res) => {
   try {
     const { id } = req.params;
-    const { weekNumber, taskIndex, completed } = req.body;
+    const { weekNumber, taskIndex, status } = req.body;
     const userId = req.user.id;
 
     const roadmap = await LearningRoadmap.findOne({
@@ -158,6 +158,8 @@ export const updateProgress = async (req, res) => {
 
     // Update task completion
     if (taskIndex !== undefined && module.dailyTasks[taskIndex]) {
+      // Convert status string to boolean
+      const completed = status === 'completed';
       module.dailyTasks[taskIndex].completed = completed;
       module.dailyTasks[taskIndex].completedAt = completed ? new Date() : null;
 

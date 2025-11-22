@@ -1,364 +1,285 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { 
+    Play, 
+    Pause, 
+    RotateCcw, 
+    Trash2, 
+    Download, 
+    Maximize2, 
+    Minimize2,
+    FastForward,
+    PenTool
+} from 'lucide-react';
 import { WhiteboardAnimator } from '../utils/WhiteboardAnimator';
-import { CommandParser } from '../utils/CommandParser';
-import {
-  VIRTUAL_CANVAS,
-  getResponsiveCanvasDimensions,
-  isMobileDevice,
-  debounce,
-  getExportFilename,
-  parseSpeed
-} from '../utils/whiteboardUtils';
 import './Whiteboard.css';
 
 const Whiteboard = ({
-  commands = [],
-  isVisible = true,
-  autoPlay = true,
-  onComplete = null,
-  className = ''
+    commands = [],
+    isVisible = true,
+    autoPlay = true,
+    onComplete = null,
+    className = ''
 }) => {
-  const canvasRef = useRef(null);
-  const containerRef = useRef(null);
-  const animatorRef = useRef(null);
-
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [speed, setSpeed] = useState(1);
-  const [totalCommands, setTotalCommands] = useState(0);
-  const [canvasReady, setCanvasReady] = useState(false);
-
-  /**
-   * Initialize canvas and animator
-   */
-  useEffect(() => {
-    if (!canvasRef.current || !containerRef.current) return;
-
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-
-    // Set canvas dimensions
-    const updateCanvasSize = () => {
-      const rect = container.getBoundingClientRect();
-      const isMobile = isMobileDevice();
-      const dimensions = getResponsiveCanvasDimensions(rect.width, rect.height, isMobile);
-
-      canvas.width = dimensions.width;
-      canvas.height = dimensions.height;
-
-      // Reinitialize animator with new dimensions
-      if (animatorRef.current) {
-        animatorRef.current.canvas = canvas;
-        animatorRef.current.ctx = canvas.getContext('2d');
-      }
-    };
-
-    updateCanvasSize();
+    const canvasRef = useRef(null);
+    const containerRef = useRef(null);
+    const animatorRef = useRef(null);
+    
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [speed, setSpeed] = useState(1);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [canvasReady, setCanvasReady] = useState(false);
+    const [totalCommands, setTotalCommands] = useState(0);
+    const [currentCommandIndex, setCurrentCommandIndex] = useState(0);
+    const [showControls, setShowControls] = useState(false);
 
     // Initialize animator
-    animatorRef.current = new WhiteboardAnimator(canvas, {
-      virtualWidth: VIRTUAL_CANVAS.WIDTH,
-      virtualHeight: VIRTUAL_CANVAS.HEIGHT,
-      baseAnimationDuration: 500,
-      speed: speed,
-      onComplete: () => {
-        setIsPlaying(false);
-        setProgress(100);
-        if (onComplete) {
-          onComplete();
-        }
-      },
-      onCommandComplete: (currentIndex, total) => {
-        setProgress(Math.round(((currentIndex + 1) / total) * 100));
-      }
-    });
-
-    setCanvasReady(true);
-
-    // Handle window resize
-    const handleResize = debounce(() => {
-      updateCanvasSize();
-      // Redraw if there are commands
-      if (animatorRef.current && animatorRef.current.commands.length > 0) {
-        handleReplay();
-      }
-    }, 300);
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (animatorRef.current) {
-        animatorRef.current.stop();
-      }
-    };
-  }, []);
-
-  /**
-   * Update speed when changed
-   */
-  useEffect(() => {
-    if (animatorRef.current) {
-      animatorRef.current.setSpeed(speed);
-    }
-  }, [speed]);
-
-  /**
-   * Handle new commands
-   */
-  useEffect(() => {
-    if (!animatorRef.current || !canvasReady || commands.length === 0) return;
-
-    // Validate and add new commands
-    const validCommands = commands.filter(cmd => {
-      const isValid = CommandParser.validateCommand(cmd);
-      if (!isValid) {
-        console.warn('Invalid command:', cmd);
-      }
-      return isValid;
-    });
-
-    if (validCommands.length === 0) return;
-
-    // Clear previous commands and add new ones
-    animatorRef.current.clearCommands();
-    animatorRef.current.addCommands(validCommands);
-    setTotalCommands(validCommands.length);
-    setProgress(0);
-
-    // Auto-play if enabled
-    if (autoPlay && isVisible) {
-      handlePlay();
-    }
-  }, [commands, canvasReady, autoPlay, isVisible]);
-
-  /**
-   * Play animation
-   */
-  const handlePlay = useCallback(async () => {
-    if (!animatorRef.current) return;
-
-    setIsPlaying(true);
-    setIsPaused(false);
-    await animatorRef.current.play();
-  }, []);
-
-  /**
-   * Pause animation
-   */
-  const handlePause = useCallback(() => {
-    if (!animatorRef.current) return;
-
-    animatorRef.current.pause();
-    setIsPlaying(false);
-    setIsPaused(true);
-  }, []);
-
-  /**
-   * Replay animation from start
-   */
-  const handleReplay = useCallback(() => {
-    if (!animatorRef.current) return;
-
-    setProgress(0);
-    animatorRef.current.replay();
-    setIsPlaying(true);
-    setIsPaused(false);
-  }, []);
-
-  /**
-   * Clear whiteboard
-   */
-  const handleClear = useCallback(() => {
-    if (!animatorRef.current) return;
-
-    animatorRef.current.clearCanvas();
-    animatorRef.current.clearCommands();
-    setProgress(0);
-    setTotalCommands(0);
-    setIsPlaying(false);
-    setIsPaused(false);
-  }, []);
-
-  /**
-   * Download as PNG
-   */
-  const handleDownload = useCallback(() => {
-    if (!animatorRef.current) return;
-
-    const filename = getExportFilename('whiteboard');
-    animatorRef.current.downloadImage(filename);
-  }, []);
-
-  /**
-   * Handle speed change
-   */
-  const handleSpeedChange = useCallback((newSpeed) => {
-    const parsedSpeed = parseSpeed(newSpeed);
-    setSpeed(parsedSpeed);
-  }, []);
-
-  if (!isVisible) {
-    return null;
-  }
-
-  return (
-    <div className={`whiteboard-container ${className}`}>
-      <div className="whiteboard-header">
-        <h3 className="whiteboard-title">Visual Explanation</h3>
-        <div className="whiteboard-progress">
-          {totalCommands > 0 && (
-            <span className="progress-text">
-              Progress: {progress}%
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div
-        ref={containerRef}
-        className="whiteboard-canvas-wrapper"
-      >
-        <canvas
-          ref={canvasRef}
-          className="whiteboard-canvas"
-        />
-      </div>
-
-      <div className="whiteboard-controls">
-        <div className="control-group playback-controls">
-          {!isPlaying ? (
-            <button
-              onClick={handlePlay}
-              className="control-btn play-btn"
-              disabled={totalCommands === 0}
-              title="Play"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <polygon points="5 3 19 12 5 21 5 3" />
-              </svg>
-              <span>Play</span>
-            </button>
-          ) : (
-            <button
-              onClick={handlePause}
-              className="control-btn pause-btn"
-              title="Pause"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <rect x="6" y="4" width="4" height="16" />
-                <rect x="14" y="4" width="4" height="16" />
-              </svg>
-              <span>Pause</span>
-            </button>
-          )}
-
-          <button
-            onClick={handleReplay}
-            className="control-btn replay-btn"
-            disabled={totalCommands === 0}
-            title="Replay"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <polyline points="1 4 1 10 7 10" />
-              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-            </svg>
-            <span>Replay</span>
-          </button>
-
-          <button
-            onClick={handleClear}
-            className="control-btn clear-btn"
-            disabled={totalCommands === 0}
-            title="Clear"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-            <span>Clear</span>
-          </button>
-        </div>
-
-        <div className="control-group speed-controls">
-          <label className="speed-label">Speed:</label>
-          <button
-            onClick={() => handleSpeedChange(0.5)}
-            className={`speed-btn ${speed === 0.5 ? 'active' : ''}`}
-          >
-            0.5x
-          </button>
-          <button
-            onClick={() => handleSpeedChange(1)}
-            className={`speed-btn ${speed === 1 ? 'active' : ''}`}
-          >
-            1x
-          </button>
-          <button
-            onClick={() => handleSpeedChange(2)}
-            className={`speed-btn ${speed === 2 ? 'active' : ''}`}
-          >
-            2x
-          </button>
-        </div>
-
-        <div className="control-group download-controls">
-          <button
-            onClick={handleDownload}
-            className="control-btn download-btn"
-            disabled={totalCommands === 0}
-            title="Download as PNG"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            <span>Download</span>
-          </button>
-        </div>
-      </div>
-
-      {totalCommands === 0 && canvasReady && (
-        <div className="whiteboard-empty-state">
-          <div className="flex flex-col items-center justify-center gap-3 py-12">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center mb-2">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-blue-600">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth="2"/>
-                <line x1="9" y1="9" x2="15" y2="9" strokeWidth="2"/>
-                <line x1="9" y1="15" x2="15" y2="15" strokeWidth="2"/>
-              </svg>
-            </div>
-            <p className="text-gray-700 font-semibold text-base">Interactive Whiteboard</p>
-            <p className="text-gray-500 text-sm max-w-md text-center">
-              Ask me to explain visual concepts like loops, arrays, data structures, or algorithms - I'll draw diagrams to help you understand!
-            </p>
-            <button
-              onClick={() => {
-                // Trigger test whiteboard
-                if (window.testWhiteboard) {
-                  window.testWhiteboard();
+    useEffect(() => {
+        if (canvasRef.current && !animatorRef.current) {
+            // Set canvas size to match container
+            const resizeCanvas = () => {
+                const canvas = canvasRef.current;
+                const container = containerRef.current;
+                if (canvas && container) {
+                    const rect = container.getBoundingClientRect();
+                    // Use device pixel ratio for sharp rendering
+                    const dpr = window.devicePixelRatio || 1;
+                    
+                    // Set display size
+                    canvas.style.width = '100%';
+                    canvas.style.height = '100%';
+                    
+                    // Set actual size in memory (scaled to account for high DPI screens)
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    
+                    // Normalize coordinate system
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(dpr, dpr);
+                    
+                    // Re-render if needed
+                    if (animatorRef.current && commands.length > 0) {
+                        animatorRef.current.replay();
+                    }
                 }
-              }}
-              className="mt-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
-            >
-              🎨 See Demo
-            </button>
-          </div>
+            };
+
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            animatorRef.current = new WhiteboardAnimator(canvasRef.current, {
+                speed,
+                onCommandComplete: (index, total) => {
+                    setCurrentCommandIndex(index + 1);
+                    setProgress(((index + 1) / total) * 100);
+                },
+                onComplete: () => {
+                    setIsPlaying(false);
+                    setProgress(100);
+                    if (onComplete) onComplete();
+                }
+            });
+
+            setCanvasReady(true);
+
+            return () => {
+                window.removeEventListener('resize', resizeCanvas);
+                if (animatorRef.current) {
+                    animatorRef.current.stop();
+                }
+            };
+        }
+    }, []);
+
+    // Handle commands update
+    useEffect(() => {
+        if (animatorRef.current && commands.length > 0) {
+            // Only add new commands
+            const newCommands = commands.slice(totalCommands);
+            if (newCommands.length > 0) {
+                animatorRef.current.addCommands(newCommands);
+                setTotalCommands(commands.length);
+                
+                if (autoPlay && !isPlaying) {
+                    handlePlay();
+                }
+            }
+        }
+    }, [commands, autoPlay]);
+
+    // Handle speed change
+    useEffect(() => {
+        if (animatorRef.current) {
+            animatorRef.current.setSpeed(speed);
+        }
+    }, [speed]);
+
+    const handlePlay = () => {
+        if (animatorRef.current) {
+            animatorRef.current.play();
+            setIsPlaying(true);
+        }
+    };
+
+    const handlePause = () => {
+        if (animatorRef.current) {
+            animatorRef.current.pause();
+            setIsPlaying(false);
+        }
+    };
+
+    const handleReplay = () => {
+        if (animatorRef.current) {
+            setProgress(0);
+            setCurrentCommandIndex(0);
+            animatorRef.current.replay();
+            setIsPlaying(true);
+        }
+    };
+
+    const handleDownload = () => {
+        if (animatorRef.current) {
+            animatorRef.current.downloadImage(`whiteboard-snapshot-${Date.now()}.png`);
+        }
+    };
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            containerRef.current.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+            setIsFullscreen(true);
+        } else {
+            document.exitFullscreen();
+            setIsFullscreen(false);
+        }
+    };
+
+    // Listen for fullscreen change events
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
+    if (!isVisible) return null;
+
+    return (
+        <div 
+            ref={containerRef}
+            className={`relative bg-white overflow-hidden group ${className} ${isFullscreen ? 'w-full h-screen' : 'w-full h-[500px] lg:h-[600px] rounded-xl'}`}
+            onMouseEnter={() => setShowControls(true)}
+            onMouseLeave={() => setShowControls(false)}
+        >
+            {/* Canvas Area */}
+            <div className="w-full h-full bg-white relative">
+                {/* Grid Background Pattern - Subtle & Crisp */}
+                <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 
+                     style={{ 
+                         backgroundImage: 'radial-gradient(#0F172A 1px, transparent 1px)', 
+                         backgroundSize: '24px 24px' 
+                     }} 
+                />
+                
+                <canvas
+                    ref={canvasRef}
+                    className="w-full h-full block cursor-crosshair relative z-10"
+                    aria-label="Whiteboard canvas"
+                />
+            </div>
+
+            {/* Floating Controls Overlay - Solid Toolbar */}
+            <div className={`
+                absolute bottom-6 left-1/2 transform -translate-x-1/2 
+                flex items-center gap-1 p-1.5 rounded-xl 
+                bg-white shadow-lg border border-slate-200 
+                transition-all duration-200 z-20
+                ${showControls || !isPlaying ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}
+            `}>
+                <button
+                    onClick={isPlaying ? handlePause : handlePlay}
+                    className="p-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-blue-600 transition-all active:scale-95"
+                    title={isPlaying ? "Pause" : "Play"}
+                >
+                    {isPlaying ? <Pause className="w-5 h-5" fill="currentColor" /> : <Play className="w-5 h-5" fill="currentColor" />}
+                </button>
+
+                <button
+                    onClick={handleReplay}
+                    className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-95"
+                    title="Replay"
+                >
+                    <RotateCcw className="w-5 h-5" />
+                </button>
+
+                <div className="w-px h-6 bg-slate-200 mx-1"></div>
+
+                <button
+                    onClick={() => setSpeed(s => s === 1 ? 2 : s === 2 ? 0.5 : 1)}
+                    className="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all text-xs font-bold min-w-[3.5rem] flex items-center justify-center"
+                    title="Playback Speed"
+                >
+                    {speed}x
+                </button>
+
+                <div className="w-px h-6 bg-slate-200 mx-1"></div>
+
+                <button
+                    onClick={handleDownload}
+                    className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-95"
+                    title="Download Snapshot"
+                >
+                    <Download className="w-5 h-5" />
+                </button>
+
+                <button
+                    onClick={toggleFullscreen}
+                    className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-95"
+                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                >
+                    {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                </button>
+            </div>
+
+            {/* Progress Bar - Crisp */}
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-100 z-20 border-t border-slate-100">
+                <div 
+                    className="h-full bg-blue-600 transition-all duration-300 ease-linear"
+                    style={{ width: `${progress}%` }}
+                />
+            </div>
+
+            {/* Empty State Overlay - Clean */}
+            {totalCommands === 0 && canvasReady && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-[1px] pointer-events-none z-10">
+                    <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center mb-4 animate-bounce-subtle">
+                        <PenTool className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <h3 className="text-slate-900 font-bold text-lg mb-1">Ready to Draw</h3>
+                    <p className="text-slate-500 font-medium mb-6">Waiting for AI explanation...</p>
+                    <button 
+                        className="px-5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 shadow-sm hover:border-blue-500 hover:text-blue-600 pointer-events-auto transition-all active:scale-95 flex items-center gap-2"
+                        onClick={() => window.testWhiteboard && window.testWhiteboard()}
+                    >
+                        <Play className="w-4 h-4" fill="currentColor" />
+                        Run Demo
+                    </button>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 };
 
 Whiteboard.propTypes = {
-  commands: PropTypes.arrayOf(PropTypes.object),
-  isVisible: PropTypes.bool,
-  autoPlay: PropTypes.bool,
-  onComplete: PropTypes.func,
-  className: PropTypes.string
+    commands: PropTypes.array,
+    isVisible: PropTypes.bool,
+    autoPlay: PropTypes.bool,
+    onComplete: PropTypes.func,
+    className: PropTypes.string
 };
 
 export default Whiteboard;

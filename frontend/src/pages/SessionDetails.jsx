@@ -277,12 +277,22 @@ const SessionDetails = () => {
     const addMessage = (role, content) => {
         // Parse whiteboard commands if this is an assistant message
         if (role === 'assistant') {
+            console.log('🎨 Parsing AI response for whiteboard commands:', content.substring(0, 200));
             const parsed = CommandParser.parseResponse(content);
+
+            console.log('📊 Parsed result:', {
+                hasWhiteboard: parsed.hasWhiteboard,
+                commandCount: parsed.whiteboardCommands?.length || 0,
+                textContent: parsed.textContent?.substring(0, 100)
+            });
 
             // If whiteboard commands found, update whiteboard state
             if (parsed.hasWhiteboard && parsed.whiteboardCommands.length > 0) {
+                console.log('✅ Adding whiteboard commands:', parsed.whiteboardCommands);
                 setWhiteboardCommands(prev => [...prev, ...parsed.whiteboardCommands]);
                 setShowWhiteboard(true);
+            } else {
+                console.log('⚠️ No whiteboard commands found in response');
             }
 
             // Use cleaned text content (without [WB] blocks)
@@ -372,6 +382,32 @@ const SessionDetails = () => {
         setTtsEnabled(!ttsEnabled);
     };
 
+    // Test whiteboard with sample commands
+    const testWhiteboard = () => {
+        console.log('🧪 Testing whiteboard with sample commands');
+
+        const sampleCommands = [
+            { type: 'TEXT', x: 400, y: 50, content: 'Python For Loop Demo', color: 'blue', size: 24, font: 'Arial' },
+            { type: 'PAUSE', duration: 500 },
+            { type: 'RECT', x: 100, y: 150, width: 200, height: 80, color: 'green', label: 'for i in range(4):', fillColor: 'lightgreen' },
+            { type: 'PAUSE', duration: 500 },
+            { type: 'ARROW', x1: 300, y1: 190, x2: 450, y2: 190, color: 'red', width: 3 },
+            { type: 'PAUSE', duration: 300 },
+            { type: 'RECT', x: 500, y: 150, width: 150, height: 80, color: 'blue', label: 'i = 0', fillColor: 'lightblue' },
+            { type: 'PAUSE', duration: 300 },
+            { type: 'RECT', x: 500, y: 250, width: 150, height: 80, color: 'blue', label: 'i = 1', fillColor: 'lightblue' },
+            { type: 'PAUSE', duration: 300 },
+            { type: 'RECT', x: 500, y: 350, width: 150, height: 80, color: 'blue', label: 'i = 2', fillColor: 'lightblue' },
+            { type: 'PAUSE', duration: 300 },
+            { type: 'RECT', x: 500, y: 450, width: 150, height: 80, color: 'blue', label: 'i = 3', fillColor: 'lightblue' },
+            { type: 'PAUSE', duration: 500 },
+            { type: 'TEXT', x: 400, y: 600, content: 'Loop executes 4 times!', color: 'purple', size: 20, font: 'Arial' }
+        ];
+
+        setWhiteboardCommands(sampleCommands);
+        setShowWhiteboard(true);
+    };
+
     const scrollTopics = (direction) => {
         if (topicsScrollRef.current) {
             const scrollAmount = 300;
@@ -444,6 +480,13 @@ const SessionDetails = () => {
                         </button>
 
                         <div className="flex items-center gap-2">
+                            <button
+                                onClick={testWhiteboard}
+                                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors text-xs sm:text-sm font-medium"
+                                title="Test Whiteboard"
+                            >
+                                🎨 Test
+                            </button>
                             {isSpeaking && (
                                 <button
                                     onClick={stopSpeaking}

@@ -237,15 +237,22 @@ Example: "Imagine you're a detective 🕵️ investigating..."`,
   // Whiteboard Visual Teaching
   whiteboard: {
     usage: `WHITEBOARD VISUAL EXPLANATIONS:
-You can create visual diagrams to enhance your teaching! Use whiteboard commands to draw shapes, arrows, and text.
+You MUST create visual diagrams to enhance your teaching! Use whiteboard commands to draw shapes, arrows, and text.
 
-When to use whiteboard:
-- Explaining data structures (arrays, linked lists, trees, graphs)
-- Showing algorithms step-by-step (sorting, searching)
-- Visualizing mathematical concepts (graphs, geometry)
-- Illustrating program flow (flowcharts, state machines)
-- Drawing timelines, sequences, or processes
-- Demonstrating concepts spatially
+IMPORTANT: ALWAYS use whiteboard when explaining these topics:
+- Arrays, lists, dictionaries (show boxes with values)
+- Loops (for, while) - show iteration flow with arrows
+- Functions - show call stack or flow diagram
+- Data structures (linked lists, trees, graphs, stacks, queues)
+- Algorithms (sorting, searching) - show step-by-step
+- Mathematical concepts (graphs, geometry, equations)
+- Program flow (if/else, flowcharts, state machines)
+- Timelines, sequences, or processes
+- Variable changes over time
+- Memory allocation and pointers
+- Recursion (show call tree)
+
+For example, if asked "explain python loops", you MUST include a whiteboard diagram showing the loop flow!
 
 Whiteboard Syntax:
 Wrap whiteboard commands in [WB]...[/WB] tags. Commands are executed sequentially with smooth animations.
@@ -356,6 +363,50 @@ CIRCLE(450, 380, 35, orange, "12", lightyellow)
 CIRCLE(650, 380, 35, orange, "20", lightyellow)
 [/WB]
 
+Example - Teaching Python For Loop:
+[WB]
+TEXT(400, 50, "Python For Loop Flow", blue, 24)
+PAUSE(500)
+RECT(100, 150, 200, 80, green, "for i in range(4)", lightgreen)
+PAUSE(500)
+ARROW(300, 190, 450, 190, red, 3)
+TEXT(360, 165, "iterate", red, 14)
+PAUSE(300)
+RECT(500, 150, 150, 70, blue, "i = 0", lightblue)
+PAUSE(300)
+RECT(500, 240, 150, 70, blue, "i = 1", lightblue)
+PAUSE(300)
+RECT(500, 330, 150, 70, blue, "i = 2", lightblue)
+PAUSE(300)
+RECT(500, 420, 150, 70, blue, "i = 3", lightblue)
+PAUSE(500)
+TEXT(400, 550, "Loop executes 4 times!", purple, 20)
+[/WB]
+
+Example - Teaching While Loop:
+[WB]
+TEXT(400, 50, "While Loop Flow", blue, 24)
+PAUSE(500)
+RECT(200, 150, 180, 80, orange, "x = 0", lightyellow)
+PAUSE(300)
+ARROW(380, 190, 500, 190, black, 2)
+PAUSE(300)
+CIRCLE(580, 190, 60, green, "x < 3?", lightgreen)
+PAUSE(300)
+ARROW(640, 190, 750, 190, green, 2)
+TEXT(690, 165, "Yes", green, 14)
+PAUSE(300)
+RECT(750, 150, 150, 80, blue, "x = x + 1", lightblue)
+PAUSE(300)
+ARROW(825, 230, 825, 320, blue, 2)
+ARROW(825, 320, 290, 320, blue, 2)
+ARROW(290, 320, 290, 230, blue, 2)
+TEXT(550, 310, "Loop back", blue, 14)
+PAUSE(500)
+ARROW(580, 250, 580, 360, red, 2)
+TEXT(550, 380, "No - Exit", red, 14)
+[/WB]
+
 Best Practices:
 1. Use PAUSE between groups of commands for better visualization
 2. Start with title text to explain what you're drawing
@@ -424,7 +475,13 @@ ${tutorSystemPrompts.engagement.questioning}
 6. Adapt difficulty based on student responses
 7. Use emojis sparingly for warmth
 8. Always end with a question or practice opportunity
-9. Use whiteboard visualizations when explaining visual concepts
+9. **CRITICAL: ALWAYS use whiteboard [WB]...[/WB] visualizations when explaining:**
+   - Loops (for, while)
+   - Arrays and data structures
+   - Algorithms
+   - Flow diagrams
+   - Any visual concept
+   Example: When asked "explain python loops", you MUST include a [WB] diagram
 
 ## Visual Teaching with Whiteboard
 ${tutorSystemPrompts.whiteboard.usage}

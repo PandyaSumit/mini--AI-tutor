@@ -408,6 +408,14 @@ const SessionDetails = () => {
         setShowWhiteboard(true);
     };
 
+    // Expose testWhiteboard to window for demo button
+    useEffect(() => {
+        window.testWhiteboard = testWhiteboard;
+        return () => {
+            delete window.testWhiteboard;
+        };
+    }, []);
+
     const scrollTopics = (direction) => {
         if (topicsScrollRef.current) {
             const scrollAmount = 300;
@@ -517,80 +525,68 @@ const SessionDetails = () => {
                         {/* LEFT COLUMN - Main Content */}
                         <div className="flex flex-col gap-4 sm:gap-6 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 lg:px-0 pb-[50vh] lg:pb-6">
 
-                            {/* AI Visualization */}
-                            <div className="relative bg-gradient-to-br from-[#1a1f3a] via-[#2d3561] to-[#4a3f7a] rounded-2xl overflow-hidden">
-                                <div className="aspect-[16/9] sm:aspect-[21/9] lg:aspect-video flex items-center justify-center relative">
-                                    {/* Animated Background */}
-                                    <div className="absolute inset-0 overflow-hidden">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-pink-600/20" />
-                                        <div className="absolute top-1/4 left-1/4 w-32 sm:w-48 lg:w-64 h-32 sm:h-48 lg:h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-                                        <div className="absolute bottom-1/4 right-1/4 w-40 sm:w-60 lg:w-80 h-40 sm:h-60 lg:h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
-                                    </div>
+                            {/* Whiteboard Visualization Area */}
+                            <div className="relative">
+                                <Whiteboard
+                                    commands={whiteboardCommands}
+                                    isVisible={true}
+                                    autoPlay={true}
+                                    onComplete={() => {
+                                        console.log('Whiteboard animation completed');
+                                    }}
+                                />
 
-                                    {/* AI Orb */}
-                                    <div className="relative z-10 scale-75 sm:scale-90 lg:scale-100">
-                                        {isSpeaking || isProcessing ? (
-                                            <div className="relative">
-                                                <div className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40">
-                                                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 blur-xl opacity-60 animate-pulse" />
-                                                    <div className="relative w-full h-full rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-2xl flex items-center justify-center">
-                                                        <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-white/20 backdrop-blur-sm animate-pulse" />
+                                {/* AI Status Indicator - Bottom Right Corner */}
+                                <div className="absolute bottom-6 right-6 z-50">
+                                    {isSpeaking || isProcessing ? (
+                                        <div className="relative">
+                                            {/* Animated AI Orb */}
+                                            <div className="relative w-16 h-16 sm:w-20 sm:h-20">
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 blur-lg opacity-60 animate-pulse" />
+                                                <div className="relative w-full h-full rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-xl flex items-center justify-center">
+                                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 backdrop-blur-sm animate-pulse flex items-center justify-center">
+                                                        {isRecording ? (
+                                                            <Mic className="w-4 h-4 text-white animate-pulse" />
+                                                        ) : (
+                                                            <Bot className="w-4 h-4 text-white" />
+                                                        )}
                                                     </div>
                                                 </div>
-                                                <div className="absolute -bottom-12 sm:-bottom-16 left-1/2 transform -translate-x-1/2 flex items-end gap-1 sm:gap-1.5">
-                                                    {[...Array(7)].map((_, i) => {
-                                                        const height = 8 + Math.abs(3 - i) * 4;
-                                                        return (
-                                                            <div
-                                                                key={`wave-${i}`}
-                                                                className="w-1 sm:w-1.5 lg:w-2 rounded-full bg-gradient-to-t from-blue-400 via-purple-400 to-pink-400"
-                                                                style={{
-                                                                    height: `${height}px`,
-                                                                    animation: `waveHeight 0.8s ease-in-out infinite`,
-                                                                    animationDelay: `${i * 0.1}s`
-                                                                }}
-                                                            />
-                                                        );
-                                                    })}
-                                                </div>
                                             </div>
-                                        ) : (
-                                            <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-36 lg:h-36 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center shadow-2xl">
-                                                <div className="w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-full bg-white/5 flex items-center justify-center">
-                                                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3 rounded-full bg-white/30" />
-                                                </div>
+                                            {/* Sound Wave Animation */}
+                                            <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 flex items-end gap-0.5">
+                                                {[...Array(5)].map((_, i) => {
+                                                    const height = 4 + Math.abs(2 - i) * 2;
+                                                    return (
+                                                        <div
+                                                            key={`wave-${i}`}
+                                                            className="w-1 rounded-full bg-gradient-to-t from-blue-400 via-purple-400 to-pink-400"
+                                                            style={{
+                                                                height: `${height}px`,
+                                                                animation: `waveHeight 0.8s ease-in-out infinite`,
+                                                                animationDelay: `${i * 0.1}s`
+                                                            }}
+                                                        />
+                                                    );
+                                                })}
                                             </div>
-                                        )}
-                                    </div>
-
-                                    {/* Status Overlay */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 lg:p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                                        <div className="flex items-center justify-between text-white">
-                                            <div className="flex items-center gap-2 sm:gap-3">
-                                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                                                    {isRecording ? (
-                                                        <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-red-400 animate-pulse" />
-                                                    ) : (
-                                                        <Bot className="w-4 h-4 sm:w-5 sm:h-5" />
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs sm:text-sm font-medium">
-                                                        {isRecording ? 'Listening...' : isSpeaking ? 'AI Speaking' : 'Ready'}
-                                                    </p>
-                                                    <p className="text-[10px] sm:text-xs text-gray-300">
-                                                        {session?.status === 'active' ? 'Active Session' : 'Completed'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            {(isSpeaking || isProcessing) && processingStatus && (
-                                                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-md rounded-full">
-                                                    <Loader className="w-3 h-3 animate-spin" />
-                                                    <span className="text-xs font-medium">{processingStatus}</span>
+                                            {/* Status Label */}
+                                            {processingStatus && (
+                                                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white/95 backdrop-blur-md rounded-full shadow-lg border border-gray-200">
+                                                        <Loader className="w-3 h-3 animate-spin text-blue-600" />
+                                                        <span className="text-xs font-medium text-gray-700">{processingStatus}</span>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center shadow-lg opacity-60 hover:opacity-100 transition-opacity">
+                                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                                <Bot className="w-4 h-4 text-white" />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -718,18 +714,6 @@ const SessionDetails = () => {
                                         </div>
                                     )}
                                 </div>
-                            )}
-
-                            {/* Whiteboard Component */}
-                            {showWhiteboard && (
-                                <Whiteboard
-                                    commands={whiteboardCommands}
-                                    isVisible={showWhiteboard}
-                                    autoPlay={true}
-                                    onComplete={() => {
-                                        console.log('Whiteboard animation completed');
-                                    }}
-                                />
                             )}
                         </div>
 

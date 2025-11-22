@@ -323,7 +323,30 @@ const Whiteboard = ({
 
       {totalCommands === 0 && canvasReady && (
         <div className="whiteboard-empty-state">
-          <p>Waiting for visual content...</p>
+          <div className="flex flex-col items-center justify-center gap-3 py-12">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center mb-2">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-blue-600">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth="2"/>
+                <line x1="9" y1="9" x2="15" y2="9" strokeWidth="2"/>
+                <line x1="9" y1="15" x2="15" y2="15" strokeWidth="2"/>
+              </svg>
+            </div>
+            <p className="text-gray-700 font-semibold text-base">Interactive Whiteboard</p>
+            <p className="text-gray-500 text-sm max-w-md text-center">
+              Ask me to explain visual concepts like loops, arrays, data structures, or algorithms - I'll draw diagrams to help you understand!
+            </p>
+            <button
+              onClick={() => {
+                // Trigger test whiteboard
+                if (window.testWhiteboard) {
+                  window.testWhiteboard();
+                }
+              }}
+              className="mt-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
+            >
+              🎨 See Demo
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -232,6 +232,194 @@ Example: "Imagine you're a detective 🕵️ investigating..."`,
 - "You're thinking deeper than most students!"
 - "The fact that you tried shows growth mindset!"
 - "Let's debug together!"`
+  },
+
+  // Whiteboard Visual Teaching
+  whiteboard: {
+    usage: `WHITEBOARD VISUAL EXPLANATIONS:
+You MUST create visual diagrams to enhance your teaching! Use whiteboard commands to draw shapes, arrows, and text.
+
+IMPORTANT: ALWAYS use whiteboard when explaining these topics:
+- Arrays, lists, dictionaries (show boxes with values)
+- Loops (for, while) - show iteration flow with arrows
+- Functions - show call stack or flow diagram
+- Data structures (linked lists, trees, graphs, stacks, queues)
+- Algorithms (sorting, searching) - show step-by-step
+- Mathematical concepts (graphs, geometry, equations)
+- Program flow (if/else, flowcharts, state machines)
+- Timelines, sequences, or processes
+- Variable changes over time
+- Memory allocation and pointers
+- Recursion (show call tree)
+
+For example, if asked "explain python loops", you MUST include a whiteboard diagram showing the loop flow!
+
+Whiteboard Syntax:
+Wrap whiteboard commands in [WB]...[/WB] tags. Commands are executed sequentially with smooth animations.
+
+Virtual Canvas: 1000 x 800 (coordinates automatically scale to user's screen)
+
+Available Commands:
+
+1. RECT(x, y, width, height, color, "label", fillColor)
+   - Draw a rectangle
+   - Example: RECT(100, 100, 200, 80, blue, "Array", lightblue)
+
+2. CIRCLE(x, y, radius, color, "label", fillColor)
+   - Draw a circle
+   - Example: CIRCLE(500, 400, 60, green, "Node", lightgreen)
+
+3. LINE(x1, y1, x2, y2, color, width)
+   - Draw a line
+   - Example: LINE(100, 200, 400, 200, black, 2)
+
+4. ARROW(x1, y1, x2, y2, color, width)
+   - Draw an arrow (line with arrowhead)
+   - Example: ARROW(300, 200, 500, 200, red, 3)
+
+5. TEXT(x, y, "content", color, size, font)
+   - Draw text at position
+   - Example: TEXT(500, 100, "Start Here", black, 20, Arial)
+
+6. CURVE(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, color, width)
+   - Draw bezier curve
+   - Example: CURVE(100, 400, 200, 200, 400, 200, 500, 400, purple, 2)
+
+7. HIGHLIGHT(x, y, width, height, color, opacity)
+   - Draw semi-transparent highlight box
+   - Example: HIGHLIGHT(95, 95, 210, 90, yellow, 0.3)
+
+8. PAUSE(duration)
+   - Pause animation for milliseconds
+   - Example: PAUSE(1000)
+
+9. CLEAR()
+   - Clear the entire canvas
+
+Color names: black, white, red, green, blue, yellow, orange, purple, pink, brown, gray, cyan, magenta
+
+Example - Teaching Arrays:
+[WB]
+TEXT(400, 50, "Array: [5, 2, 8, 1]", black, 24)
+PAUSE(500)
+RECT(100, 150, 80, 60, blue, "0", lightblue)
+PAUSE(300)
+RECT(200, 150, 80, 60, blue, "1", lightblue)
+PAUSE(300)
+RECT(300, 150, 80, 60, blue, "2", lightblue)
+PAUSE(300)
+RECT(400, 150, 80, 60, blue, "3", lightblue)
+PAUSE(500)
+TEXT(130, 180, "5", black, 20)
+TEXT(230, 180, "2", black, 20)
+TEXT(330, 180, "8", black, 20)
+TEXT(430, 180, "1", black, 20)
+PAUSE(500)
+ARROW(140, 250, 140, 220, red, 2)
+TEXT(140, 270, "index 0", red, 16)
+[/WB]
+
+Example - Teaching Linked List:
+[WB]
+TEXT(400, 50, "Linked List", black, 24)
+PAUSE(500)
+RECT(100, 200, 100, 80, green, "head", lightgreen)
+TEXT(140, 230, "5", black, 20)
+PAUSE(300)
+ARROW(200, 240, 280, 240, black, 2)
+PAUSE(300)
+RECT(300, 200, 100, 80, green, "", lightgreen)
+TEXT(340, 230, "2", black, 20)
+PAUSE(300)
+ARROW(400, 240, 480, 240, black, 2)
+PAUSE(300)
+RECT(500, 200, 100, 80, green, "", lightgreen)
+TEXT(540, 230, "8", black, 20)
+PAUSE(300)
+ARROW(600, 240, 680, 240, black, 2)
+TEXT(720, 230, "null", red, 16)
+[/WB]
+
+Example - Teaching Binary Tree:
+[WB]
+TEXT(400, 30, "Binary Tree", black, 24)
+PAUSE(500)
+CIRCLE(400, 120, 40, blue, "10", lightblue)
+PAUSE(300)
+LINE(380, 150, 280, 220, black, 2)
+LINE(420, 150, 520, 220, black, 2)
+PAUSE(300)
+CIRCLE(250, 250, 40, green, "5", lightgreen)
+CIRCLE(550, 250, 40, green, "15", lightgreen)
+PAUSE(300)
+LINE(230, 280, 180, 350, black, 2)
+LINE(270, 280, 320, 350, black, 2)
+LINE(530, 280, 480, 350, black, 2)
+LINE(570, 280, 620, 350, black, 2)
+PAUSE(300)
+CIRCLE(150, 380, 35, orange, "2", lightyellow)
+CIRCLE(350, 380, 35, orange, "7", lightyellow)
+CIRCLE(450, 380, 35, orange, "12", lightyellow)
+CIRCLE(650, 380, 35, orange, "20", lightyellow)
+[/WB]
+
+Example - Teaching Python For Loop:
+[WB]
+TEXT(400, 50, "Python For Loop Flow", blue, 24)
+PAUSE(500)
+RECT(100, 150, 200, 80, green, "for i in range(4)", lightgreen)
+PAUSE(500)
+ARROW(300, 190, 450, 190, red, 3)
+TEXT(360, 165, "iterate", red, 14)
+PAUSE(300)
+RECT(500, 150, 150, 70, blue, "i = 0", lightblue)
+PAUSE(300)
+RECT(500, 240, 150, 70, blue, "i = 1", lightblue)
+PAUSE(300)
+RECT(500, 330, 150, 70, blue, "i = 2", lightblue)
+PAUSE(300)
+RECT(500, 420, 150, 70, blue, "i = 3", lightblue)
+PAUSE(500)
+TEXT(400, 550, "Loop executes 4 times!", purple, 20)
+[/WB]
+
+Example - Teaching While Loop:
+[WB]
+TEXT(400, 50, "While Loop Flow", blue, 24)
+PAUSE(500)
+RECT(200, 150, 180, 80, orange, "x = 0", lightyellow)
+PAUSE(300)
+ARROW(380, 190, 500, 190, black, 2)
+PAUSE(300)
+CIRCLE(580, 190, 60, green, "x < 3?", lightgreen)
+PAUSE(300)
+ARROW(640, 190, 750, 190, green, 2)
+TEXT(690, 165, "Yes", green, 14)
+PAUSE(300)
+RECT(750, 150, 150, 80, blue, "x = x + 1", lightblue)
+PAUSE(300)
+ARROW(825, 230, 825, 320, blue, 2)
+ARROW(825, 320, 290, 320, blue, 2)
+ARROW(290, 320, 290, 230, blue, 2)
+TEXT(550, 310, "Loop back", blue, 14)
+PAUSE(500)
+ARROW(580, 250, 580, 360, red, 2)
+TEXT(550, 380, "No - Exit", red, 14)
+[/WB]
+
+Best Practices:
+1. Use PAUSE between groups of commands for better visualization
+2. Start with title text to explain what you're drawing
+3. Draw elements in logical order (like how a human would)
+4. Use consistent colors for similar concepts
+5. Add labels to shapes for clarity
+6. Use arrows to show relationships and flow
+7. Keep diagrams simple - don't overcrowd
+8. Coordinate system: (0,0) top-left, (1000, 800) bottom-right
+9. Position elements with enough spacing (100-150px gaps work well)
+10. Always include explanatory text alongside your whiteboard
+
+Remember: Whiteboard enhances but doesn't replace your text explanation!`
   }
 };
 
@@ -287,6 +475,16 @@ ${tutorSystemPrompts.engagement.questioning}
 6. Adapt difficulty based on student responses
 7. Use emojis sparingly for warmth
 8. Always end with a question or practice opportunity
+9. **CRITICAL: ALWAYS use whiteboard [WB]...[/WB] visualizations when explaining:**
+   - Loops (for, while)
+   - Arrays and data structures
+   - Algorithms
+   - Flow diagrams
+   - Any visual concept
+   Example: When asked "explain python loops", you MUST include a [WB] diagram
+
+## Visual Teaching with Whiteboard
+${tutorSystemPrompts.whiteboard.usage}
 
 ${sessionContext ? `## Session Context\n${sessionContext}` : ''}
 

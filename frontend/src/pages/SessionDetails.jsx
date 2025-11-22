@@ -27,6 +27,8 @@ import {
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { io } from 'socket.io-client';
+import Whiteboard from '../components/Whiteboard';
+import { CommandParser } from '../utils/CommandParser';
 
 const SessionDetails = () => {
     const { sessionId } = useParams();
@@ -63,6 +65,10 @@ const SessionDetails = () => {
     const [chatHeight, setChatHeight] = useState(40); // percentage - start at half
     const [isDragging, setIsDragging] = useState(false);
     const [snapPoint, setSnapPoint] = useState('half'); // 'minimized' | 'half' | 'full'
+
+    // Whiteboard state
+    const [whiteboardCommands, setWhiteboardCommands] = useState([]);
+    const [showWhiteboard, setShowWhiteboard] = useState(false);
 
     // Snap points in percentage
     const SNAP_POINTS = {
@@ -269,6 +275,20 @@ const SessionDetails = () => {
 
     // Helper functions
     const addMessage = (role, content) => {
+        // Parse whiteboard commands if this is an assistant message
+        if (role === 'assistant') {
+            const parsed = CommandParser.parseResponse(content);
+
+            // If whiteboard commands found, update whiteboard state
+            if (parsed.hasWhiteboard && parsed.whiteboardCommands.length > 0) {
+                setWhiteboardCommands(prev => [...prev, ...parsed.whiteboardCommands]);
+                setShowWhiteboard(true);
+            }
+
+            // Use cleaned text content (without [WB] blocks)
+            content = parsed.textContent || content;
+        }
+
         const newMessage = {
             _id: Date.now(),
             role,
@@ -655,6 +675,18 @@ const SessionDetails = () => {
                                         </div>
                                     )}
                                 </div>
+                            )}
+
+                            {/* Whiteboard Component */}
+                            {showWhiteboard && (
+                                <Whiteboard
+                                    commands={whiteboardCommands}
+                                    isVisible={showWhiteboard}
+                                    autoPlay={true}
+                                    onComplete={() => {
+                                        console.log('Whiteboard animation completed');
+                                    }}
+                                />
                             )}
                         </div>
 

@@ -1,12 +1,12 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { 
-    Play, 
-    Pause, 
-    RotateCcw, 
-    Trash2, 
-    Download, 
-    Maximize2, 
+import {
+    Play,
+    Pause,
+    RotateCcw,
+    Trash2,
+    Download,
+    Maximize2,
     Minimize2,
     FastForward,
     PenTool
@@ -24,7 +24,7 @@ const Whiteboard = ({
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
     const animatorRef = useRef(null);
-    
+
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [speed, setSpeed] = useState(1);
@@ -45,19 +45,19 @@ const Whiteboard = ({
                     const rect = container.getBoundingClientRect();
                     // Use device pixel ratio for sharp rendering
                     const dpr = window.devicePixelRatio || 1;
-                    
+
                     // Set display size
                     canvas.style.width = '100%';
                     canvas.style.height = '100%';
-                    
+
                     // Set actual size in memory (scaled to account for high DPI screens)
                     canvas.width = rect.width * dpr;
                     canvas.height = rect.height * dpr;
-                    
+
                     // Normalize coordinate system
                     const ctx = canvas.getContext('2d');
                     ctx.scale(dpr, dpr);
-                    
+
                     // Re-render if needed
                     if (animatorRef.current && commands.length > 0) {
                         animatorRef.current.replay();
@@ -67,7 +67,7 @@ const Whiteboard = ({
 
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
-            
+
             animatorRef.current = new WhiteboardAnimator(canvasRef.current, {
                 speed,
                 onCommandComplete: (index, total) => {
@@ -100,7 +100,7 @@ const Whiteboard = ({
             if (newCommands.length > 0) {
                 animatorRef.current.addCommands(newCommands);
                 setTotalCommands(commands.length);
-                
+
                 if (autoPlay && !isPlaying) {
                     handlePlay();
                 }
@@ -169,22 +169,22 @@ const Whiteboard = ({
     if (!isVisible) return null;
 
     return (
-        <div 
+        <div
             ref={containerRef}
-            className={`relative bg-white overflow-hidden group ${className} ${isFullscreen ? 'w-full h-screen' : 'w-full h-[500px] lg:h-[600px] rounded-xl'}`}
+            className={`relative bg-white overflow-hidden group ${className} ${isFullscreen ? 'w-full h-screen' : 'w-full h-[500px] lg:h-[600px]'}`}
             onMouseEnter={() => setShowControls(true)}
             onMouseLeave={() => setShowControls(false)}
         >
             {/* Canvas Area */}
             <div className="w-full h-full bg-white relative">
                 {/* Grid Background Pattern - Subtle & Crisp */}
-                <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 
-                     style={{ 
-                         backgroundImage: 'radial-gradient(#0F172A 1px, transparent 1px)', 
-                         backgroundSize: '24px 24px' 
-                     }} 
+                <div className="absolute inset-0 opacity-[0.05] pointer-events-none"
+                    style={{
+                        backgroundImage: 'radial-gradient(#0F172A 1px, transparent 1px)',
+                        backgroundSize: '24px 24px'
+                    }}
                 />
-                
+
                 <canvas
                     ref={canvasRef}
                     className="w-full h-full block cursor-crosshair relative z-10"
@@ -247,7 +247,7 @@ const Whiteboard = ({
 
             {/* Progress Bar - Crisp */}
             <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-100 z-20 border-t border-slate-100">
-                <div 
+                <div
                     className="h-full bg-blue-600 transition-all duration-300 ease-linear"
                     style={{ width: `${progress}%` }}
                 />
@@ -261,7 +261,7 @@ const Whiteboard = ({
                     </div>
                     <h3 className="text-slate-900 font-bold text-lg mb-1">Ready to Draw</h3>
                     <p className="text-slate-500 font-medium mb-6">Waiting for AI explanation...</p>
-                    <button 
+                    <button
                         className="px-5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 shadow-sm hover:border-blue-500 hover:text-blue-600 pointer-events-auto transition-all active:scale-95 flex items-center gap-2"
                         onClick={() => window.testWhiteboard && window.testWhiteboard()}
                     >

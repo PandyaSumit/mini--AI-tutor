@@ -174,32 +174,106 @@ const Dashboard = () => {
 
     return (
         <div className="min-h-screen bg-white">
-            {/* Header Section */}
-            <div className="border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white">
-                <div className="mx-auto px-6 lg:px-8 py-8 lg:py-12">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        {/* Welcome Message */}
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
-                                <Calendar className="w-4 h-4" strokeWidth={2} />
-                                <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+            {/* IMPROVED Header Section */}
+            <div className="border-b border-gray-100 bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
+                <div className="mx-auto px-6 lg:px-8 py-6 lg:py-8">
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                        {/* Welcome Message with Context */}
+                        <div className="flex-1 space-y-4">
+                            {/* Compact greeting with streak */}
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                                    {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}! 👋
+                                </h1>
+                                {stats?.currentStreak > 0 && (
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 rounded-full">
+                                        <Flame className="w-4 h-4 text-orange-600" strokeWidth={2} />
+                                        <span className="text-sm font-bold text-orange-900">{stats.currentStreak} day streak</span>
+                                    </div>
+                                )}
                             </div>
-                            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
-                                {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}
-                            </h1>
-                            <p className="text-gray-600 text-lg">
-                                Ready to continue your learning journey?
-                            </p>
+
+                            {/* Contextual message based on user state */}
+                            <div className="space-y-2">
+                                {flashcardStats?.dueCards > 0 ? (
+                                    <p className="text-gray-700 text-base">
+                                        You have <span className="font-semibold text-gray-900">{flashcardStats.dueCards} cards</span> ready to review today
+                                    </p>
+                                ) : roadmaps.length > 0 ? (
+                                    <p className="text-gray-700 text-base">
+                                        Continue your progress on <span className="font-semibold text-gray-900">{roadmaps[0]?.goal}</span>
+                                    </p>
+                                ) : (
+                                    <p className="text-gray-700 text-base">
+                                        Let's start building your personalized learning path
+                                    </p>
+                                )}
+
+                                {/* Quick stats bar */}
+                                <div className="flex items-center gap-4 text-sm text-gray-600">
+                                    <div className="flex items-center gap-1.5">
+                                        <CheckCircle2 className="w-4 h-4 text-green-600" strokeWidth={2} />
+                                        <span>{stats?.totalConversations || 0} chats</span>
+                                    </div>
+                                    <div className="w-1 h-1 rounded-full bg-gray-300"></div>
+                                    <div className="flex items-center gap-1.5">
+                                        <Target className="w-4 h-4 text-blue-600" strokeWidth={2} />
+                                        <span>{roadmaps.length || 0} roadmaps</span>
+                                    </div>
+                                    {flashcardStats?.totalCards > 0 && (
+                                        <>
+                                            <div className="w-1 h-1 rounded-full bg-gray-300"></div>
+                                            <div className="flex items-center gap-1.5">
+                                                <Brain className="w-4 h-4 text-purple-600" strokeWidth={2} />
+                                                <span>{flashcardStats.totalCards} cards</span>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Primary CTA */}
-                        <Link
-                            to="/chat"
-                            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99]"
-                        >
-                            <MessageSquare className="w-5 h-5" strokeWidth={2} />
-                            <span>Start Learning</span>
-                        </Link>
+                        {/* Contextual Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
+                            {/* Primary action - contextual based on state */}
+                            {flashcardStats?.dueCards > 0 ? (
+                                <Link
+                                    to="/flashcards"
+                                    className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] group"
+                                >
+                                    <Brain className="w-5 h-5" strokeWidth={2} />
+                                    <span>Review Cards ({flashcardStats.dueCards})</span>
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" strokeWidth={2} />
+                                </Link>
+                            ) : roadmaps.length > 0 ? (
+                                <Link
+                                    to={`/roadmaps/${roadmaps[0]._id}`}
+                                    className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] group"
+                                >
+                                    <Play className="w-5 h-5" strokeWidth={2} />
+                                    <span>Continue Learning</span>
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" strokeWidth={2} />
+                                </Link>
+                            ) : (
+                                <Link
+                                    to="/roadmaps/create"
+                                    className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] group"
+                                >
+                                    <Sparkles className="w-5 h-5" strokeWidth={2} />
+                                    <span>Create Roadmap</span>
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" strokeWidth={2} />
+                                </Link>
+                            )}
+
+                            {/* Secondary action */}
+                            <Link
+                                to="/chat"
+                                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white hover:bg-gray-50 text-gray-900 font-semibold rounded-xl transition-all border-2 border-gray-200 hover:border-gray-900 active:scale-[0.98]"
+                            >
+                                <MessageSquare className="w-5 h-5" strokeWidth={2} />
+                                <span>Ask AI</span>
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>

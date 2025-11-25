@@ -408,8 +408,8 @@ const Sidebar = () => {
             {/* Mobile Bottom Navigation Bar */}
             <div className="lg:hidden">
                 {/* Bottom Navigation */}
-                <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg">
-                    <div className="flex items-center justify-around px-2 py-2 safe-area-pb">
+                <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200/80 shadow-lg">
+                    <div className="flex items-stretch">
                         {navItems.filter(item => item.showInBottomNav).map((item) => {
                             const Icon = item.icon;
                             const isActive = item.match(location.pathname);
@@ -418,27 +418,24 @@ const Sidebar = () => {
                                 <Link
                                     key={item.to}
                                     to={item.to}
-                                    className={`
-                                        flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg
-                                        transition-all duration-200 active:scale-95 relative min-w-[64px]
-                                        ${isActive
-                                            ? 'text-indigo-600'
-                                            : 'text-gray-500'
-                                        }
-                                    `}
+                                    className="flex-1 flex flex-col items-center justify-center py-3 relative"
                                     aria-label={item.label}
                                     aria-current={isActive ? 'page' : undefined}
                                 >
+                                    {/* Active indicator bar at top */}
+                                    {isActive && (
+                                        <div className="absolute top-0 left-0 right-0 h-[3px] bg-blue-600 rounded-b-sm"></div>
+                                    )}
+
                                     <Icon
-                                        className={`w-6 h-6 ${isActive ? 'text-indigo-600' : 'text-gray-500'}`}
-                                        strokeWidth={isActive ? 2.5 : 2}
+                                        className={`w-6 h-6 mb-1 transition-colors ${isActive ? 'text-blue-600' : 'text-gray-500'
+                                            }`}
+                                        strokeWidth={2}
                                     />
-                                    <span className={`text-[10px] font-medium ${isActive ? 'text-indigo-600' : 'text-gray-600'}`}>
+                                    <span className={`text-[11px] font-medium transition-colors ${isActive ? 'text-blue-600' : 'text-gray-600'
+                                        }`}>
                                         {item.label}
                                     </span>
-                                    {isActive && (
-                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-indigo-600 rounded-full"></div>
-                                    )}
                                 </Link>
                             );
                         })}
@@ -446,13 +443,13 @@ const Sidebar = () => {
                         {/* More Menu Button */}
                         <button
                             onClick={() => setMobileMenuOpen(true)}
-                            className="flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-all duration-200 active:scale-95 text-gray-500 min-w-[64px] relative"
+                            className="flex-1 flex flex-col items-center justify-center py-3 relative"
                             aria-label="More options"
                         >
-                            <MoreVertical className="w-6 h-6 text-gray-500" strokeWidth={2} />
-                            <span className="text-[10px] font-medium text-gray-600">More</span>
+                            <MoreVertical className="w-6 h-6 mb-1 text-gray-500" strokeWidth={2} />
+                            <span className="text-[11px] font-medium text-gray-600">More</span>
                             {/* Notification badge */}
-                            <span className="absolute top-1 right-3 w-2 h-2 bg-red-500 rounded-full"></span>
+                            <span className="absolute top-2 right-1/2 translate-x-4 w-2 h-2 bg-red-500 rounded-full"></span>
                         </button>
                     </div>
                 </nav>
@@ -518,14 +515,14 @@ const Sidebar = () => {
                                             flex items-center gap-3 px-4 py-3 rounded-xl
                                             transition-all duration-200 active:scale-[0.98]
                                             ${isActive
-                                                ? 'bg-indigo-50 text-indigo-700'
+                                                ? 'bg-blue-50 text-blue-700'
                                                 : 'text-gray-700 hover:bg-gray-50'
                                             }
                                         `}
                                         onClick={() => setMobileMenuOpen(false)}
                                     >
                                         <Icon
-                                            className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-gray-500'}`}
+                                            className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-500'}`}
                                             strokeWidth={2}
                                         />
                                         <span className="text-base font-medium flex-1">{item.label}</span>
@@ -566,7 +563,7 @@ const Sidebar = () => {
                 </div>
 
                 {/* Spacer for bottom nav */}
-                <div className="h-16"></div>
+                <div className="h-[68px]"></div>
             </div>
 
             {/* Desktop Sidebar */}

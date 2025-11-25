@@ -176,7 +176,6 @@ function App() {
                             path="/"
                             element={user ? <Navigate to="/dashboard" replace /> : <Landing />}
                         />
-
                         {/* 404 - Not Found */}
                         <Route path="*" element={<NotFound />} />
                     </Routes>

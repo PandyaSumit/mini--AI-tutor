@@ -25,13 +25,6 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const topics = [
-    { id: 'programming', label: 'Programming', icon: Code },
-    { id: 'mathematics', label: 'Mathematics', icon: Calculator },
-    { id: 'languages', label: 'Languages', icon: Globe },
-    { id: 'general', label: 'General', icon: BookOpen },
-];
-
 const Chat = () => {
     const { conversationId } = useParams();
     const navigate = useNavigate();
@@ -218,34 +211,8 @@ const Chat = () => {
                                     <h1 className="text-lg font-bold text-gray-900 truncate">
                                         {conversationTitle || 'New Conversation'}
                                     </h1>
-                                    {!conversationId && (
-                                        <p className="text-sm text-gray-500">Select a topic to begin</p>
-                                    )}
                                 </div>
                             </div>
-
-                            {/* Topic Selector - Only for new conversations */}
-                            {!conversationId && (
-                                <div className="flex flex-wrap gap-2">
-                                    {topics.map((topic) => {
-                                        const Icon = topic.icon;
-                                        const isSelected = selectedTopic === topic.id;
-                                        return (
-                                            <button
-                                                key={topic.id}
-                                                onClick={() => setSelectedTopic(topic.id)}
-                                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isSelected
-                                                    ? 'bg-gray-900 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                    }`}
-                                            >
-                                                <Icon className="w-4 h-4" strokeWidth={2} />
-                                                <span>{topic.label}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
                         </div>
 
                         {/* Action Buttons */}

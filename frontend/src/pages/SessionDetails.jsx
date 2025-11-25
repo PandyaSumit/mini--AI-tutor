@@ -27,6 +27,10 @@ import { CommandParser } from '../utils/CommandParser';
 import LessonLayout from '../components/LessonLayout';
 import ChatPanel from '../components/ChatPanel';
 import LessonProgress from '../components/LessonProgress';
+import WelcomeTour from '../components/WelcomeTour';
+import LearningPathGuide from '../components/LearningPathGuide';
+import QuickActionsPanel from '../components/QuickActionsPanel';
+import ContextualHint from '../components/ContextualHint';
 
 const SessionDetails = () => {
     const { sessionId } = useParams();
@@ -66,6 +70,21 @@ const SessionDetails = () => {
     // Track unread messages
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const lastReadMessageCount = useRef(0);
+
+    // Learning flow state
+    const [currentPhase, setCurrentPhase] = useState('objectives'); // objectives, explore, interact, visualize, assess
+    const [showWelcomeTour, setShowWelcomeTour] = useState(false);
+    const [userInteractions, setUserInteractions] = useState({
+        viewedObjectives: false,
+        viewedContent: false,
+        sentMessage: false,
+        usedWhiteboard: false
+    });
+
+    // Section refs for scrolling
+    const objectivesRef = useRef(null);
+    const contentRef = useRef(null);
+    const whiteboardRef = useRef(null);
 
     // Fetch session data
     useEffect(() => {
@@ -266,6 +285,99 @@ const SessionDetails = () => {
         }));
     };
 
+    // Scroll to section
+    const scrollToSection = (sectionName) => {
+        const refs = {
+            objectives: objectivesRef,
+            content: contentRef,
+            whiteboard: whiteboardRef
+        };
+
+        const ref = refs[sectionName];
+        if (ref?.current) {
+            ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Expand the section if collapsed
+            if (!sectionsExpanded[sectionName]) {
+                toggleSection(sectionName);
+            }
+        }
+    };
+
+    // Handle quick actions
+    const handleQuickAction = (actionId) => {
+        switch (actionId) {
+            case 'objectives':
+                scrollToSection('objectives');
+                setCurrentPhase('objectives');
+                setUserInteractions(prev => ({ ...prev, viewedObjectives: true }));
+                break;
+            case 'content':
+                scrollToSection('content');
+                setCurrentPhase('explore');
+                setUserInteractions(prev => ({ ...prev, viewedContent: true }));
+                break;
+            case 'ask-ai':
+            case 'chat':
+                // Open chat panel if closed
+                setCurrentPhase('interact');
+                // Trigger chat focus (handled by LessonLayout)
+                break;
+            case 'visual':
+            case 'whiteboard':
+                if (whiteboardEverUsed || whiteboardCommands.length > 0) {
+                    scrollToSection('whiteboard');
+                }
+                setCurrentPhase('visualize');
+                // Could auto-send a prompt to AI
+                handleTextMessage("Can you explain this concept visually?");
+                break;
+            case 'quiz':
+                setCurrentPhase('assess');
+                alert('Quiz feature coming soon!');
+                break;
+            default:
+                break;
+        }
+    };
+
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyPress = (e) => {
+            // Only trigger if not typing in input/textarea
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            const shortcuts = {
+                '1': 'objectives',
+                '2': 'content',
+                '3': 'ask-ai',
+                '4': 'visual',
+                '5': 'quiz'
+            };
+
+            if (shortcuts[e.key]) {
+                e.preventDefault();
+                handleQuickAction(shortcuts[e.key]);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [whiteboardEverUsed, whiteboardCommands]);
+
+    // Update phase based on user interactions
+    useEffect(() => {
+        if (messages.length > 0 && !userInteractions.sentMessage) {
+            setUserInteractions(prev => ({ ...prev, sentMessage: true }));
+            setCurrentPhase('interact');
+        }
+        if (whiteboardCommands.length > 0 && !userInteractions.usedWhiteboard) {
+            setUserInteractions(prev => ({ ...prev, usedWhiteboard: true }));
+            setCurrentPhase('visualize');
+        }
+    }, [messages, whiteboardCommands]);
+
     const toggleRecording = () => {
         if (isRecording) {
             if (recognitionRef.current) {
@@ -434,9 +546,53 @@ const SessionDetails = () => {
 
     const visualContent = (
         <div className="space-y-6">
+            {/* Learning Path Guide - Shows recommended flow */}
+            <LearningPathGuide
+                currentPhase={currentPhase}
+                onNavigate={handleQuickAction}
+            />
+
+            {/* Quick Actions Panel - Central navigation */}
+            <QuickActionsPanel onAction={handleQuickAction} />
+
+            {/* Contextual Hint - Welcome message for first-time users */}
+            {!userInteractions.viewedObjectives && messages.length === 0 && (
+                <ContextualHint
+                    id="welcome-start"
+                    type="next-step"
+                    title="Welcome! Let's Get Started"
+                    message="Begin by reviewing the Learning Objectives below to understand what you'll learn in this session."
+                    actionLabel="View Objectives"
+                    onAction={() => handleQuickAction('objectives')}
+                />
+            )}
+
+            {/* Contextual Hint - Encourage asking AI */}
+            {userInteractions.viewedObjectives && messages.length === 0 && (
+                <ContextualHint
+                    id="encourage-ai-interaction"
+                    type="tip"
+                    title="Try Asking Your AI Tutor!"
+                    message="Have questions? Click 'Ask AI Tutor' or press '3' to get help. Try asking 'Explain this visually' or 'Give me an example'."
+                    actionLabel="Open AI Chat"
+                    onAction={() => handleQuickAction('ask-ai')}
+                />
+            )}
+
+            {/* Contextual Hint - Visual learning */}
+            {messages.length > 0 && !whiteboardEverUsed && (
+                <ContextualHint
+                    id="try-visual-learning"
+                    type="tip"
+                    title="Visual Learning Available!"
+                    message="Ask the AI to 'show me visually' or 'draw a diagram' to see concepts animated on the whiteboard."
+                    dismissible={true}
+                />
+            )}
+
             {/* Whiteboard Section - Collapsible, Smart Visibility */}
             {(whiteboardEverUsed || whiteboardCommands.length > 0) && (
-                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                <div ref={whiteboardRef} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm scroll-mt-6">
                     {/* Collapsible Header */}
                     <button
                         onClick={() => toggleSection('whiteboard')}
@@ -506,7 +662,7 @@ const SessionDetails = () => {
 
             {/* Learning Objectives - Collapsible */}
             {lesson && lesson.objectives && lesson.objectives.length > 0 && (
-                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                <div ref={objectivesRef} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm scroll-mt-6">
                     {/* Collapsible Header */}
                     <button
                         onClick={() => toggleSection('objectives')}
@@ -555,7 +711,7 @@ const SessionDetails = () => {
 
             {/* Lesson Content - Collapsible */}
             {lesson && (lesson.content_structure?.keyPoints || lesson.content_structure?.examples) && (
-                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                <div ref={contentRef} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm scroll-mt-6">
                     {/* Collapsible Header */}
                     <button
                         onClick={() => toggleSection('content')}
@@ -676,30 +832,44 @@ const SessionDetails = () => {
     );
 
     return (
-        <LessonLayout
-            header={headerContent}
-            progressBar={progressBar}
-            visualContent={visualContent}
-            chatContent={
-                <ChatPanel
-                    messages={messages}
-                    onSendMessage={handleTextMessage}
-                    isRecording={isRecording}
-                    onToggleRecording={toggleRecording}
-                    isProcessing={isProcessing}
-                    processingStatus={processingStatus}
-                    currentTranscript={currentTranscript}
-                    isSpeaking={isSpeaking}
-                    onStopSpeaking={stopSpeaking}
-                    ttsEnabled={ttsEnabled}
-                    onToggleTTS={toggleTTS}
-                    className="h-full"
-                />
-            }
-            footer={footerContent}
-            isProcessing={isProcessing}
-            hasUnreadMessages={hasUnreadMessages}
-        />
+        <>
+            {/* Welcome Tour - First time users only */}
+            <WelcomeTour
+                onComplete={() => {
+                    setShowWelcomeTour(false);
+                    // Auto-expand objectives section after tour
+                    if (!sectionsExpanded.objectives) {
+                        toggleSection('objectives');
+                    }
+                }}
+                onClose={() => setShowWelcomeTour(false)}
+            />
+
+            <LessonLayout
+                header={headerContent}
+                progressBar={progressBar}
+                visualContent={visualContent}
+                chatContent={
+                    <ChatPanel
+                        messages={messages}
+                        onSendMessage={handleTextMessage}
+                        isRecording={isRecording}
+                        onToggleRecording={toggleRecording}
+                        isProcessing={isProcessing}
+                        processingStatus={processingStatus}
+                        currentTranscript={currentTranscript}
+                        isSpeaking={isSpeaking}
+                        onStopSpeaking={stopSpeaking}
+                        ttsEnabled={ttsEnabled}
+                        onToggleTTS={toggleTTS}
+                        className="h-full"
+                    />
+                }
+                footer={footerContent}
+                isProcessing={isProcessing}
+                hasUnreadMessages={hasUnreadMessages}
+            />
+        </>
     );
 };
 

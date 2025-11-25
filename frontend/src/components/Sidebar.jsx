@@ -17,7 +17,8 @@ import {
     HelpCircle,
     Bell,
     Command,
-    Mic
+    Mic,
+    MoreVertical
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -25,24 +26,27 @@ const Sidebar = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     // Close mobile menu on route change
     useEffect(() => {
         setMobileOpen(false);
+        setMobileMenuOpen(false);
     }, [location.pathname]);
 
     // Close mobile menu on escape key
     useEffect(() => {
         const handleEscape = (e) => {
-            if (e.key === 'Escape' && mobileOpen) {
-                setMobileOpen(false);
+            if (e.key === 'Escape') {
+                if (mobileMenuOpen) setMobileMenuOpen(false);
+                if (mobileOpen) setMobileOpen(false);
             }
         };
         document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
-    }, [mobileOpen]);
+    }, [mobileOpen, mobileMenuOpen]);
 
     // Keyboard shortcut for search (Cmd+K or Ctrl+K)
     useEffect(() => {
@@ -58,7 +62,7 @@ const Sidebar = () => {
 
     // Prevent body scroll when mobile menu is open
     useEffect(() => {
-        if (mobileOpen) {
+        if (mobileOpen || mobileMenuOpen) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
@@ -66,7 +70,7 @@ const Sidebar = () => {
         return () => {
             document.body.style.overflow = 'unset';
         };
-    }, [mobileOpen]);
+    }, [mobileOpen, mobileMenuOpen]);
 
     const handleLogout = async () => {
         if (window.confirm('Are you sure you want to logout?')) {
@@ -75,43 +79,50 @@ const Sidebar = () => {
         }
     };
 
+    // Main navigation items for bottom nav (mobile) and sidebar (desktop)
     const navItems = [
         {
             to: '/dashboard',
             label: 'Dashboard',
             icon: LayoutDashboard,
-            match: (path) => path === '/dashboard'
+            match: (path) => path === '/dashboard',
+            showInBottomNav: true
         },
         {
             to: '/chat',
             label: 'AI Chat',
             icon: MessageSquare,
-            match: (path) => path.startsWith('/chat')
+            match: (path) => path.startsWith('/chat'),
+            showInBottomNav: true
         },
         {
             to: '/roadmaps',
             label: 'Roadmaps',
             icon: Map,
-            match: (path) => path.startsWith('/roadmaps')
+            match: (path) => path.startsWith('/roadmaps'),
+            showInBottomNav: true
         },
         {
             to: '/flashcards',
             label: 'Flashcards',
             icon: Brain,
-            match: (path) => path.startsWith('/flashcards')
+            match: (path) => path.startsWith('/flashcards'),
+            showInBottomNav: true
         },
         {
             to: '/voice-tutor',
             label: 'Voice Tutor',
             icon: Mic,
             match: (path) => path === '/voice-tutor',
-            badge: 'NEW'
+            badge: 'NEW',
+            showInBottomNav: false
         },
         {
             to: '/conversations',
             label: 'History',
             icon: BookOpen,
-            match: (path) => path === '/conversations'
+            match: (path) => path === '/conversations',
+            showInBottomNav: false
         }
     ];
 
@@ -394,39 +405,168 @@ const Sidebar = () => {
 
     return (
         <>
-            {/* Mobile Hamburger Button */}
-            <button
-                onClick={() => setMobileOpen(true)}
-                className="fixed top-5 left-5 z-50 lg:hidden bg-white p-2.5 rounded-lg shadow-md border border-gray-200/60 hover:shadow-lg transition-all active:scale-95"
-                aria-label="Open menu"
-                aria-expanded={mobileOpen}
-            >
-                <Menu className="w-5 h-5 text-gray-700" strokeWidth={2} />
-            </button>
+            {/* Mobile Bottom Navigation Bar */}
+            <div className="lg:hidden">
+                {/* Bottom Navigation */}
+                <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg">
+                    <div className="flex items-center justify-around px-2 py-2 safe-area-pb">
+                        {navItems.filter(item => item.showInBottomNav).map((item) => {
+                            const Icon = item.icon;
+                            const isActive = item.match(location.pathname);
 
-            {/* Mobile Overlay */}
-            {mobileOpen && (
+                            return (
+                                <Link
+                                    key={item.to}
+                                    to={item.to}
+                                    className={`
+                                        flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg
+                                        transition-all duration-200 active:scale-95 relative min-w-[64px]
+                                        ${isActive
+                                            ? 'text-indigo-600'
+                                            : 'text-gray-500'
+                                        }
+                                    `}
+                                    aria-label={item.label}
+                                    aria-current={isActive ? 'page' : undefined}
+                                >
+                                    <Icon
+                                        className={`w-6 h-6 ${isActive ? 'text-indigo-600' : 'text-gray-500'}`}
+                                        strokeWidth={isActive ? 2.5 : 2}
+                                    />
+                                    <span className={`text-[10px] font-medium ${isActive ? 'text-indigo-600' : 'text-gray-600'}`}>
+                                        {item.label}
+                                    </span>
+                                    {isActive && (
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-indigo-600 rounded-full"></div>
+                                    )}
+                                </Link>
+                            );
+                        })}
+
+                        {/* More Menu Button */}
+                        <button
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-all duration-200 active:scale-95 text-gray-500 min-w-[64px] relative"
+                            aria-label="More options"
+                        >
+                            <MoreVertical className="w-6 h-6 text-gray-500" strokeWidth={2} />
+                            <span className="text-[10px] font-medium text-gray-600">More</span>
+                            {/* Notification badge */}
+                            <span className="absolute top-1 right-3 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                    </div>
+                </nav>
+
+                {/* Mobile Menu Overlay */}
+                {mobileMenuOpen && (
+                    <div
+                        className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 transition-opacity duration-200"
+                        onClick={() => setMobileMenuOpen(false)}
+                        aria-hidden="true"
+                    />
+                )}
+
+                {/* Mobile More Menu (Slide up from bottom) */}
                 <div
-                    className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-200"
-                    onClick={() => setMobileOpen(false)}
-                    aria-hidden="true"
-                />
-            )}
+                    className={`
+                        fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl
+                        transition-transform duration-300 ease-out
+                        ${mobileMenuOpen ? 'translate-y-0' : 'translate-y-full'}
+                    `}
+                    role="dialog"
+                    aria-label="More menu"
+                    aria-modal="true"
+                >
+                    <div className="px-4 pt-3 pb-6">
+                        {/* Handle bar */}
+                        <div className="flex justify-center mb-4">
+                            <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+                        </div>
 
-            {/* Mobile Sidebar */}
-            <div
-                className={`
-                    fixed left-0 top-0 h-full bg-white z-50 
-                    shadow-xl border-r border-gray-100
-                    transition-transform duration-300 ease-out lg:hidden
-                    ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
-                    w-64
-                `}
-                role="dialog"
-                aria-label="Navigation menu"
-                aria-modal="true"
-            >
-                <SidebarContent isMobile={true} />
+                        {/* User Profile */}
+                        <div className="mb-4">
+                            <Link
+                                to="/profile"
+                                className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all group"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-lg font-semibold flex-shrink-0">
+                                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-base font-semibold text-gray-900 truncate">
+                                        {user?.name || 'User Profile'}
+                                    </p>
+                                    <p className="text-sm text-gray-500 truncate">
+                                        View your profile
+                                    </p>
+                                </div>
+                            </Link>
+                        </div>
+
+                        {/* Additional Navigation Items */}
+                        <div className="space-y-1 mb-4">
+                            {navItems.filter(item => !item.showInBottomNav).map((item) => {
+                                const Icon = item.icon;
+                                const isActive = item.match(location.pathname);
+
+                                return (
+                                    <Link
+                                        key={item.to}
+                                        to={item.to}
+                                        className={`
+                                            flex items-center gap-3 px-4 py-3 rounded-xl
+                                            transition-all duration-200 active:scale-[0.98]
+                                            ${isActive
+                                                ? 'bg-indigo-50 text-indigo-700'
+                                                : 'text-gray-700 hover:bg-gray-50'
+                                            }
+                                        `}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                        <Icon
+                                            className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-gray-500'}`}
+                                            strokeWidth={2}
+                                        />
+                                        <span className="text-base font-medium flex-1">{item.label}</span>
+                                        {item.badge && (
+                                            <span className="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                                                {item.badge}
+                                            </span>
+                                        )}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+
+                        {/* Utility Items */}
+                        <div className="space-y-1 pt-4 border-t border-gray-200">
+                            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all active:scale-[0.98]">
+                                <Bell className="w-5 h-5 text-gray-500" strokeWidth={2} />
+                                <span className="text-base font-medium flex-1 text-left">Notifications</span>
+                                <span className="w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                                    3
+                                </span>
+                            </button>
+
+                            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all active:scale-[0.98]">
+                                <HelpCircle className="w-5 h-5 text-gray-500" strokeWidth={2} />
+                                <span className="text-base font-medium text-left">Help center</span>
+                            </button>
+
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all active:scale-[0.98]"
+                            >
+                                <LogOut className="w-5 h-5 text-red-500" strokeWidth={2} />
+                                <span className="text-base font-medium text-left">Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Spacer for bottom nav */}
+                <div className="h-16"></div>
             </div>
 
             {/* Desktop Sidebar */}

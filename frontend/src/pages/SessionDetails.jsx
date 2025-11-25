@@ -7,11 +7,17 @@ import {
     Bot,
     ChevronRight,
     ChevronLeft,
+    ChevronDown,
+    ChevronUp,
     BookOpen,
     PlayCircle,
     GraduationCap,
     Lightbulb,
-    Code
+    Code,
+    Target,
+    Sparkles,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -20,6 +26,7 @@ import Whiteboard from '../components/Whiteboard';
 import { CommandParser } from '../utils/CommandParser';
 import LessonLayout from '../components/LessonLayout';
 import ChatPanel from '../components/ChatPanel';
+import LessonProgress from '../components/LessonProgress';
 
 const SessionDetails = () => {
     const { sessionId } = useParams();
@@ -47,6 +54,18 @@ const SessionDetails = () => {
     // Whiteboard state
     const [whiteboardCommands, setWhiteboardCommands] = useState([]);
     const [showWhiteboard, setShowWhiteboard] = useState(false);
+    const [whiteboardEverUsed, setWhiteboardEverUsed] = useState(false);
+
+    // UI state - Collapsible sections
+    const [sectionsExpanded, setSectionsExpanded] = useState({
+        objectives: true,
+        content: true,
+        whiteboard: true
+    });
+
+    // Track unread messages
+    const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+    const lastReadMessageCount = useRef(0);
 
     // Fetch session data
     useEffect(() => {
@@ -209,10 +228,14 @@ const SessionDetails = () => {
             if (parsed.hasWhiteboard && parsed.whiteboardCommands.length > 0) {
                 setWhiteboardCommands(prev => [...prev, ...parsed.whiteboardCommands]);
                 setShowWhiteboard(true);
+                setWhiteboardEverUsed(true);
             }
 
             // Use cleaned text content (without [WB] blocks)
             content = parsed.textContent || content;
+
+            // Mark as unread message
+            setHasUnreadMessages(true);
         }
 
         const newMessage = {
@@ -221,7 +244,26 @@ const SessionDetails = () => {
             content,
             createdAt: new Date()
         };
-        setMessages(prev => [...prev, newMessage]);
+        setMessages(prev => {
+            const updated = [...prev, newMessage];
+            lastReadMessageCount.current = updated.length;
+            return updated;
+        });
+    };
+
+    // Track when messages are read (when chat is visible)
+    useEffect(() => {
+        if (messages.length > lastReadMessageCount.current) {
+            // New messages arrived while chat might be closed
+            setHasUnreadMessages(true);
+        }
+    }, [messages]);
+
+    const toggleSection = (sectionName) => {
+        setSectionsExpanded(prev => ({
+            ...prev,
+            [sectionName]: !prev[sectionName]
+        }));
     };
 
     const toggleRecording = () => {
@@ -380,124 +422,182 @@ const SessionDetails = () => {
         </div>
     );
 
-    const visualContent = (
-        <div className="flex flex-col gap-8 pb-8 mx-auto w-full">
-            {/* Main Whiteboard Area - Hero Section */}
-            <div className="w-full">
-                <Whiteboard
-                    commands={whiteboardCommands}
-                    isVisible={true}
-                    autoPlay={true}
-                    className="w-full aspect-video"
-                />
-            </div>
+    // Progress bar component
+    const progressBar = lesson && (
+        <LessonProgress
+            currentStep={1}
+            totalSteps={lesson.objectives?.length || 5}
+            completedSteps={0}
+            estimatedTime={lesson.estimated_duration || '15 min'}
+        />
+    );
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Learning Objectives - Horizontal Slider */}
-                {lesson && lesson.objectives && lesson.objectives.length > 0 && (
-                    <div className="lg:col-span-2 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                <span className="w-1 h-4 bg-blue-600 rounded-full"></span>
-                                Learning Objectives
-                            </h3>
-                            {lesson.objectives.length >= 3 && (
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => {
-                                            const container = document.getElementById('objectives-scroll-container');
-                                            if (container) {
-                                                container.scrollBy({ left: -400, behavior: 'smooth' });
-                                            }
-                                        }}
-                                        className="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 hover:border-blue-300 flex items-center justify-center transition-all shadow-sm"
-                                        aria-label="Scroll left"
-                                    >
-                                        <ChevronLeft className="w-4 h-4 text-slate-600" />
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            const container = document.getElementById('objectives-scroll-container');
-                                            if (container) {
-                                                container.scrollBy({ left: 400, behavior: 'smooth' });
-                                            }
-                                        }}
-                                        className="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 hover:border-blue-300 flex items-center justify-center transition-all shadow-sm"
-                                        aria-label="Scroll right"
-                                    >
-                                        <ChevronRight className="w-4 h-4 text-slate-600" />
-                                    </button>
-                                </div>
+    const visualContent = (
+        <div className="space-y-6">
+            {/* Whiteboard Section - Collapsible, Smart Visibility */}
+            {(whiteboardEverUsed || whiteboardCommands.length > 0) && (
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    {/* Collapsible Header */}
+                    <button
+                        onClick={() => toggleSection('whiteboard')}
+                        className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-sm">
+                                <Sparkles className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="text-left">
+                                <h2 className="text-lg font-bold text-slate-900">Visual Explanation</h2>
+                                <p className="text-sm text-slate-500">
+                                    {whiteboardCommands.length > 0
+                                        ? `${whiteboardCommands.length} drawing commands`
+                                        : 'AI will draw here when explaining concepts'}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {whiteboardCommands.length > 0 && (
+                                <span className="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full">
+                                    Active
+                                </span>
+                            )}
+                            {sectionsExpanded.whiteboard ? (
+                                <ChevronUp className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                            ) : (
+                                <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
                             )}
                         </div>
+                    </button>
 
-                        <div
-                            id="objectives-scroll-container"
-                            className="flex gap-4 overflow-x-auto pb-2 scroll-smooth scrollbar-hide cursor-grab active:cursor-grabbing"
-                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                            onMouseDown={(e) => {
-                                const container = e.currentTarget;
-                                container.style.cursor = 'grabbing';
-                                const startX = e.pageX - container.offsetLeft;
-                                const scrollLeft = container.scrollLeft;
+                    {/* Collapsible Content */}
+                    {sectionsExpanded.whiteboard && (
+                        <div className="border-t border-slate-100">
+                            <Whiteboard
+                                commands={whiteboardCommands}
+                                isVisible={true}
+                                autoPlay={true}
+                                className="w-full"
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
 
-                                const handleMouseMove = (e) => {
-                                    const x = e.pageX - container.offsetLeft;
-                                    const walk = (x - startX) * 2;
-                                    container.scrollLeft = scrollLeft - walk;
-                                };
+            {/* Call-to-action when whiteboard not used yet */}
+            {!whiteboardEverUsed && whiteboardCommands.length === 0 && (
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border-2 border-dashed border-blue-200 p-8 text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white shadow-sm flex items-center justify-center">
+                        <Sparkles className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-2">Visual Learning Awaits!</h3>
+                    <p className="text-slate-600 mb-4 max-w-md mx-auto">
+                        Ask the AI Tutor to explain concepts visually, and watch as ideas come to life on the whiteboard
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                        <span className="px-4 py-2 bg-white rounded-lg text-sm text-slate-600 shadow-sm border border-slate-200">
+                            "Explain loops visually"
+                        </span>
+                        <span className="px-4 py-2 bg-white rounded-lg text-sm text-slate-600 shadow-sm border border-slate-200">
+                            "Draw how arrays work"
+                        </span>
+                    </div>
+                </div>
+            )}
 
-                                const handleMouseUp = () => {
-                                    container.style.cursor = 'grab';
-                                    document.removeEventListener('mousemove', handleMouseMove);
-                                    document.removeEventListener('mouseup', handleMouseUp);
-                                };
+            {/* Learning Objectives - Collapsible */}
+            {lesson && lesson.objectives && lesson.objectives.length > 0 && (
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    {/* Collapsible Header */}
+                    <button
+                        onClick={() => toggleSection('objectives')}
+                        className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm">
+                                <Target className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="text-left">
+                                <h2 className="text-lg font-bold text-slate-900">Learning Objectives</h2>
+                                <p className="text-sm text-slate-500">{lesson.objectives.length} goals for this lesson</p>
+                            </div>
+                        </div>
+                        {sectionsExpanded.objectives ? (
+                            <ChevronUp className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                        ) : (
+                            <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                        )}
+                    </button>
 
-                                document.addEventListener('mousemove', handleMouseMove);
-                                document.addEventListener('mouseup', handleMouseUp);
-                            }}
-                        >
-                            {lesson.objectives.map((obj, idx) => (
-                                <div
-                                    key={idx}
-                                    className="group p-5 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 relative overflow-hidden flex-shrink-0"
-                                    style={{ minWidth: '280px', maxWidth: '320px' }}
-                                >
-                                    <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                            <span className="font-bold text-sm">{idx + 1}</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-700 leading-relaxed group-hover:text-slate-900 transition-colors">{obj}</p>
+                    {/* Collapsible Content */}
+                    {sectionsExpanded.objectives && (
+                        <div className="border-t border-slate-100 p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {lesson.objectives.map((obj, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="group p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 relative overflow-hidden"
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-white border-2 border-blue-500 text-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                                                <span className="font-bold text-sm">{idx + 1}</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-slate-700 leading-relaxed group-hover:text-slate-900 transition-colors">{obj}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Lesson Content Preview */}
-                {lesson && (
-                    <div className="lg:col-span-2">
-                        <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
-                            <div className="flex items-center gap-2 mb-4">
-                                <BookOpen className="w-5 h-5 text-purple-600" />
-                                <h3 className="font-semibold text-gray-900">Lesson Content</h3>
+                                ))}
                             </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
+            {/* Lesson Content - Collapsible */}
+            {lesson && (lesson.content_structure?.keyPoints || lesson.content_structure?.examples) && (
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    {/* Collapsible Header */}
+                    <button
+                        onClick={() => toggleSection('content')}
+                        className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                                <BookOpen className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="text-left">
+                                <h2 className="text-lg font-bold text-slate-900">Lesson Content</h2>
+                                <p className="text-sm text-slate-500">
+                                    Key concepts and examples
+                                </p>
+                            </div>
+                        </div>
+                        {sectionsExpanded.content ? (
+                            <ChevronUp className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                        ) : (
+                            <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                        )}
+                    </button>
+
+                    {/* Collapsible Content */}
+                    {sectionsExpanded.content && (
+                        <div className="border-t border-slate-100 p-6 space-y-6">
                             {/* Key Points */}
                             {lesson.content_structure?.keyPoints && lesson.content_structure.keyPoints.length > 0 && (
-                                <div className="mb-4">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Lightbulb className="w-4 h-4 text-yellow-600" />
-                                        <h4 className="text-sm font-semibold text-gray-700">Key Points</h4>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="w-8 h-8 rounded-lg bg-yellow-50 flex items-center justify-center">
+                                            <Lightbulb className="w-4 h-4 text-yellow-600" />
+                                        </div>
+                                        <h4 className="text-sm font-bold text-slate-900">Key Points</h4>
                                     </div>
-                                    <ul className="space-y-2">
-                                        {lesson.content_structure.keyPoints.slice(0, 3).map((point, idx) => (
-                                            <li key={idx} className="text-sm text-gray-600 pl-4 border-l-2 border-yellow-200">
-                                                {point}
+                                    <ul className="space-y-3">
+                                        {lesson.content_structure.keyPoints.map((point, idx) => (
+                                            <li key={idx} className="flex items-start gap-3">
+                                                <div className="w-6 h-6 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center flex-shrink-0 text-xs font-bold mt-0.5">
+                                                    {idx + 1}
+                                                </div>
+                                                <p className="text-sm text-slate-700 leading-relaxed flex-1">{point}</p>
                                             </li>
                                         ))}
                                     </ul>
@@ -507,46 +607,78 @@ const SessionDetails = () => {
                             {/* Examples Preview */}
                             {lesson.content_structure?.examples && lesson.content_structure.examples.length > 0 && (
                                 <div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Code className="w-4 h-4 text-indigo-600" />
-                                        <h4 className="text-sm font-semibold text-gray-700">Examples</h4>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+                                            <Code className="w-4 h-4 text-indigo-600" />
+                                        </div>
+                                        <h4 className="text-sm font-bold text-slate-900">Code Examples</h4>
                                     </div>
-                                    <p className="text-xs text-gray-500">
-                                        {lesson.content_structure.examples.length} example(s) available
-                                    </p>
+                                    <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                                        <p className="text-sm text-slate-600">
+                                            <span className="font-semibold text-indigo-600">{lesson.content_structure.examples.length}</span> example{lesson.content_structure.examples.length > 1 ? 's' : ''} available
+                                        </p>
+                                        <p className="text-xs text-slate-500 mt-1">Ask the AI Tutor to walk through the examples</p>
+                                    </div>
                                 </div>
                             )}
                         </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 
     const footerContent = (
-        <div className="flex items-center justify-between gap-4 py-2">
-            <button
-                className="px-5 py-2.5 text-slate-600 font-semibold hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-all active:scale-95 flex items-center gap-2"
-                onClick={() => navigate('/dashboard')}
-            >
-                <ArrowLeft className="w-4 h-4" />
-                Save & Exit
-            </button>
-            <div className="flex items-center gap-3">
-                <button className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm transition-all active:scale-95">
-                    Take Quiz
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <button
+                    className="px-5 py-2.5 text-slate-600 font-semibold hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-all active:scale-95 flex items-center gap-2"
+                    onClick={() => navigate('/dashboard')}
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline">Save & Exit</span>
+                    <span className="sm:hidden">Exit</span>
                 </button>
-                <button className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 shadow-sm hover:shadow-md hover:shadow-blue-200 transition-all active:scale-95 flex items-center gap-2">
-                    Next Lesson
-                    <ChevronRight className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-3 flex-1 justify-end">
+                    <button
+                        onClick={() => {
+                            // TODO: Implement quiz functionality
+                            alert('Quiz feature coming soon!');
+                        }}
+                        className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                    >
+                        <GraduationCap className="w-4 h-4" />
+                        <span className="hidden sm:inline">Take Quiz</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            // TODO: Implement next lesson navigation
+                            alert('Next lesson feature coming soon!');
+                        }}
+                        className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 shadow-sm hover:shadow-md hover:shadow-blue-200 transition-all active:scale-95 flex items-center gap-2"
+                    >
+                        <span>Next Lesson</span>
+                        <ChevronRight className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
+
+            {/* Progress Hint */}
+            {lesson && lesson.objectives && (
+                <div className="mt-3 pt-3 border-t border-slate-100">
+                    <p className="text-xs text-slate-500 text-center">
+                        <CheckCircle2 className="w-3 h-3 inline mr-1 text-green-500" />
+                        Complete all objectives to unlock the quiz
+                    </p>
+                </div>
+            )}
         </div>
     );
 
     return (
         <LessonLayout
             header={headerContent}
+            progressBar={progressBar}
             visualContent={visualContent}
             chatContent={
                 <ChatPanel
@@ -565,6 +697,8 @@ const SessionDetails = () => {
                 />
             }
             footer={footerContent}
+            isProcessing={isProcessing}
+            hasUnreadMessages={hasUnreadMessages}
         />
     );
 };

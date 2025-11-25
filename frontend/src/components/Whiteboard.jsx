@@ -253,21 +253,44 @@ const Whiteboard = ({
                 />
             </div>
 
-            {/* Empty State Overlay - Clean */}
+            {/* Enhanced Empty State Overlay */}
             {totalCommands === 0 && canvasReady && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-[1px] pointer-events-none z-10">
-                    <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center mb-4 animate-bounce-subtle">
-                        <PenTool className="w-8 h-8 text-blue-600" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-white pointer-events-none z-10">
+                    <div className="max-w-md text-center space-y-4 px-6">
+                        {/* Animated Icon */}
+                        <div className="relative mx-auto w-20 h-20 mb-2">
+                            <div className="absolute inset-0 animate-pulse">
+                                <div className="w-full h-full rounded-3xl bg-blue-100 opacity-40" />
+                            </div>
+                            <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg flex items-center justify-center">
+                                <PenTool className="w-10 h-10 text-white animate-bounce" style={{animationDuration: '2s'}} />
+                            </div>
+                        </div>
+
+                        {/* Message */}
+                        <div className="space-y-2">
+                            <h3 className="text-slate-900 font-bold text-xl">Visual Whiteboard Ready</h3>
+                            <p className="text-slate-600 text-sm leading-relaxed max-w-sm mx-auto">
+                                The AI Tutor will draw diagrams and animations here when explaining visual concepts
+                            </p>
+                        </div>
+
+                        {/* Hints */}
+                        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm space-y-2">
+                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ask the AI to:</p>
+                            <div className="flex flex-wrap gap-2 justify-center">
+                                <span className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium border border-blue-100">
+                                    "Show me visually"
+                                </span>
+                                <span className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-medium border border-purple-100">
+                                    "Draw a diagram"
+                                </span>
+                                <span className="px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-xs font-medium border border-green-100">
+                                    "Animate this"
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <h3 className="text-slate-900 font-bold text-lg mb-1">Ready to Draw</h3>
-                    <p className="text-slate-500 font-medium mb-6">Waiting for AI explanation...</p>
-                    <button
-                        className="px-5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 shadow-sm hover:border-blue-500 hover:text-blue-600 pointer-events-auto transition-all active:scale-95 flex items-center gap-2"
-                        onClick={() => window.testWhiteboard && window.testWhiteboard()}
-                    >
-                        <Play className="w-4 h-4" fill="currentColor" />
-                        Run Demo
-                    </button>
                 </div>
             )}
         </div>

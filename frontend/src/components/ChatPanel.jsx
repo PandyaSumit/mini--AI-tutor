@@ -64,7 +64,12 @@ const ChatPanel = ({
         }
     };
 
-    const quickActions = ["Ask about this step", "Explain differently", "Test me"];
+    const quickActions = [
+        { label: "Ask about this step", icon: "❓" },
+        { label: "Explain differently", icon: "🔄" },
+        { label: "Show me an example", icon: "💡" },
+        { label: "Test my knowledge", icon: "🎯" }
+    ];
 
     const handleQuickAction = (action) => {
         onSendMessage(action);
@@ -81,76 +86,118 @@ const ChatPanel = ({
         <section
             className={`flex h-full flex-col bg-slate-50 lg:border-l lg:border-slate-200 ${className}`}
         >
-            {/* HEADER */}
-            <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 md:px-6">
-                <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-sm ring-1 ring-blue-100">
-                            <Bot className="h-5 w-5 text-white" strokeWidth={2.2} />
+            {/* HEADER - Streamlined */}
+            <header className="sticky top-0 z-20 border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-sm">
+                                <Bot className="h-5 w-5 text-white" strokeWidth={2.5} />
+                            </div>
+                            {/* Activity indicator */}
+                            {isProcessing ? (
+                                <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
+                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+                                    <span className="relative inline-flex h-3.5 w-3.5 rounded-full border-2 border-white bg-blue-500" />
+                                </span>
+                            ) : (
+                                <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-green-500" />
+                            )}
                         </div>
-                        <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-green-500" />
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-900">AI Tutor</h3>
+                            <p className="text-xs text-slate-500">
+                                {isProcessing ? 'Thinking...' : isSpeaking ? 'Speaking...' : 'Ready to help'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        {/* TTS toggle */}
+                        <button
+                            onClick={onToggleTTS}
+                            className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all ${ttsEnabled
+                                ? "bg-blue-100 text-blue-600"
+                                : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                                }`}
+                            title={ttsEnabled ? "Mute voice" : "Enable voice"}
+                        >
+                            {ttsEnabled ? (
+                                <Volume2 className="h-4 w-4" />
+                            ) : (
+                                <VolumeX className="h-4 w-4" />
+                            )}
+                        </button>
+
+                        {/* Mobile close */}
+                        {onClose && (
+                            <button
+                                onClick={onClose}
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 lg:hidden"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                    {/* Speaking state (only when TTS is enabled) */}
-                    {ttsEnabled && isSpeaking && onStopSpeaking && (
+                {/* Speaking state banner (when TTS is enabled and speaking) */}
+                {ttsEnabled && isSpeaking && onStopSpeaking && (
+                    <div className="mt-3 flex items-center justify-between rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-2 border border-blue-100">
+                        <div className="flex items-center gap-2">
+                            <span className="relative flex h-2 w-2">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
+                            </span>
+                            <span className="text-xs font-medium text-slate-700">AI is speaking...</span>
+                        </div>
                         <button
                             onClick={onStopSpeaking}
-                            className="hidden items-center gap-1 rounded-full bg-slate-900 px-3 py-1 text-[11px] font-medium text-white shadow-sm hover:bg-black md:inline-flex"
+                            className="text-xs font-semibold text-blue-600 hover:text-blue-700 underline"
                         >
-                            <span className="relative flex h-2.5 w-2.5 items-center justify-center">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-300 opacity-60" />
-                                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-blue-100" />
-                            </span>
-                            Speaking… tap to stop
+                            Stop
                         </button>
-                    )}
-
-                    {/* TTS toggle */}
-                    <button
-                        onClick={onToggleTTS}
-                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border text-slate-500 transition-all ${ttsEnabled
-                            ? "border-blue-100 bg-blue-50 text-blue-600 shadow-sm"
-                            : "border-transparent bg-white hover:border-slate-200 hover:bg-slate-50"
-                            }`}
-                        title={ttsEnabled ? "Mute voice" : "Enable voice"}
-                    >
-                        {ttsEnabled ? (
-                            <Volume2 className="h-4 w-4" />
-                        ) : (
-                            <VolumeX className="h-4 w-4" />
-                        )}
-                    </button>
-
-                    {/* Mobile close */}
-                    {onClose && (
-                        <button
-                            onClick={onClose}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-transparent text-slate-400 hover:border-slate-200 hover:bg-slate-50 lg:hidden"
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
-                    )}
-                </div>
+                    </div>
+                )}
             </header>
 
             {/* MESSAGES */}
             <main className="flex-1 overflow-y-auto px-3 py-4 md:px-4 md:py-5">
-                {/* Empty state */}
+                {/* Enhanced Empty state */}
                 {messages.length === 0 && !currentTranscript && !isProcessing && (
-                    <div className="flex h-full flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-200 bg-white/80 px-6 py-8 text-center md:px-10 md:py-10">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50">
-                            <Sparkles className="h-8 w-8 text-blue-600" />
+                    <div className="flex h-full flex-col items-center justify-center gap-6 text-center px-4">
+                        <div className="relative">
+                            <div className="absolute inset-0 animate-ping">
+                                <div className="h-20 w-20 rounded-3xl bg-blue-200 opacity-20" />
+                            </div>
+                            <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+                                <Sparkles className="h-10 w-10 text-white" strokeWidth={2} />
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <h2 className="text-base font-semibold text-slate-900 md:text-lg">
-                                Ask your tutor anything about this lesson
+                        <div className="space-y-3 max-w-sm">
+                            <h2 className="text-xl font-bold text-slate-900">
+                                Hi! I'm your AI Tutor 👋
                             </h2>
-                            <p className="mx-auto max-w-xs text-xs leading-relaxed text-slate-500 md:text-sm">
-                                Use the quick actions below or type your own question to get
-                                focused help on the current step.
+                            <p className="text-sm leading-relaxed text-slate-600">
+                                I'm here to help you master this lesson. Ask me anything about the concepts, request visual explanations, or test your understanding!
                             </p>
+                        </div>
+
+                        {/* Example prompts */}
+                        <div className="w-full max-w-md space-y-2">
+                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Try asking:</p>
+                            <div className="grid grid-cols-1 gap-2">
+                                {["Explain this visually", "Give me an example", "Test my knowledge"].map((prompt, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => onSendMessage(prompt)}
+                                        className="text-left px-4 py-3 bg-white rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all text-sm font-medium text-slate-700 hover:text-blue-600 shadow-sm hover:shadow-md active:scale-[0.98]"
+                                    >
+                                        <span className="mr-2">💬</span>
+                                        {prompt}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -237,20 +284,26 @@ const ChatPanel = ({
             </main>
 
             {/* QUICK ACTIONS + INPUT */}
-            <footer className="border-t border-slate-200 bg-white px-3 pb-3 pt-2 md:px-4 md:pb-4 md:pt-3">
-                {/* Quick actions */}
-                <div className="mb-2 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {quickActions.map((action, idx) => (
-                        <button
-                            key={idx}
-                            type="button"
-                            onClick={() => handleQuickAction(action)}
-                            className="whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-600 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 active:scale-[0.97]"
-                        >
-                            {action}
-                        </button>
-                    ))}
-                </div>
+            <footer className="border-t border-slate-200 bg-white px-3 pb-3 pt-3 md:px-4 md:pb-4">
+                {/* Quick actions - More prominent */}
+                {messages.length > 0 && (
+                    <div className="mb-3">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quick Actions</p>
+                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                            {quickActions.map((action, idx) => (
+                                <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => handleQuickAction(action.label)}
+                                    className="whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 hover:shadow-md active:scale-[0.97] flex items-center gap-2"
+                                >
+                                    <span className="text-base">{action.icon}</span>
+                                    <span>{action.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Input area */}
                 <div className="!box-content mx-2 md:mx-0 flex flex-col cursor-text rounded-2xl border border-slate-200 bg-white shadow-[0_0.25rem_1.25rem_rgba(15,23,42,0.06)] hover:shadow-[0_0.25rem_1.25rem_rgba(15,23,42,0.10)] transition-all duration-200 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">

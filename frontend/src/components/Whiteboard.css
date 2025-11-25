@@ -1,39 +1,41 @@
 .whiteboard-container {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 20px;
-  margin: 20px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
+  border: 1px solid #2a2a3e;
+  border-radius: 16px;
+  padding: 0;
+  margin: 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 .whiteboard-container:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
 }
 
 .whiteboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .whiteboard-title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
+  color: #ffffff;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .whiteboard-title::before {
   content: '🎨';
-  font-size: 1.5rem;
+  font-size: 1.3rem;
 }
 
 .whiteboard-progress {

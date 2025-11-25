@@ -6,9 +6,12 @@ import {
     AlertCircle,
     Bot,
     ChevronRight,
+    ChevronLeft,
     BookOpen,
     PlayCircle,
-    GraduationCap
+    GraduationCap,
+    Lightbulb,
+    Code
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -390,18 +393,75 @@ const SessionDetails = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Learning Objectives - Clean Cards */}
-                {lesson && lesson.objectives && (
+                {/* Learning Objectives - Horizontal Slider */}
+                {lesson && lesson.objectives && lesson.objectives.length > 0 && (
                     <div className="lg:col-span-2 space-y-4">
-                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                            <span className="w-1 h-4 bg-blue-600 rounded-full"></span>
-                            Learning Objectives
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                <span className="w-1 h-4 bg-blue-600 rounded-full"></span>
+                                Learning Objectives
+                            </h3>
+                            {lesson.objectives.length >= 3 && (
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            const container = document.getElementById('objectives-scroll-container');
+                                            if (container) {
+                                                container.scrollBy({ left: -400, behavior: 'smooth' });
+                                            }
+                                        }}
+                                        className="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 hover:border-blue-300 flex items-center justify-center transition-all shadow-sm"
+                                        aria-label="Scroll left"
+                                    >
+                                        <ChevronLeft className="w-4 h-4 text-slate-600" />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const container = document.getElementById('objectives-scroll-container');
+                                            if (container) {
+                                                container.scrollBy({ left: 400, behavior: 'smooth' });
+                                            }
+                                        }}
+                                        className="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 hover:border-blue-300 flex items-center justify-center transition-all shadow-sm"
+                                        aria-label="Scroll right"
+                                    >
+                                        <ChevronRight className="w-4 h-4 text-slate-600" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div
+                            id="objectives-scroll-container"
+                            className="flex gap-4 overflow-x-auto pb-2 scroll-smooth scrollbar-hide cursor-grab active:cursor-grabbing"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                            onMouseDown={(e) => {
+                                const container = e.currentTarget;
+                                container.style.cursor = 'grabbing';
+                                const startX = e.pageX - container.offsetLeft;
+                                const scrollLeft = container.scrollLeft;
+
+                                const handleMouseMove = (e) => {
+                                    const x = e.pageX - container.offsetLeft;
+                                    const walk = (x - startX) * 2;
+                                    container.scrollLeft = scrollLeft - walk;
+                                };
+
+                                const handleMouseUp = () => {
+                                    container.style.cursor = 'grab';
+                                    document.removeEventListener('mousemove', handleMouseMove);
+                                    document.removeEventListener('mouseup', handleMouseUp);
+                                };
+
+                                document.addEventListener('mousemove', handleMouseMove);
+                                document.addEventListener('mouseup', handleMouseUp);
+                            }}
+                        >
                             {lesson.objectives.map((obj, idx) => (
                                 <div
                                     key={idx}
-                                    className="group p-5 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-default relative overflow-hidden"
+                                    className="group p-5 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 relative overflow-hidden flex-shrink-0"
+                                    style={{ minWidth: '280px', maxWidth: '320px' }}
                                 >
                                     <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                     <div className="flex items-start gap-4">
@@ -418,24 +478,44 @@ const SessionDetails = () => {
                     </div>
                 )}
 
-                {/* Key Points / Summary - Premium Panel */}
-                {lesson && lesson.content_structure?.keyPoints && (
-                    <div className="lg:col-span-1">
-                        <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 h-full">
-                            <h3 className="font-bold text-slate-900 mb-5 flex items-center gap-2">
-                                <div className="p-1.5 bg-indigo-100 text-indigo-600 rounded-lg">
-                                    <GraduationCap className="w-4 h-4" />
+                {/* Lesson Content Preview */}
+                {lesson && (
+                    <div className="lg:col-span-2">
+                        <div className="bg-gray-50 rounded-xl border border-gray-100 p-6">
+                            <div className="flex items-center gap-2 mb-4">
+                                <BookOpen className="w-5 h-5 text-purple-600" />
+                                <h3 className="font-semibold text-gray-900">Lesson Content</h3>
+                            </div>
+
+                            {/* Key Points */}
+                            {lesson.content_structure?.keyPoints && lesson.content_structure.keyPoints.length > 0 && (
+                                <div className="mb-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Lightbulb className="w-4 h-4 text-yellow-600" />
+                                        <h4 className="text-sm font-semibold text-gray-700">Key Points</h4>
+                                    </div>
+                                    <ul className="space-y-2">
+                                        {lesson.content_structure.keyPoints.slice(0, 3).map((point, idx) => (
+                                            <li key={idx} className="text-sm text-gray-600 pl-4 border-l-2 border-yellow-200">
+                                                {point}
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
-                                Key Takeaways
-                            </h3>
-                            <ul className="space-y-4">
-                                {lesson.content_structure.keyPoints.map((point, idx) => (
-                                    <li key={idx} className="flex items-start gap-3 text-sm text-slate-600 group">
-                                        <CheckCircle2 className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0 group-hover:text-indigo-600 transition-colors" />
-                                        <span className="leading-relaxed group-hover:text-slate-900 transition-colors">{point}</span>
-                                    </li>
-                                ))}
-                            </ul>
+                            )}
+
+                            {/* Examples Preview */}
+                            {lesson.content_structure?.examples && lesson.content_structure.examples.length > 0 && (
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Code className="w-4 h-4 text-indigo-600" />
+                                        <h4 className="text-sm font-semibold text-gray-700">Examples</h4>
+                                    </div>
+                                    <p className="text-xs text-gray-500">
+                                        {lesson.content_structure.examples.length} example(s) available
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

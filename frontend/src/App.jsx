@@ -17,7 +17,6 @@ import Flashcards from './pages/Flashcards';
 import StudyFlashcards from './pages/StudyFlashcards';
 import NotFound from './pages/NotFound';
 import SessionDetails from './pages/SessionDetails';
-import VoiceTutorTest from './pages/VoiceTutorTest';
 import CourseCatalog from './pages/CourseCatalog';
 import CourseDetails from './pages/CourseDetails';
 import CreateCourse from './pages/CreateCourse';
@@ -187,16 +186,6 @@ function App() {
                         <PrivateRoute>
                             <Layout>
                                 <StudyFlashcards />
-                            </Layout>
-                        </PrivateRoute>
-                    }
-                />
-                <Route
-                    path="/voice-tutor"
-                    element={
-                        <PrivateRoute>
-                            <Layout>
-                                <VoiceTutorTest />
                             </Layout>
                         </PrivateRoute>
                     }

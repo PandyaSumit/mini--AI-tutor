@@ -14,7 +14,8 @@ import {
     HelpCircle,
     Bell,
     Command,
-    Mic,
+    GraduationCap,
+    MoreVertical
 } from 'lucide-react';
 import { PlatformLogo, SidebarHandlerIcon, ResizeIcon } from './icons';
 
@@ -107,11 +108,10 @@ const Sidebar = () => {
             showInBottomNav: true
         },
         {
-            to: '/voice-tutor',
-            label: 'Voice Tutor',
-            icon: Mic,
-            match: (path) => path === '/voice-tutor',
-            badge: 'NEW',
+            to: '/courses',
+            label: 'Courses',
+            icon: GraduationCap,
+            match: (path) => path.startsWith('/courses'),
             showInBottomNav: false
         },
         {

@@ -25,13 +25,6 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const topics = [
-    { id: 'programming', label: 'Programming', icon: Code },
-    { id: 'mathematics', label: 'Mathematics', icon: Calculator },
-    { id: 'languages', label: 'Languages', icon: Globe },
-    { id: 'general', label: 'General', icon: BookOpen },
-];
-
 const Chat = () => {
     const { conversationId } = useParams();
     const navigate = useNavigate();
@@ -218,9 +211,6 @@ const Chat = () => {
                                     <h1 className="truncate text-sm font-semibold text-gray-900">
                                         {conversationTitle || "New Conversation"}
                                     </h1>
-                                    {!conversationId && (
-                                        <p className="text-xs text-gray-500 mt-0.5 truncate">Select a topic to begin</p>
-                                    )}
                                 </div>
                             </div>
                         </div>

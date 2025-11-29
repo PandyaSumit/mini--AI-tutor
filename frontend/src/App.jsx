@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
-import Sidebar from './components/Sidebar';
+import Layout from './components/Layout';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -17,7 +17,6 @@ import Flashcards from './pages/Flashcards';
 import StudyFlashcards from './pages/StudyFlashcards';
 import NotFound from './pages/NotFound';
 import SessionDetails from './pages/SessionDetails';
-import VoiceTutorTest from './pages/VoiceTutorTest';
 import CourseCatalog from './pages/CourseCatalog';
 import CourseDetails from './pages/CourseDetails';
 import CreateCourse from './pages/CreateCourse';
@@ -35,153 +34,166 @@ function App() {
 
     return (
         <Router>
-            <div className="min-h-screen bg-gray-50 flex">
-                {user && <Sidebar />}
-                <div className="flex-1 overflow-x-hidden">
-                    <Routes>
-                        {/* Public Routes */}
-                        <Route
-                            path="/login"
-                            element={user ? <Navigate to="/dashboard" replace /> : <Login />}
-                        />
-                        <Route
-                            path="/register"
-                            element={user ? <Navigate to="/dashboard" replace /> : <Register />}
-                        />
+            <Routes>
+                {/* Public Routes - No Layout */}
+                <Route
+                    path="/login"
+                    element={user ? <Navigate to="/dashboard" replace /> : <Login />}
+                />
+                <Route
+                    path="/register"
+                    element={user ? <Navigate to="/dashboard" replace /> : <Register />}
+                />
+                <Route
+                    path="/"
+                    element={user ? <Navigate to="/dashboard" replace /> : <Landing />}
+                />
 
-                        {/* Private Routes */}
-                        <Route
-                            path="/dashboard"
-                            element={
-                                <PrivateRoute>
-                                    <Dashboard />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/chat"
-                            element={
-                                <PrivateRoute>
-                                    <Chat />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/chat/:conversationId"
-                            element={
-                                <PrivateRoute>
-                                    <Chat />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/conversations"
-                            element={
-                                <PrivateRoute>
-                                    <Conversations />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/session/:sessionId"
-                            element={
-                                <PrivateRoute>
-                                    <SessionDetails />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/courses"
-                            element={
-                                <PrivateRoute>
-                                    <CourseCatalog />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/courses/create"
-                            element={
-                                <PrivateRoute>
-                                    <CreateCourse />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/courses/:courseId"
-                            element={
-                                <PrivateRoute>
-                                    <CourseDetails />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/profile"
-                            element={
-                                <PrivateRoute>
-                                    <Profile />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/roadmaps"
-                            element={
-                                <PrivateRoute>
-                                    <MyRoadmaps />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/roadmaps/create"
-                            element={
-                                <PrivateRoute>
-                                    <CreateRoadmap />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/roadmaps/:id"
-                            element={
-                                <PrivateRoute>
-                                    <RoadmapDetail />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/flashcards"
-                            element={
-                                <PrivateRoute>
-                                    <Flashcards />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/flashcards/study/:deckName"
-                            element={
-                                <PrivateRoute>
-                                    <StudyFlashcards />
-                                </PrivateRoute>
-                            }
-                        />
-                        <Route
-                            path="/voice-tutor"
-                            element={
-                                <PrivateRoute>
-                                    <VoiceTutorTest />
-                                </PrivateRoute>
-                            }
-                        />
+                {/* Private Routes - Wrapped in Layout */}
+                <Route
+                    path="/dashboard"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <Dashboard />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/chat"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <Chat />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/chat/:conversationId"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <Chat />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/conversations"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <Conversations />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/session/:sessionId"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <SessionDetails />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/courses"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <CourseCatalog />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/courses/create"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <CreateCourse />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/courses/:courseId"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <CourseDetails />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/profile"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <Profile />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/roadmaps"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <MyRoadmaps />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/roadmaps/create"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <CreateRoadmap />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/roadmaps/:id"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <RoadmapDetail />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/flashcards"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <Flashcards />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/flashcards/study/:deckName"
+                    element={
+                        <PrivateRoute>
+                            <Layout>
+                                <StudyFlashcards />
+                            </Layout>
+                        </PrivateRoute>
+                    }
+                />
 
-                        {/* Root - Landing page or redirect to dashboard */}
-                        <Route
-                            path="/"
-                            element={user ? <Navigate to="/dashboard" replace /> : <Landing />}
-                        />
-
-                        {/* 404 - Not Found */}
-                        <Route path="*" element={<NotFound />} />
-                    </Routes>
-                </div>
-            </div>
+                {/* 404 - Not Found (No Layout) */}
+                <Route path="*" element={<NotFound />} />
+            </Routes>
         </Router>
     );
 }

@@ -7,42 +7,44 @@ import {
     Brain,
     Map,
     BookOpen,
-    User,
     LogOut,
     Sparkles,
-    Settings,
-    Menu,
     X,
     Search,
     HelpCircle,
     Bell,
     Command,
-    Mic
+    GraduationCap,
+    MoreVertical
 } from 'lucide-react';
+import { PlatformLogo, SidebarHandlerIcon, ResizeIcon } from './icons';
 
 const Sidebar = () => {
     const { user, logout } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     // Close mobile menu on route change
     useEffect(() => {
         setMobileOpen(false);
+        setMobileMenuOpen(false);
     }, [location.pathname]);
 
     // Close mobile menu on escape key
     useEffect(() => {
         const handleEscape = (e) => {
-            if (e.key === 'Escape' && mobileOpen) {
-                setMobileOpen(false);
+            if (e.key === 'Escape') {
+                if (mobileMenuOpen) setMobileMenuOpen(false);
+                if (mobileOpen) setMobileOpen(false);
             }
         };
         document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
-    }, [mobileOpen]);
+    }, [mobileOpen, mobileMenuOpen]);
 
     // Keyboard shortcut for search (Cmd+K or Ctrl+K)
     useEffect(() => {
@@ -58,7 +60,7 @@ const Sidebar = () => {
 
     // Prevent body scroll when mobile menu is open
     useEffect(() => {
-        if (mobileOpen) {
+        if (mobileOpen || mobileMenuOpen) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
@@ -66,7 +68,7 @@ const Sidebar = () => {
         return () => {
             document.body.style.overflow = 'unset';
         };
-    }, [mobileOpen]);
+    }, [mobileOpen, mobileMenuOpen]);
 
     const handleLogout = async () => {
         if (window.confirm('Are you sure you want to logout?')) {
@@ -75,99 +77,90 @@ const Sidebar = () => {
         }
     };
 
+    // Main navigation items for bottom nav (mobile) and sidebar (desktop)
     const navItems = [
         {
             to: '/dashboard',
             label: 'Dashboard',
             icon: LayoutDashboard,
-            match: (path) => path === '/dashboard'
+            match: (path) => path === '/dashboard',
+            showInBottomNav: true
         },
         {
             to: '/chat',
             label: 'AI Chat',
             icon: MessageSquare,
-            match: (path) => path.startsWith('/chat')
+            match: (path) => path.startsWith('/chat'),
+            showInBottomNav: true
         },
         {
             to: '/roadmaps',
             label: 'Roadmaps',
             icon: Map,
-            match: (path) => path.startsWith('/roadmaps')
+            match: (path) => path.startsWith('/roadmaps'),
+            showInBottomNav: true
         },
         {
             to: '/flashcards',
             label: 'Flashcards',
             icon: Brain,
-            match: (path) => path.startsWith('/flashcards')
+            match: (path) => path.startsWith('/flashcards'),
+            showInBottomNav: true
         },
         {
-            to: '/voice-tutor',
-            label: 'Voice Tutor',
-            icon: Mic,
-            match: (path) => path === '/voice-tutor',
-            badge: 'NEW'
+            to: '/courses',
+            label: 'Courses',
+            icon: GraduationCap,
+            match: (path) => path.startsWith('/courses'),
+            showInBottomNav: false
         },
         {
             to: '/conversations',
             label: 'History',
             icon: BookOpen,
-            match: (path) => path === '/conversations'
+            match: (path) => path === '/conversations',
+            showInBottomNav: false
         }
     ];
 
     const SidebarContent = ({ isMobile = false }) => (
         <div className="flex flex-col h-full bg-white">
             {/* Header with Logo */}
-            <div className={`${collapsed && !isMobile ? 'px-3 pt-6 pb-4' : 'px-5 pt-6 pb-4'} relative`}>
+            <div className={`${collapsed && !isMobile ? 'px-3 pt-[0.9rem] pb-4' : 'px-5 pt-[0.9rem] pb-4'} relative`}>
                 {(!collapsed || isMobile) ? (
                     <div className="flex items-center justify-between">
                         <Link
                             to="/dashboard"
                             className="flex items-center gap-2.5 group"
                         >
-                            <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center">
-                                <Sparkles className="w-5 h-5 text-white" strokeWidth={2.5} />
+                            <div className="w-8 h-8 flex items-center justify-center">
+                                <PlatformLogo />
                             </div>
-                            <span className="text-[17px] font-semibold text-gray-900">Mini AI Tutor</span>
+                            <span className="text-[17px] font-bold text-gray-900">Mindrift</span>
                         </Link>
 
                         {!isMobile && (
                             <button
                                 onClick={() => setCollapsed(true)}
-                                className="p-1.5 hover:bg-gray-100 rounded-md transition-colors group"
+                                className="hover:bg-gray-100 rounded-md transition-colors group p-1.5"
                                 aria-label="Collapse sidebar"
                             >
-                                <svg
-                                    className="w-4 h-4 text-gray-400 group-hover:text-gray-600"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                                </svg>
+                                <SidebarHandlerIcon className="w-6 h-6 " />
                             </button>
                         )}
                     </div>
                 ) : (
                     <button
                         onClick={() => setCollapsed(false)}
-                        className="w-full flex items-center justify-center p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
-                        aria-label="Expand sidebar"
-                        title="Expand sidebar"
+                        className="w-full flex items-center justify-center p-2 hover:bg-gray-100 rounded-lg transition-colors group relative cursor-col-resize"
                     >
-                        <svg
-                            className="w-5 h-5 text-gray-600 group-hover:text-gray-900"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            strokeWidth={2}
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-
+                        <div className="w-8 h-8 flex items-center justify-center relative">
+                            <PlatformLogo className="w-6 h-6 opacity-100 group-hover:opacity-0 transition-opacity" />
+                            <SidebarHandlerIcon className="absolute w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
                         {/* Tooltip */}
                         <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                            Open Sidebar
+                            Expand Sidebar
                         </div>
                     </button>
                 )}
@@ -187,14 +180,17 @@ const Sidebar = () => {
             {(!collapsed || isMobile) && (
                 <div className="px-5 pb-4">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" strokeWidth={2} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" strokeWidth={2} />
                         <input
                             id="sidebar-search"
                             type="text"
                             placeholder="Search..."
+                            autoComplete="off"
+                            spellCheck={false}
+                            aria-label="Search conversations"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-12 py-2 text-[13px] bg-gray-50 border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all placeholder:text-gray-400"
+                            className="w-full pl-9 pr-12 py-2 text-[13px] bg-gray-50 border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all placeholder:text-gray-400 z-0"
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-gray-400">
                             <Command className="w-3 h-3" strokeWidth={2} />
@@ -394,52 +390,17 @@ const Sidebar = () => {
 
     return (
         <>
-            {/* Mobile Hamburger Button */}
-            <button
-                onClick={() => setMobileOpen(true)}
-                className="fixed top-5 left-5 z-50 lg:hidden bg-white p-2.5 rounded-lg shadow-md border border-gray-200/60 hover:shadow-lg transition-all active:scale-95"
-                aria-label="Open menu"
-                aria-expanded={mobileOpen}
-            >
-                <Menu className="w-5 h-5 text-gray-700" strokeWidth={2} />
-            </button>
-
-            {/* Mobile Overlay */}
-            {mobileOpen && (
-                <div
-                    className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-200"
-                    onClick={() => setMobileOpen(false)}
-                    aria-hidden="true"
-                />
-            )}
-
-            {/* Mobile Sidebar */}
-            <div
-                className={`
-                    fixed left-0 top-0 h-full bg-white z-50 
-                    shadow-xl border-r border-gray-100
-                    transition-transform duration-300 ease-out lg:hidden
-                    ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
-                    w-64
-                `}
-                role="dialog"
-                aria-label="Navigation menu"
-                aria-modal="true"
-            >
-                <SidebarContent isMobile={true} />
-            </div>
-
             {/* Desktop Sidebar */}
             <div className="hidden lg:block">
                 <div
-                    className={`fixed left-0 top-0 h-full bg-white border-r border-gray-100 flex flex-col transition-all duration-300 ${collapsed ? 'w-[72px]' : 'w-64'
+                    className={`fixed left-0 top-0 h-full bg-white border-r border-gray-100 flex flex-col transition-all duration-300 z-40 ${collapsed ? 'w-20' : 'w-64'
                         }`}
                 >
                     <SidebarContent />
                 </div>
 
                 {/* Spacer */}
-                <div className={`flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-[72px]' : 'w-64'
+                <div className={`flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'
                     }`} />
             </div>
         </>

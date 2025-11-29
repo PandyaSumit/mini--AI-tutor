@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Sparkles,
@@ -57,6 +57,30 @@ const Landing = () => {
             document.body.style.overflow = 'unset';
         };
     }, [mobileMenuOpen]);
+
+    // Scroll Reveal Animation Hook
+    useEffect(() => {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all elements with data-animate attribute
+        const animatedElements = document.querySelectorAll('[data-animate]');
+        animatedElements.forEach(el => observer.observe(el));
+
+        return () => {
+            animatedElements.forEach(el => observer.unobserve(el));
+        };
+    }, []);
 
     const features = [
         {
@@ -154,6 +178,78 @@ const Landing = () => {
 
     return (
         <div className="min-h-screen bg-white">
+            {/* Add CSS for animations */}
+            <style>{`
+                [data-animate] {
+                    opacity: 0;
+                    transform: translateY(30px);
+                    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+                }
+
+                [data-animate].animate-in {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+
+                [data-animate="fade"] {
+                    transform: none;
+                }
+
+                [data-animate="fade"].animate-in {
+                    opacity: 1;
+                }
+
+                [data-animate="slide-left"] {
+                    opacity: 0;
+                    transform: translateX(-50px);
+                }
+
+                [data-animate="slide-left"].animate-in {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+
+                [data-animate="slide-right"] {
+                    opacity: 0;
+                    transform: translateX(50px);
+                }
+
+                [data-animate="slide-right"].animate-in {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+
+                [data-animate="scale"] {
+                    opacity: 0;
+                    transform: scale(0.9);
+                }
+
+                [data-animate="scale"].animate-in {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+
+                /* Stagger animation delays */
+                [data-animate][data-delay="100"] {
+                    transition-delay: 100ms;
+                }
+                [data-animate][data-delay="200"] {
+                    transition-delay: 200ms;
+                }
+                [data-animate][data-delay="300"] {
+                    transition-delay: 300ms;
+                }
+                [data-animate][data-delay="400"] {
+                    transition-delay: 400ms;
+                }
+                [data-animate][data-delay="500"] {
+                    transition-delay: 500ms;
+                }
+                [data-animate][data-delay="600"] {
+                    transition-delay: 600ms;
+                }
+            `}</style>
+
             {/* Navigation */}
             <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-white'
                 }`}>
@@ -169,31 +265,31 @@ const Landing = () => {
 
                         {/* Desktop Navigation */}
                         <div className="hidden md:flex items-center gap-8">
-                            <a href="#features" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                            <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">
                                 Features
                             </a>
-                            <a href="#benefits" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                            <a href="#benefits" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">
                                 Benefits
                             </a>
-                            <a href="#testimonials" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                            <a href="#testimonials" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">
                                 Testimonials
                             </a>
-                            <a href="#pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                            <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">
                                 Pricing
                             </a>
                         </div>
 
-                        {/* CTA Buttons */}
+                        {/* Desktop Auth Buttons */}
                         <div className="hidden md:flex items-center gap-3">
                             <Link
                                 to="/login"
-                                className="text-sm font-semibold text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg transition-colors"
+                                className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
                             >
                                 Sign in
                             </Link>
                             <Link
                                 to="/register"
-                                className="text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+                                className="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all font-medium shadow-sm hover:shadow active:scale-[0.98]"
                             >
                                 Get Started
                             </Link>
@@ -201,107 +297,105 @@ const Landing = () => {
 
                         {/* Mobile Menu Button */}
                         <button
-                            onClick={() => setMobileMenuOpen(true)}
-                            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                            aria-label="Open menu"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                            aria-label="Toggle menu"
                         >
-                            <Menu className="w-6 h-6 text-gray-600" strokeWidth={2} />
+                            {mobileMenuOpen ? <X className="w-6 h-6" strokeWidth={2} /> : <Menu className="w-6 h-6" strokeWidth={2} />}
                         </button>
                     </div>
                 </div>
-            </nav>
 
-            {/* Mobile Menu */}
-            {mobileMenuOpen && (
-                <>
-                    <div
-                        className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-40 md:hidden animate-fade-in"
-                        onClick={() => setMobileMenuOpen(false)}
-                    />
-                    <div className="fixed top-0 right-0 h-full w-64 bg-white z-50 shadow-xl md:hidden transition-transform duration-300 animate-slide-in-right">
-                        <div className="flex flex-col h-full">
-                            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                                <span className="text-lg font-bold text-gray-900">Menu</span>
-                                <button
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                                    aria-label="Close menu"
-                                >
-                                    <X className="w-5 h-5 text-gray-600" strokeWidth={2} />
-                                </button>
-                            </div>
-                            <div className="flex-1 py-6 px-6 space-y-1">
-                                <a
-                                    href="#features"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                                >
-                                    Features
-                                </a>
-                                <a
-                                    href="#benefits"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                                >
-                                    Benefits
-                                </a>
-                                <a
-                                    href="#testimonials"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                                >
-                                    Testimonials
-                                </a>
-                                <a
-                                    href="#pricing"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                                >
-                                    Pricing
-                                </a>
-                            </div>
-                            <div className="p-6 border-t border-gray-100 space-y-3">
+                {/* Mobile Menu */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden border-t border-gray-100 bg-white">
+                        <div className="px-6 py-4 space-y-3">
+                            <a
+                                href="#features"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                            >
+                                Features
+                            </a>
+                            <a
+                                href="#benefits"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                            >
+                                Benefits
+                            </a>
+                            <a
+                                href="#testimonials"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                            >
+                                Testimonials
+                            </a>
+                            <a
+                                href="#pricing"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
+                            >
+                                Pricing
+                            </a>
+                            <div className="pt-4 space-y-2">
                                 <Link
                                     to="/login"
-                                    className="block text-center text-sm font-semibold text-gray-900 px-4 py-2.5 rounded-lg border-2 border-gray-200 hover:border-gray-900 transition-colors"
+                                    className="block w-full text-center px-4 py-2.5 text-gray-600 hover:text-gray-900 transition-colors font-medium border border-gray-200 rounded-lg"
+                                    onClick={() => setMobileMenuOpen(false)}
                                 >
                                     Sign in
                                 </Link>
                                 <Link
                                     to="/register"
-                                    className="block text-center text-sm font-semibold text-white bg-gray-900 px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-colors"
+                                    className="block w-full text-center px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all font-medium"
+                                    onClick={() => setMobileMenuOpen(false)}
                                 >
                                     Get Started
                                 </Link>
                             </div>
                         </div>
                     </div>
-                </>
-            )}
+                )}
+            </nav>
 
             {/* Hero Section */}
-            <section className="pt-32 pb-20 px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+            <section className="pt-32 pb-24 px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
-                    <div className="max-w-3xl mx-auto text-center animate-slide-up">
+                    <div className="text-center max-w-4xl mx-auto">
                         {/* Badge */}
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 border border-gray-200 mb-6">
-                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            <span className="text-xs font-semibold text-gray-900">50,000+ learners trust us</span>
+                        <div
+                            data-animate="fade"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-700 text-sm font-medium mb-8"
+                        >
+                            <Sparkles className="w-4 h-4" strokeWidth={2} />
+                            <span>AI-Powered Learning Platform</span>
                         </div>
 
                         {/* Headline */}
-                        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight mb-6">
-                            Learn smarter with
-                            <span className="block mt-2">AI-powered education</span>
+                        <h1
+                            data-animate="slide-up"
+                            data-delay="100"
+                            className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight"
+                        >
+                            Learn Smarter, Not Harder
                         </h1>
 
-                        {/* Description */}
-                        <p className="text-xl text-gray-600 leading-relaxed mb-10 max-w-2xl mx-auto">
-                            Personalized learning paths, instant AI tutoring, and smart study tools designed to help you achieve your goals faster.
+                        {/* Subheadline */}
+                        <p
+                            data-animate="slide-up"
+                            data-delay="200"
+                            className="text-xl text-gray-600 mb-10 leading-relaxed"
+                        >
+                            Transform your study sessions with AI-powered tutoring, personalized roadmaps, and interactive flashcards. Achieve your learning goals faster than ever before.
                         </p>
 
                         {/* CTA Buttons */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <div
+                            data-animate="slide-up"
+                            data-delay="300"
+                            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12"
+                        >
                             <Link
                                 to="/register"
                                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
@@ -311,60 +405,51 @@ const Landing = () => {
                             </Link>
                             <a
                                 href="#features"
-                                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-gray-900 font-semibold rounded-xl border-2 border-gray-200 hover:border-gray-900 transition-all"
+                                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-gray-900 font-semibold rounded-xl transition-all border-2 border-gray-200 active:scale-[0.98]"
                             >
                                 <Play className="w-5 h-5" strokeWidth={2} />
-                                <span>Learn More</span>
+                                <span>See How It Works</span>
                             </a>
                         </div>
 
-                        {/* Social Proof */}
-                        <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600">
-                            <div className="flex items-center gap-2">
-                                <div className="flex -space-x-2">
-                                    {['SC', 'MR', 'EW', 'JD'].map((initials, i) => (
-                                        <div key={i} className="w-8 h-8 rounded-full bg-gray-900 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-                                            {initials}
-                                        </div>
-                                    ))}
+                        {/* Stats */}
+                        <div
+                            data-animate="fade"
+                            data-delay="400"
+                            className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-8"
+                        >
+                            {stats.map((stat, index) => (
+                                <div key={index} className="text-center">
+                                    <div className="text-3xl font-bold text-gray-900 mb-1">
+                                        {stat.value}
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                        {stat.label}
+                                    </div>
                                 </div>
-                                <span className="font-medium">Trusted by 50K+ students</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" strokeWidth={0} />
-                                ))}
-                                <span className="ml-1 font-medium">4.9/5 rating</span>
-                            </div>
+                            ))}
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Stats Section */}
-            <section className="py-16 px-6 lg:px-8 border-y border-gray-100">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                        {stats.map((stat, index) => (
-                            <div key={index} className="text-center">
-                                <div className="text-4xl font-bold text-gray-900 mb-2">{stat.value}</div>
-                                <div className="text-sm text-gray-600">{stat.label}</div>
-                            </div>
-                        ))}
                     </div>
                 </div>
             </section>
 
             {/* Features Section */}
-            <section id="features" className="py-24 px-6 lg:px-8">
+            <section id="features" className="py-24 px-6 lg:px-8 bg-gray-50">
                 <div className="max-w-7xl mx-auto">
                     {/* Section Header */}
-                    <div className="max-w-3xl mx-auto text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <h2
+                            data-animate="slide-up"
+                            className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                        >
                             Everything you need to succeed
                         </h2>
-                        <p className="text-lg text-gray-600">
-                            Powerful features designed to accelerate your learning journey
+                        <p
+                            data-animate="slide-up"
+                            data-delay="100"
+                            className="text-lg text-gray-600"
+                        >
+                            Powerful AI tools designed to accelerate your learning journey
                         </p>
                     </div>
 
@@ -375,12 +460,17 @@ const Landing = () => {
                             return (
                                 <div
                                     key={index}
-                                    className="group p-8 rounded-2xl border border-gray-100 bg-white hover:shadow-lg transition-all duration-200"
+                                    data-animate="scale"
+                                    data-delay={`${(index % 3) * 100}`}
+                                    className="p-8 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all duration-300"
                                 >
-                                    <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-5 group-hover:bg-gray-900 transition-colors">
-                                        <Icon className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors" strokeWidth={2} />
+                                    {/* Icon */}
+                                    <div className="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center mb-5">
+                                        <Icon className="w-6 h-6 text-white" strokeWidth={2} />
                                     </div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+
+                                    {/* Content */}
+                                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
                                         {feature.title}
                                     </h3>
                                     <p className="text-gray-600 leading-relaxed">
@@ -394,19 +484,122 @@ const Landing = () => {
             </section>
 
             {/* Benefits Section */}
-            <section id="benefits" className="py-24 px-6 lg:px-8 bg-gray-50">
+            <section id="benefits" className="py-24 px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
-                    <div className="grid lg:grid-cols-3 gap-12">
+                    {/* Section Header */}
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <h2
+                            data-animate="slide-up"
+                            className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                        >
+                            Why learners choose us
+                        </h2>
+                        <p
+                            data-animate="slide-up"
+                            data-delay="100"
+                            className="text-lg text-gray-600"
+                        >
+                            Experience the difference AI-powered learning makes
+                        </p>
+                    </div>
+
+                    {/* Benefits Grid */}
+                    <div className="grid md:grid-cols-3 gap-8">
                         {benefits.map((benefit, index) => (
-                            <div key={index} className="text-center">
-                                <div className="mb-6">
-                                    <div className="text-5xl font-bold text-gray-900 mb-2">{benefit.stat}</div>
-                                    <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                            <div
+                                key={index}
+                                data-animate="slide-up"
+                                data-delay={`${index * 100}`}
+                                className="text-center p-8 rounded-2xl bg-gray-50 border border-gray-100"
+                            >
+                                {/* Stat */}
+                                <div className="mb-4">
+                                    <div className="text-5xl font-bold text-gray-900 mb-2">
+                                        {benefit.stat}
+                                    </div>
+                                    <div className="text-sm text-gray-600 uppercase tracking-wide">
                                         {benefit.statLabel}
                                     </div>
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-3">{benefit.title}</h3>
-                                <p className="text-gray-600 leading-relaxed">{benefit.description}</p>
+
+                                {/* Content */}
+                                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                                    {benefit.title}
+                                </h3>
+                                <p className="text-gray-600 leading-relaxed">
+                                    {benefit.description}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* How It Works Section */}
+            <section className="py-24 px-6 lg:px-8 bg-gray-50">
+                <div className="max-w-7xl mx-auto">
+                    {/* Section Header */}
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <h2
+                            data-animate="slide-up"
+                            className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                        >
+                            How it works
+                        </h2>
+                        <p
+                            data-animate="slide-up"
+                            data-delay="100"
+                            className="text-lg text-gray-600"
+                        >
+                            Get started in three simple steps
+                        </p>
+                    </div>
+
+                    {/* Steps */}
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {[
+                            {
+                                step: '01',
+                                title: 'Create Your Account',
+                                description: 'Sign up for free and tell us about your learning goals and preferences'
+                            },
+                            {
+                                step: '02',
+                                title: 'Get Your Roadmap',
+                                description: 'Our AI creates a personalized learning path tailored to your objectives'
+                            },
+                            {
+                                step: '03',
+                                title: 'Start Learning',
+                                description: 'Study with AI guidance, track progress, and achieve your goals faster'
+                            }
+                        ].map((item, index) => (
+                            <div
+                                key={index}
+                                data-animate="slide-up"
+                                data-delay={`${index * 100}`}
+                                className="relative"
+                            >
+                                {/* Connector Line */}
+                                {index < 2 && (
+                                    <div className="hidden md:block absolute top-12 left-1/2 w-full h-0.5 bg-gray-200 -z-10" />
+                                )}
+
+                                {/* Card */}
+                                <div className="bg-white rounded-2xl p-8 border border-gray-100">
+                                    {/* Step Number */}
+                                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-900 text-white font-bold text-lg mb-5">
+                                        {item.step}
+                                    </div>
+
+                                    {/* Content */}
+                                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                                        {item.title}
+                                    </h3>
+                                    <p className="text-gray-600 leading-relaxed">
+                                        {item.description}
+                                    </p>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -417,12 +610,19 @@ const Landing = () => {
             <section id="testimonials" className="py-24 px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     {/* Section Header */}
-                    <div className="max-w-3xl mx-auto text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <h2
+                            data-animate="slide-up"
+                            className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+                        >
                             Loved by learners worldwide
                         </h2>
-                        <p className="text-lg text-gray-600">
-                            See what our community has to say about their experience
+                        <p
+                            data-animate="slide-up"
+                            data-delay="100"
+                            className="text-lg text-gray-600"
+                        >
+                            See what our community has to say about their learning journey
                         </p>
                     </div>
 
@@ -431,7 +631,9 @@ const Landing = () => {
                         {testimonials.map((testimonial, index) => (
                             <div
                                 key={index}
-                                className="p-8 rounded-2xl border border-gray-100 bg-white"
+                                data-animate="slide-up"
+                                data-delay={`${index * 100}`}
+                                className="p-8 rounded-2xl border border-gray-100 bg-white hover:shadow-lg transition-all duration-300"
                             >
                                 {/* Rating */}
                                 <div className="flex gap-1 mb-4">
@@ -466,16 +668,27 @@ const Landing = () => {
                 <div className="max-w-4xl mx-auto">
                     {/* Section Header */}
                     <div className="text-center mb-12">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                        <h2
+                            data-animate="slide-up"
+                            className="text-4xl font-bold text-gray-900 mb-4"
+                        >
                             Start learning for free
                         </h2>
-                        <p className="text-lg text-gray-600">
+                        <p
+                            data-animate="slide-up"
+                            data-delay="100"
+                            className="text-lg text-gray-600"
+                        >
                             No credit card required. Upgrade anytime.
                         </p>
                     </div>
 
                     {/* Pricing Card */}
-                    <div className="bg-white rounded-2xl border-2 border-gray-900 p-10">
+                    <div
+                        data-animate="scale"
+                        data-delay="200"
+                        className="bg-white rounded-2xl border-2 border-gray-900 p-10"
+                    >
                         <div className="text-center mb-8">
                             <div className="text-5xl font-bold text-gray-900 mb-2">Free</div>
                             <p className="text-gray-600">Forever. No hidden fees.</p>
@@ -513,14 +726,23 @@ const Landing = () => {
             {/* CTA Section */}
             <section className="py-24 px-6 lg:px-8">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                    <h2
+                        data-animate="slide-up"
+                        className="text-4xl font-bold text-gray-900 mb-6"
+                    >
                         Ready to transform your learning?
                     </h2>
-                    <p className="text-xl text-gray-600 mb-10">
+                    <p
+                        data-animate="slide-up"
+                        data-delay="100"
+                        className="text-xl text-gray-600 mb-10"
+                    >
                         Join 50,000+ learners achieving their goals with AI-powered education
                     </p>
                     <Link
                         to="/register"
+                        data-animate="slide-up"
+                        data-delay="200"
                         className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
                     >
                         <span>Start Learning Free</span>

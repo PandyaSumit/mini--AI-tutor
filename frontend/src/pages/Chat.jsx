@@ -25,13 +25,6 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const topics = [
-    { id: 'programming', label: 'Programming', icon: Code },
-    { id: 'mathematics', label: 'Mathematics', icon: Calculator },
-    { id: 'languages', label: 'Languages', icon: Globe },
-    { id: 'general', label: 'General', icon: BookOpen },
-];
-
 const Chat = () => {
     const { conversationId } = useParams();
     const navigate = useNavigate();
@@ -206,46 +199,20 @@ const Chat = () => {
         <div className="flex flex-col h-screen bg-white">
             {/* Header */}
             <div className="bg-white border-b border-gray-100">
-                <div className="mx-auto px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between gap-4">
+                <div className="mx-auto px-4 lg:px-6 py-2">
+                    <div className="flex items-center justify-between gap-3">
                         {/* Title Section */}
                         <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center flex-shrink-0">
-                                    <MessageCircle className="w-5 h-5 text-white" strokeWidth={2} />
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center flex-shrink-0">
+                                    <MessageCircle className="w-4 h-4 text-white" strokeWidth={2} />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <h1 className="text-lg font-bold text-gray-900 truncate">
-                                        {conversationTitle || 'New Conversation'}
+                                    <h1 className="truncate text-sm font-semibold text-gray-900">
+                                        {conversationTitle || "New Conversation"}
                                     </h1>
-                                    {!conversationId && (
-                                        <p className="text-sm text-gray-500">Select a topic to begin</p>
-                                    )}
                                 </div>
                             </div>
-
-                            {/* Topic Selector - Only for new conversations */}
-                            {!conversationId && (
-                                <div className="flex flex-wrap gap-2">
-                                    {topics.map((topic) => {
-                                        const Icon = topic.icon;
-                                        const isSelected = selectedTopic === topic.id;
-                                        return (
-                                            <button
-                                                key={topic.id}
-                                                onClick={() => setSelectedTopic(topic.id)}
-                                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isSelected
-                                                    ? 'bg-gray-900 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                    }`}
-                                            >
-                                                <Icon className="w-4 h-4" strokeWidth={2} />
-                                                <span>{topic.label}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
                         </div>
 
                         {/* Action Buttons */}
@@ -255,8 +222,8 @@ const Chat = () => {
                                     <button
                                         onClick={handleGenerateFlashcards}
                                         disabled={generatingFlashcards || messages.length === 0}
-                                        className="hidden md:flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                         title="Generate flashcards from this conversation"
+                                        className="hidden md:inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {generatingFlashcards ? (
                                             <>
@@ -270,9 +237,11 @@ const Chat = () => {
                                             </>
                                         )}
                                     </button>
+
                                     <button
-                                        onClick={() => navigate('/chat')}
-                                        className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-medium transition-all"
+                                        onClick={() => navigate("/chat")}
+                                        className="inline-flex items-center justify-center gap-2 px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white rounded-md text-sm font-medium transition"
+                                        aria-label="New conversation"
                                     >
                                         <Plus className="w-4 h-4" strokeWidth={2} />
                                         <span className="hidden sm:inline">New</span>
@@ -283,6 +252,7 @@ const Chat = () => {
                     </div>
                 </div>
             </div>
+
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto px-4 py-8">

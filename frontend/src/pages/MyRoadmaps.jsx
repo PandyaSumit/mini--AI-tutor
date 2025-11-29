@@ -138,31 +138,33 @@ const MyRoadmaps = () => {
     return (
         <div className="min-h-screen bg-white">
             {/* Header */}
-            <div className="border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white">
-                <div className="mx-auto px-6 lg:px-8 py-8 lg:py-12">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div>
-                            <div className="flex items-center gap-2 mb-3">
-                                <Map className="w-5 h-5 text-gray-600" strokeWidth={2} />
-                                <span className="text-sm font-medium text-gray-600">Learning Paths</span>
-                            </div>
-                            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+            <div className="border-b border-gray-100 bg-white">
+                <div className="mx-auto px-4 lg:px-6 py-2">
+                    <div className="flex items-center justify-between gap-3">
+
+                        {/* Left */}
+                        <div className="min-w-0">
+                            <h1 className="truncate text-sm font-semibold text-gray-900">
                                 My Roadmaps
                             </h1>
-                            <p className="text-gray-600 text-lg">
+                            <p className="text-xs text-gray-500 mt-0.5 truncate">
                                 Track your personalized learning journeys
                             </p>
                         </div>
+
+                        {/* Right */}
                         <button
-                            onClick={() => navigate('/roadmaps/create')}
-                            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.99]"
+                            onClick={() => navigate("/roadmaps/create")}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-md transition active:scale-[0.98]"
                         >
-                            <Plus className="w-5 h-5" strokeWidth={2} />
-                            <span>Create Roadmap</span>
+                            <Plus className="w-4 h-4" strokeWidth={2} />
+                            <span className="hidden sm:inline">Create</span>
                         </button>
+
                     </div>
                 </div>
             </div>
+
 
             <div className="mx-auto px-6 lg:px-8 py-8 lg:py-10">
                 {/* Stats Grid */}

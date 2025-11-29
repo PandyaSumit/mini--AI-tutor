@@ -7,19 +7,16 @@ import {
     Brain,
     Map,
     BookOpen,
-    User,
     LogOut,
     Sparkles,
-    Settings,
-    Menu,
     X,
     Search,
     HelpCircle,
     Bell,
     Command,
     Mic,
-    MoreVertical
 } from 'lucide-react';
+import { PlatformLogo, SidebarHandlerIcon, ResizeIcon } from './icons';
 
 const Sidebar = () => {
     const { user, logout } = useAuth();
@@ -129,56 +126,41 @@ const Sidebar = () => {
     const SidebarContent = ({ isMobile = false }) => (
         <div className="flex flex-col h-full bg-white">
             {/* Header with Logo */}
-            <div className={`${collapsed && !isMobile ? 'px-3 pt-6 pb-4' : 'px-5 pt-6 pb-4'} relative`}>
+            <div className={`${collapsed && !isMobile ? 'px-3 pt-[0.9rem] pb-4' : 'px-5 pt-[0.9rem] pb-4'} relative`}>
                 {(!collapsed || isMobile) ? (
                     <div className="flex items-center justify-between">
                         <Link
                             to="/dashboard"
                             className="flex items-center gap-2.5 group"
                         >
-                            <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center">
-                                <Sparkles className="w-5 h-5 text-white" strokeWidth={2.5} />
+                            <div className="w-8 h-8 flex items-center justify-center">
+                                <PlatformLogo />
                             </div>
-                            <span className="text-[17px] font-semibold text-gray-900">Mini AI Tutor</span>
+                            <span className="text-[17px] font-bold text-gray-900">Mindrift</span>
                         </Link>
 
                         {!isMobile && (
                             <button
                                 onClick={() => setCollapsed(true)}
-                                className="p-1.5 hover:bg-gray-100 rounded-md transition-colors group"
+                                className="hover:bg-gray-100 rounded-md transition-colors group p-1.5"
                                 aria-label="Collapse sidebar"
                             >
-                                <svg
-                                    className="w-4 h-4 text-gray-400 group-hover:text-gray-600"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                                </svg>
+                                <SidebarHandlerIcon className="w-6 h-6 " />
                             </button>
                         )}
                     </div>
                 ) : (
                     <button
                         onClick={() => setCollapsed(false)}
-                        className="w-full flex items-center justify-center p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
-                        aria-label="Expand sidebar"
-                        title="Expand sidebar"
+                        className="w-full flex items-center justify-center p-2 hover:bg-gray-100 rounded-lg transition-colors group relative cursor-col-resize"
                     >
-                        <svg
-                            className="w-5 h-5 text-gray-600 group-hover:text-gray-900"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            strokeWidth={2}
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-
+                        <div className="w-8 h-8 flex items-center justify-center relative">
+                            <PlatformLogo className="w-6 h-6 opacity-100 group-hover:opacity-0 transition-opacity" />
+                            <SidebarHandlerIcon className="absolute w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
                         {/* Tooltip */}
                         <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                            Open Sidebar
+                            Expand Sidebar
                         </div>
                     </button>
                 )}
@@ -198,14 +180,17 @@ const Sidebar = () => {
             {(!collapsed || isMobile) && (
                 <div className="px-5 pb-4">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" strokeWidth={2} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" strokeWidth={2} />
                         <input
                             id="sidebar-search"
                             type="text"
                             placeholder="Search..."
+                            autoComplete="off"
+                            spellCheck={false}
+                            aria-label="Search conversations"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-12 py-2 text-[13px] bg-gray-50 border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all placeholder:text-gray-400"
+                            className="w-full pl-9 pr-12 py-2 text-[13px] bg-gray-50 border border-gray-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all placeholder:text-gray-400 z-0"
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-gray-400">
                             <Command className="w-3 h-3" strokeWidth={2} />
@@ -405,178 +390,17 @@ const Sidebar = () => {
 
     return (
         <>
-            {/* Mobile Bottom Navigation Bar */}
-            <div className="lg:hidden">
-                {/* Bottom Navigation */}
-                <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200/80 shadow-lg">
-                    <div className="flex items-stretch">
-                        {navItems.filter(item => item.showInBottomNav).map((item) => {
-                            const Icon = item.icon;
-                            const isActive = item.match(location.pathname);
-
-                            return (
-                                <Link
-                                    key={item.to}
-                                    to={item.to}
-                                    className="flex-1 flex flex-col items-center justify-center py-3 relative"
-                                    aria-label={item.label}
-                                    aria-current={isActive ? 'page' : undefined}
-                                >
-                                    {/* Active indicator bar at top */}
-                                    {isActive && (
-                                        <div className="absolute top-0 left-0 right-0 h-[3px] bg-blue-600 rounded-b-sm"></div>
-                                    )}
-
-                                    <Icon
-                                        className={`w-6 h-6 mb-1 transition-colors ${isActive ? 'text-blue-600' : 'text-gray-500'
-                                            }`}
-                                        strokeWidth={2}
-                                    />
-                                    <span className={`text-[11px] font-medium transition-colors ${isActive ? 'text-blue-600' : 'text-gray-600'
-                                        }`}>
-                                        {item.label}
-                                    </span>
-                                </Link>
-                            );
-                        })}
-
-                        {/* More Menu Button */}
-                        <button
-                            onClick={() => setMobileMenuOpen(true)}
-                            className="flex-1 flex flex-col items-center justify-center py-3 relative"
-                            aria-label="More options"
-                        >
-                            <MoreVertical className="w-6 h-6 mb-1 text-gray-500" strokeWidth={2} />
-                            <span className="text-[11px] font-medium text-gray-600">More</span>
-                            {/* Notification badge */}
-                            <span className="absolute top-2 right-1/2 translate-x-4 w-2 h-2 bg-red-500 rounded-full"></span>
-                        </button>
-                    </div>
-                </nav>
-
-                {/* Mobile Menu Overlay */}
-                {mobileMenuOpen && (
-                    <div
-                        className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 transition-opacity duration-200"
-                        onClick={() => setMobileMenuOpen(false)}
-                        aria-hidden="true"
-                    />
-                )}
-
-                {/* Mobile More Menu (Slide up from bottom) */}
-                <div
-                    className={`
-                        fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl
-                        transition-transform duration-300 ease-out
-                        ${mobileMenuOpen ? 'translate-y-0' : 'translate-y-full'}
-                    `}
-                    role="dialog"
-                    aria-label="More menu"
-                    aria-modal="true"
-                >
-                    <div className="px-4 pt-3 pb-6">
-                        {/* Handle bar */}
-                        <div className="flex justify-center mb-4">
-                            <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
-                        </div>
-
-                        {/* User Profile */}
-                        <div className="mb-4">
-                            <Link
-                                to="/profile"
-                                className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-all group"
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-lg font-semibold flex-shrink-0">
-                                    {user?.name?.charAt(0).toUpperCase() || 'U'}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-base font-semibold text-gray-900 truncate">
-                                        {user?.name || 'User Profile'}
-                                    </p>
-                                    <p className="text-sm text-gray-500 truncate">
-                                        View your profile
-                                    </p>
-                                </div>
-                            </Link>
-                        </div>
-
-                        {/* Additional Navigation Items */}
-                        <div className="space-y-1 mb-4">
-                            {navItems.filter(item => !item.showInBottomNav).map((item) => {
-                                const Icon = item.icon;
-                                const isActive = item.match(location.pathname);
-
-                                return (
-                                    <Link
-                                        key={item.to}
-                                        to={item.to}
-                                        className={`
-                                            flex items-center gap-3 px-4 py-3 rounded-xl
-                                            transition-all duration-200 active:scale-[0.98]
-                                            ${isActive
-                                                ? 'bg-blue-50 text-blue-700'
-                                                : 'text-gray-700 hover:bg-gray-50'
-                                            }
-                                        `}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                        <Icon
-                                            className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-500'}`}
-                                            strokeWidth={2}
-                                        />
-                                        <span className="text-base font-medium flex-1">{item.label}</span>
-                                        {item.badge && (
-                                            <span className="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                                                {item.badge}
-                                            </span>
-                                        )}
-                                    </Link>
-                                );
-                            })}
-                        </div>
-
-                        {/* Utility Items */}
-                        <div className="space-y-1 pt-4 border-t border-gray-200">
-                            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all active:scale-[0.98]">
-                                <Bell className="w-5 h-5 text-gray-500" strokeWidth={2} />
-                                <span className="text-base font-medium flex-1 text-left">Notifications</span>
-                                <span className="w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                                    3
-                                </span>
-                            </button>
-
-                            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all active:scale-[0.98]">
-                                <HelpCircle className="w-5 h-5 text-gray-500" strokeWidth={2} />
-                                <span className="text-base font-medium text-left">Help center</span>
-                            </button>
-
-                            <button
-                                onClick={handleLogout}
-                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all active:scale-[0.98]"
-                            >
-                                <LogOut className="w-5 h-5 text-red-500" strokeWidth={2} />
-                                <span className="text-base font-medium text-left">Logout</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Spacer for bottom nav */}
-                <div className="h-[68px]"></div>
-            </div>
-
             {/* Desktop Sidebar */}
             <div className="hidden lg:block">
                 <div
-                    className={`fixed left-0 top-0 h-full bg-white border-r border-gray-100 flex flex-col transition-all duration-300 ${collapsed ? 'w-[72px]' : 'w-64'
+                    className={`fixed left-0 top-0 h-full bg-white border-r border-gray-100 flex flex-col transition-all duration-300 z-40 ${collapsed ? 'w-20' : 'w-64'
                         }`}
                 >
                     <SidebarContent />
                 </div>
 
                 {/* Spacer */}
-                <div className={`flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-[72px]' : 'w-64'
+                <div className={`flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'
                     }`} />
             </div>
         </>

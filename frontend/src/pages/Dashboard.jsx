@@ -208,35 +208,13 @@ const Dashboard = () => {
                                         Let's start building your personalized learning path
                                     </p>
                                 )}
-
-                                {/* Quick stats bar */}
-                                <div className="flex items-center gap-4 text-sm text-gray-600">
-                                    <div className="flex items-center gap-1.5">
-                                        <CheckCircle2 className="w-4 h-4 text-green-600" strokeWidth={2} />
-                                        <span>{stats?.totalConversations || 0} chats</span>
-                                    </div>
-                                    <div className="w-1 h-1 rounded-full bg-gray-300"></div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Target className="w-4 h-4 text-blue-600" strokeWidth={2} />
-                                        <span>{roadmaps.length || 0} roadmaps</span>
-                                    </div>
-                                    {flashcardStats?.totalCards > 0 && (
-                                        <>
-                                            <div className="w-1 h-1 rounded-full bg-gray-300"></div>
-                                            <div className="flex items-center gap-1.5">
-                                                <Brain className="w-4 h-4 text-purple-600" strokeWidth={2} />
-                                                <span>{flashcardStats.totalCards} cards</span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
                             </div>
                         </div>
 
                         {/* Contextual Action Buttons */}
                         <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
                             {/* Primary action - contextual based on state */}
-                            {flashcardStats?.dueCards > 0 ? (
+                            {flashcardStats?.dueCards > 0 && (
                                 <Link
                                     to="/flashcards"
                                     className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] group"
@@ -245,7 +223,8 @@ const Dashboard = () => {
                                     <span>Review Cards ({flashcardStats.dueCards})</span>
                                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" strokeWidth={2} />
                                 </Link>
-                            ) : roadmaps.length > 0 ? (
+                            )}
+                            {roadmaps.length > 0 && (
                                 <Link
                                     to={`/roadmaps/${roadmaps[0]._id}`}
                                     className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] group"
@@ -254,25 +233,7 @@ const Dashboard = () => {
                                     <span>Continue Learning</span>
                                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" strokeWidth={2} />
                                 </Link>
-                            ) : (
-                                <Link
-                                    to="/roadmaps/create"
-                                    className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] group"
-                                >
-                                    <Sparkles className="w-5 h-5" strokeWidth={2} />
-                                    <span>Create Roadmap</span>
-                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" strokeWidth={2} />
-                                </Link>
                             )}
-
-                            {/* Secondary action */}
-                            <Link
-                                to="/chat"
-                                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white hover:bg-gray-50 text-gray-900 font-semibold rounded-xl transition-all border-2 border-gray-200 hover:border-gray-900 active:scale-[0.98]"
-                            >
-                                <MessageSquare className="w-5 h-5" strokeWidth={2} />
-                                <span>Ask AI</span>
-                            </Link>
                         </div>
                     </div>
                 </div>

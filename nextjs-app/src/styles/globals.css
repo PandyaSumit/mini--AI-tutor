@@ -1,0 +1,134 @@
+/**
+ * Global Styles
+ * Tailwind CSS directives and global styles
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles */
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-white text-gray-900;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Dark mode styles */
+  .dark {
+    @apply bg-gray-900 text-gray-100;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Animation utilities */
+@layer utilities {
+  /* Scroll reveal animations */
+  [data-animate] {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+
+  [data-animate].animate-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-animate="fade"] {
+    transform: none;
+  }
+
+  [data-animate="fade"].animate-in {
+    opacity: 1;
+  }
+
+  [data-animate="slide-left"] {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+
+  [data-animate="slide-left"].animate-in {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  [data-animate="slide-right"] {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+
+  [data-animate="slide-right"].animate-in {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  [data-animate="scale"] {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  [data-animate="scale"].animate-in {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Stagger animation delays */
+  [data-animate][data-delay="100"] {
+    transition-delay: 100ms;
+  }
+
+  [data-animate][data-delay="200"] {
+    transition-delay: 200ms;
+  }
+
+  [data-animate][data-delay="300"] {
+    transition-delay: 300ms;
+  }
+
+  [data-animate][data-delay="400"] {
+    transition-delay: 400ms;
+  }
+
+  [data-animate][data-delay="500"] {
+    transition-delay: 500ms;
+  }
+
+  [data-animate][data-delay="600"] {
+    transition-delay: 600ms;
+  }
+}
+
+/* Custom component styles */
+@layer components {
+  /* Loading spinner */
+  .spinner {
+    @apply animate-spin rounded-full border-b-2 border-primary-600;
+  }
+
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+  }
+}

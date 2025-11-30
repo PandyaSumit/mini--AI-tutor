@@ -49,13 +49,16 @@ export default function RoadmapsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
-        <div className="mx-auto px-6 py-8">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#212121]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 w-48 bg-gray-200 rounded"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="h-7 w-44 rounded-lg bg-slate-200 dark:bg-[#2a2a2a]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-64 bg-gray-200 rounded-xl"></div>
+                <div
+                  key={i}
+                  className="h-56 rounded-2xl bg-slate-100 dark:bg-[#1a1a1a] border border-slate-100 dark:border-[#2a2a2a]"
+                />
               ))}
             </div>
           </div>
@@ -65,140 +68,159 @@ export default function RoadmapsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="mx-auto px-6 py-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#212121]">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Learning Roadmaps
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-[#f5f5f5] mb-1">
+              Learning roadmaps
             </h1>
-            <p className="text-gray-600">
-              Create and track your personalized learning paths
+            <p className="text-sm text-slate-600 dark:text-[#bdbdbd]">
+              Create focused paths and track progress toward your learning goals.
             </p>
           </div>
           <Link
             href="/roadmaps/create"
-            className="inline-flex items-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-slate-900 text-white dark:bg-[#f5f5f5] dark:text-[#212121] hover:bg-black dark:hover:bg-white shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
           >
-            <Plus className="w-5 h-5" strokeWidth={2} />
-            <span>Create Roadmap</span>
+            <Plus className="w-4 h-4" />
+            <span>Create roadmap</span>
           </Link>
         </div>
 
-        {/* Roadmaps Grid */}
+        {/* Roadmaps Grid / Empty state */}
         {roadmaps.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
-              <Map className="w-10 h-10 text-gray-400" strokeWidth={1.5} />
+          <div className="text-center py-16 rounded-2xl border border-dashed border-slate-200 dark:border-[#2a2a2a] bg-white/80 dark:bg-[#1a1a1a]/85">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-[#2a2a2a] mx-auto mb-5">
+              <Map className="w-8 h-8 text-slate-400 dark:text-[#9e9e9e]" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-[#f5f5f5] mb-2">
               No roadmaps yet
             </h2>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Create your first learning roadmap to start tracking your
-              educational journey
+            <p className="text-sm text-slate-600 dark:text-[#bdbdbd] mb-6 max-w-md mx-auto">
+              Design a roadmap to break your big learning goals into small,
+              trackable milestones.
             </p>
             <Link
               href="/roadmaps/create"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md"
+              className="inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium bg-slate-900 text-white dark:bg-[#f5f5f5] dark:text-[#212121] hover:bg-black dark:hover:bg-white shadow-sm hover:shadow-md transition-all"
             >
-              <Sparkles className="w-5 h-5" strokeWidth={2} />
-              <span>Create Your First Roadmap</span>
+              <Sparkles className="w-4 h-4" />
+              <span>Create your first roadmap</span>
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {roadmaps.map((roadmap) => {
               const progress = getProgress(roadmap);
+              const completed =
+                roadmap.milestones?.filter((m) => m.status === "completed")
+                  .length || 0;
+              const total = roadmap.milestones?.length || 0;
+
               return (
                 <Link
                   key={roadmap._id}
                   href={`/roadmaps/${roadmap._id}`}
-                  className="group bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all duration-200 overflow-hidden"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-[#2a2a2a] bg-white/90 dark:bg-[#1a1a1a] shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-[#3a3a3a] transition-all"
                 >
                   {/* Header */}
-                  <div className="p-6 border-b border-gray-100">
+                  <div className="px-5 py-5 border-b border-slate-100 dark:border-[#2a2a2a]">
                     <div className="flex items-start gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
-                        <Map className="w-6 h-6 text-white" strokeWidth={2} />
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white">
+                        <Map className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-gray-900 mb-1 truncate group-hover:text-blue-600 transition-colors">
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-[#f5f5f5] mb-0.5 truncate group-hover:text-violet-500">
                           {roadmap.title || roadmap.goal}
                         </h3>
-                        <p className="text-sm text-gray-500">
-                          {roadmap.difficulty || "Intermediate"}
+                        <p className="text-[11px] text-slate-500 dark:text-[#bdbdbd]">
+                          {roadmap.difficulty || "Intermediate"} ·{" "}
+                          {total} milestone{total === 1 ? "" : "s"}
                         </p>
                       </div>
                     </div>
 
-                    {/* Description */}
                     {roadmap.description && (
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+                      <p className="text-xs text-slate-600 dark:text-[#c2c2c2] line-clamp-3 mb-4">
                         {roadmap.description}
                       </p>
                     )}
 
                     {/* Progress */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Progress</span>
-                        <span className="font-semibold text-gray-900">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-slate-500 dark:text-[#bdbdbd]">
+                          Progress
+                        </span>
+                        <span className="font-medium text-slate-900 dark:text-[#f5f5f5]">
                           {progress}%
                         </span>
                       </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-2 rounded-full bg-slate-100 dark:bg-[#242424] overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all"
+                          className="h-full rounded-full bg-gradient-to-r from-blue-600 to-violet-600 transition-all"
                           style={{ width: `${progress}%` }}
-                        ></div>
+                        />
                       </div>
                     </div>
                   </div>
 
                   {/* Stats */}
-                  <div className="p-6 bg-gray-50">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <Target
-                            className="w-4 h-4 text-gray-400"
-                            strokeWidth={2}
-                          />
+                  <div className="px-5 py-4 bg-slate-50 dark:bg-[#1f1f1f]">
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div>
+                        <div className="flex items-center justify-center mb-1">
+                          <Target className="w-4 h-4 text-slate-400 dark:text-[#9e9e9e]" />
                         </div>
-                        <p className="text-lg font-bold text-gray-900">
-                          {roadmap.milestones?.length || 0}
+                        <p className="text-base font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                          {total}
                         </p>
-                        <p className="text-xs text-gray-500">Milestones</p>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <CheckCircle2
-                            className="w-4 h-4 text-green-500"
-                            strokeWidth={2}
-                          />
-                        </div>
-                        <p className="text-lg font-bold text-gray-900">
-                          {roadmap.milestones?.filter(
-                            (m) => m.status === "completed"
-                          ).length || 0}
+                        <p className="text-[11px] text-slate-500 dark:text-[#bdbdbd]">
+                          Milestones
                         </p>
-                        <p className="text-xs text-gray-500">Completed</p>
                       </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <Clock
-                            className="w-4 h-4 text-gray-400"
-                            strokeWidth={2}
-                          />
+                      <div>
+                        <div className="flex items-center justify-center mb-1">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                         </div>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-base font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                          {completed}
+                        </p>
+                        <p className="text-[11px] text-slate-500 dark:text-[#bdbdbd]">
+                          Completed
+                        </p>
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-center mb-1">
+                          <Clock className="w-4 h-4 text-slate-400 dark:text-[#9e9e9e]" />
+                        </div>
+                        <p className="text-base font-semibold text-slate-900 dark:text-[#f5f5f5]">
                           {roadmap.estimatedDuration || "12"}
                         </p>
-                        <p className="text-xs text-gray-500">Weeks</p>
+                        <p className="text-[11px] text-slate-500 dark:text-[#bdbdbd]">
+                          Weeks
+                        </p>
                       </div>
                     </div>
+
+                    {progress === 0 ? (
+                      <div className="mt-3 pt-3 border-t border-slate-200 dark:border-[#2a2a2a] text-[11px] text-slate-500 dark:text-[#bdbdbd] text-center flex items-center justify-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Ready to start your roadmap</span>
+                      </div>
+                    ) : progress === 100 ? (
+                      <div className="mt-3 pt-3 border-t border-slate-200 dark:border-[#2a2a2a] text-[11px] text-emerald-600 dark:text-emerald-400 text-center flex items-center justify-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Roadmap completed</span>
+                      </div>
+                    ) : (
+                      <div className="mt-3 pt-3 border-t border-slate-200 dark:border-[#2a2a2a] text-[11px] text-blue-600 dark:text-blue-400 text-center flex items-center justify-center gap-1">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        <span>Keep going — you’re on track</span>
+                      </div>
+                    )}
                   </div>
                 </Link>
               );

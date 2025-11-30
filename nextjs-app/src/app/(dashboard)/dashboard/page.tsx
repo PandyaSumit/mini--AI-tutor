@@ -67,7 +67,7 @@ export default function DashboardPage() {
         setStats(response);
       }
 
-      // Set empty defaults for now
+      // Defaults for now
       setRecentConversations([]);
       setRoadmaps([]);
       setFlashcardStats({ totalCards: 0, dueCards: 0, decks: 0 });
@@ -90,32 +90,28 @@ export default function DashboardPage() {
   };
 
   const DashboardSkeleton = () => (
-    <div className="min-h-screen bg-white">
-      <div className="border-b border-gray-100">
-        <div className="mx-auto px-6 lg:px-8 py-8 lg:py-12">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#212121]">
+      <div className="border-b border-slate-200 dark:border-[#2a2a2a]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
           <div className="animate-pulse space-y-4">
-            <div className="h-4 w-32 bg-gray-200 rounded"></div>
-            <div className="h-8 w-64 bg-gray-200 rounded"></div>
-            <div className="h-4 w-80 bg-gray-200 rounded"></div>
+            <div className="h-4 w-32 rounded-lg bg-slate-200 dark:bg-[#2a2a2a]" />
+            <div className="h-8 w-64 rounded-lg bg-slate-200 dark:bg-[#2a2a2a]" />
+            <div className="h-4 w-80 rounded-lg bg-slate-200 dark:bg-[#2a2a2a]" />
           </div>
         </div>
       </div>
 
-      <div className="mx-auto px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="bg-white rounded-xl p-6 border border-gray-100"
+              className="rounded-2xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-5"
             >
-              <div className="animate-pulse space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-lg bg-gray-200"></div>
-                </div>
-                <div>
-                  <div className="h-3 w-20 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-6 w-16 bg-gray-200 rounded"></div>
-                </div>
+              <div className="animate-pulse space-y-3">
+                <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-[#2a2a2a]" />
+                <div className="h-3 w-20 rounded bg-slate-100 dark:bg-[#2a2a2a]" />
+                <div className="h-6 w-16 rounded bg-slate-100 dark:bg-[#2a2a2a]" />
               </div>
             </div>
           ))}
@@ -138,13 +134,13 @@ export default function DashboardPage() {
     },
     {
       icon: Map,
-      label: "Active Roadmaps",
+      label: "Active roadmaps",
       value: roadmaps.length || 0,
       change: roadmaps.length > 0 ? "In progress" : "Get started",
     },
     {
       icon: Brain,
-      label: "Cards Due",
+      label: "Cards due",
       value: flashcardStats?.dueCards || 0,
       change: flashcardStats?.totalCards
         ? `${flashcardStats.totalCards} total`
@@ -152,133 +148,134 @@ export default function DashboardPage() {
     },
     {
       icon: Flame,
-      label: "Day Streak",
+      label: "Day streak",
       value: stats?.currentStreak || 0,
       change:
         stats?.currentStreak && stats.currentStreak > 0
-          ? "Keep it up!"
+          ? "Keep it up"
           : "Start today",
       highlight: stats?.currentStreak && stats.currentStreak >= 7,
     },
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#212121]">
       {/* Header Section */}
-      <div className="border-b border-gray-100 bg-gradient-to-br from-gray-50 via-white to-blue-50/30">
-        <div className="mx-auto px-6 lg:px-8 py-6 lg:py-8">
+      <div className="border-b border-slate-200 dark:border-[#2a2a2a] bg-gradient-to-br from-slate-50 via-white to-blue-50/40 dark:from-[#1a1a1a] dark:via-[#212121] dark:to-[#1a1a1a]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             {/* Welcome Message */}
             <div className="flex-1 space-y-4">
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-slate-900 dark:text-[#f5f5f5]">
                   {getGreeting()}, {user?.name?.split(" ")[0] || "there"}! 👋
                 </h1>
                 {stats?.currentStreak && stats.currentStreak > 0 && (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 rounded-full">
-                    <Flame
-                      className="w-4 h-4 text-orange-600"
-                      strokeWidth={2}
-                    />
-                    <span className="text-sm font-bold text-orange-900">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 dark:border-orange-600/40 dark:bg-orange-600/10">
+                    <Flame className="w-4 h-4 text-orange-600" />
+                    <span className="text-xs font-semibold text-orange-900 dark:text-orange-200">
                       {stats.currentStreak} day streak
                     </span>
                   </div>
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {flashcardStats?.dueCards && flashcardStats.dueCards > 0 ? (
-                  <p className="text-gray-700 text-base">
+                  <p className="text-sm text-slate-700 dark:text-[#c2c2c2]">
                     You have{" "}
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-medium text-slate-900 dark:text-[#f5f5f5]">
                       {flashcardStats.dueCards} cards
                     </span>{" "}
-                    ready to review today
+                    ready to review today.
                   </p>
                 ) : roadmaps.length > 0 ? (
-                  <p className="text-gray-700 text-base">
+                  <p className="text-sm text-slate-700 dark:text-[#c2c2c2]">
                     Continue your progress on{" "}
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-medium text-slate-900 dark:text-[#f5f5f5]">
                       {roadmaps[0]?.goal}
                     </span>
+                    .
                   </p>
                 ) : (
-                  <p className="text-gray-700 text-base">
-                    Let&apos;s start building your personalized learning path
+                  <p className="text-sm text-slate-700 dark:text-[#c2c2c2]">
+                    Let&apos;s start building your personalized learning path.
                   </p>
                 )}
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
+            {/* <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
               {flashcardStats?.dueCards && flashcardStats.dueCards > 0 && (
                 <Link
                   href="/flashcards"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] group"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-slate-900 text-white dark:bg-[#f5f5f5] dark:text-[#212121] hover:bg-black dark:hover:bg-white shadow-sm hover:shadow-md active:scale-[0.98] transition-all group"
                 >
-                  <Brain className="w-5 h-5" strokeWidth={2} />
-                  <span>Review Cards ({flashcardStats.dueCards})</span>
-                  <ArrowRight
-                    className="w-4 h-4 group-hover:translate-x-0.5 transition-transform"
-                    strokeWidth={2}
-                  />
+                  <Brain className="w-4 h-4" />
+                  <span>Review cards ({flashcardStats.dueCards})</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               )}
               {roadmaps.length > 0 && (
                 <Link
                   href={`/roadmaps/${roadmaps[0]._id}`}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] group"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-slate-900 text-white dark:bg-[#f5f5f5] dark:text-[#212121] hover:bg-black dark:hover:bg-white shadow-sm hover:shadow-md active:scale-[0.98] transition-all group"
                 >
-                  <Play className="w-5 h-5" strokeWidth={2} />
-                  <span>Continue Learning</span>
-                  <ArrowRight
-                    className="w-4 h-4 group-hover:translate-x-0.5 transition-transform"
-                    strokeWidth={2}
-                  />
+                  <Play className="w-4 h-4" />
+                  <span>Continue learning</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               )}
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
 
-      <div className="mx-auto px-6 lg:px-8 py-8 lg:py-10">
+      {/* Body */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-10">
           {statCards.map((stat, index) => {
             const Icon = stat.icon;
+            const isHighlight = stat.highlight;
             return (
               <div
                 key={index}
-                className={`p-6 rounded-xl border transition-all ${
-                  stat.highlight
-                    ? "border-yellow-200 bg-yellow-50"
-                    : "border-gray-100 bg-white hover:border-gray-200"
-                }`}
+                className={[
+                  "rounded-2xl border p-5 transition-all",
+                  isHighlight
+                    ? "border-amber-200 bg-amber-50 dark:border-amber-500/40 dark:bg-amber-900/10"
+                    : "border-slate-200 bg-white hover:border-slate-300 dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:hover:border-[#3a3a3a]",
+                ].join(" ")}
               >
-                <div className="flex items-center gap-3 mb-4">
+                <div className="mb-4 flex items-center gap-3">
                   <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      stat.highlight ? "bg-yellow-200" : "bg-gray-100"
-                    }`}
+                    className={[
+                      "flex h-10 w-10 items-center justify-center rounded-lg",
+                      isHighlight
+                        ? "bg-amber-100 dark:bg-amber-500/20"
+                        : "bg-slate-100 dark:bg-[#2a2a2a]",
+                    ].join(" ")}
                   >
                     <Icon
-                      className={`w-5 h-5 ${
-                        stat.highlight ? "text-yellow-700" : "text-gray-600"
-                      }`}
-                      strokeWidth={2}
+                      className={
+                        isHighlight
+                          ? "w-5 h-5 text-amber-700 dark:text-amber-200"
+                          : "w-5 h-5 text-slate-700 dark:text-[#e0e0e0]"
+                      }
                     />
                   </div>
                 </div>
-                <p className="text-sm font-medium text-gray-600 mb-1">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-[#a8a8a8]">
                   {stat.label}
                 </p>
-                <p className="text-3xl font-bold text-gray-900 mb-2">
+                <p className="mb-1 text-3xl font-semibold text-slate-900 dark:text-[#f5f5f5]">
                   {stat.value}
                 </p>
-                <p className="text-xs text-gray-500">{stat.change}</p>
+                <p className="text-[11px] text-slate-500 dark:text-[#bdbdbd]">
+                  {stat.change}
+                </p>
               </div>
             );
           })}
@@ -289,126 +286,113 @@ export default function DashboardPage() {
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Quick Actions */}
-            <section className="bg-white rounded-xl border border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Quick Actions
+            <section className="rounded-2xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-5 sm:p-6">
+              <h2 className="mb-4 text-lg sm:text-xl font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                Quick actions
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Link
                   href="/chat"
-                  className="p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
+                  className="group rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-4 hover:border-slate-300 dark:hover:border-[#3a3a3a] hover:bg-slate-50 dark:hover:bg-[#222222] transition-all"
                 >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                      <MessageSquare
-                        className="w-5 h-5 text-blue-600"
-                        strokeWidth={2}
-                      />
+                  <div className="mb-2 flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/15">
+                      <MessageSquare className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <h3 className="font-semibold text-gray-900">
-                      Ask AI Tutor
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                      Ask AI tutor
                     </h3>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    Get instant help with any topic
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-[#c2c2c2]">
+                    Get instant help with questions, concepts, or code.
                   </p>
                 </Link>
 
                 <Link
                   href="/roadmaps/create"
-                  className="p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
+                  className="group rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-4 hover:border-slate-300 dark:hover:border-[#3a3a3a] hover:bg-slate-50 dark:hover:bg-[#222222] transition-all"
                 >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                      <Map
-                        className="w-5 h-5 text-purple-600"
-                        strokeWidth={2}
-                      />
+                  <div className="mb-2 flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-500/15">
+                      <Map className="w-4 h-4 text-violet-600 dark:text-violet-400" />
                     </div>
-                    <h3 className="font-semibold text-gray-900">
-                      Create Roadmap
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                      Create roadmap
                     </h3>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    Plan your learning journey
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-[#c2c2c2]">
+                    Outline your next 4–8 weeks of structured learning.
                   </p>
                 </Link>
 
                 <Link
                   href="/flashcards"
-                  className="p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
+                  className="group rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-4 hover:border-slate-300 dark:hover:border-[#3a3a3a] hover:bg-slate-50 dark:hover:bg-[#222222] transition-all"
                 >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                      <Brain
-                        className="w-5 h-5 text-green-600"
-                        strokeWidth={2}
-                      />
+                  <div className="mb-2 flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-500/15">
+                      <Brain className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <h3 className="font-semibold text-gray-900">
-                      Study Flashcards
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                      Study flashcards
                     </h3>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    Review with spaced repetition
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-[#c2c2c2]">
+                    Practice key ideas with spaced repetition.
                   </p>
                 </Link>
 
                 <Link
                   href="/courses"
-                  className="p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group"
+                  className="group rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-4 hover:border-slate-300 dark:hover:border-[#3a3a3a] hover:bg-slate-50 dark:hover:bg-[#222222] transition-all"
                 >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                      <BookOpen
-                        className="w-5 h-5 text-orange-600"
-                        strokeWidth={2}
-                      />
+                  <div className="mb-2 flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-500/15">
+                      <BookOpen className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                     </div>
-                    <h3 className="font-semibold text-gray-900">
-                      Browse Courses
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                      Browse courses
                     </h3>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    Explore structured content
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-[#c2c2c2]">
+                    Explore structured modules and tracks.
                   </p>
                 </Link>
               </div>
             </section>
 
             {/* Recent Activity */}
-            <section className="bg-white rounded-xl border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-6">
+            <section className="rounded-2xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-5 sm:p-6">
+              <div className="mb-5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-gray-600" strokeWidth={2} />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-[#2a2a2a]">
+                    <Clock className="w-4 h-4 text-slate-600 dark:text-[#e0e0e0]" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Recent Activity
+                  <h2 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                    Recent activity
                   </h2>
                 </div>
                 <Link
                   href="/conversations"
-                  className="text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1 transition-colors"
+                  className="inline-flex items-center gap-1 text-xs sm:text-sm font-medium text-slate-600 dark:text-[#bdbdbd] hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
-                  <span>View All</span>
-                  <ChevronRight className="w-4 h-4" strokeWidth={2} />
+                  <span>View all</span>
+                  <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
 
               {recentConversations.length === 0 ? (
-                <div className="text-center py-12">
-                  <MessageSquare
-                    className="w-12 h-12 text-gray-300 mx-auto mb-4"
-                    strokeWidth={1.5}
-                  />
-                  <p className="text-gray-500 mb-4">No recent conversations</p>
+                <div className="py-10 text-center">
+                  <MessageSquare className="mx-auto mb-4 h-10 w-10 text-slate-300 dark:text-[#3a3a3a]" />
+                  <p className="mb-4 text-sm text-slate-500 dark:text-[#bdbdbd]">
+                    No recent conversations yet.
+                  </p>
                   <Link
                     href="/chat"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-xs sm:text-sm font-medium bg-slate-900 text-white dark:bg-[#f5f5f5] dark:text-[#212121] hover:bg-black dark:hover:bg-white transition-colors"
                   >
-                    <Sparkles className="w-4 h-4" strokeWidth={2} />
-                    <span>Start Chatting</span>
+                    <Sparkles className="w-4 h-4" />
+                    <span>Start chatting</span>
                   </Link>
                 </div>
               ) : (
@@ -417,18 +401,20 @@ export default function DashboardPage() {
                     <Link
                       key={conversation._id}
                       href={`/chat/${conversation._id}`}
-                      className="block p-4 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all"
+                      className="block rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-4 hover:border-slate-300 dark:hover:border-[#3a3a3a] hover:bg-slate-50 dark:hover:bg-[#222222] transition-all"
                     >
-                      <h3 className="font-semibold text-gray-900 mb-1">
+                      <h3 className="mb-1 text-sm font-semibold text-slate-900 dark:text-[#f5f5f5]">
                         {conversation.topic}
                       </h3>
                       {conversation.lastMessage && (
-                        <p className="text-sm text-gray-600 truncate">
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-[#c2c2c2] truncate">
                           {conversation.lastMessage}
                         </p>
                       )}
-                      <p className="text-xs text-gray-400 mt-2">
-                        {new Date(conversation.createdAt).toLocaleDateString()}
+                      <p className="mt-2 text-[11px] text-slate-400 dark:text-[#9e9e9e]">
+                        {new Date(
+                          conversation.createdAt
+                        ).toLocaleDateString()}
                       </p>
                     </Link>
                   ))}
@@ -440,38 +426,48 @@ export default function DashboardPage() {
           {/* Right Column */}
           <div className="space-y-6">
             {/* Learning Tips */}
-            <section className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5 text-blue-600" strokeWidth={2} />
-                <h3 className="font-bold text-gray-900">Study Tip</h3>
+            <section className="rounded-2xl border border-blue-100 dark:border-[#2a2a2a] bg-gradient-to-br from-blue-50 via-slate-50 to-indigo-50 dark:from-[#1a1a1a] dark:via-[#212121] dark:to-[#1a1a1a] p-5 sm:p-6">
+              <div className="mb-3 flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                  Study tip
+                </h3>
               </div>
-              <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                Regular practice is key! Try to study for at least 20 minutes
-                each day to build a strong learning habit.
+              <p className="mb-4 text-xs sm:text-sm text-slate-700 dark:text-[#c2c2c2] leading-relaxed">
+                Short, consistent sessions beat long cramming. Aim for at least{" "}
+                <span className="font-medium">20 minutes</span> of focused
+                learning each day.
               </p>
-              <div className="flex items-center gap-2 text-xs text-blue-600">
-                <TrendingUp className="w-4 h-4" strokeWidth={2} />
-                <span className="font-medium">Keep your streak going!</span>
+              <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 dark:bg-blue-500/10 px-3 py-1.5 text-[11px] font-medium text-blue-700 dark:text-blue-200">
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Keep your streak going</span>
               </div>
             </section>
 
             {/* Progress Summary */}
-            <section className="bg-white rounded-xl border border-gray-100 p-6">
-              <h3 className="font-bold text-gray-900 mb-4">Your Progress</h3>
+            <section className="rounded-2xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#1a1a1a] p-5 sm:p-6">
+              <h3 className="mb-4 text-sm sm:text-base font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                Your progress
+              </h3>
               <div className="space-y-4">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">
-                      Overall Progress
+                  <div className="mb-2 flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-600 dark:text-[#bdbdbd]">
+                      Overall progress
                     </span>
-                    <span className="text-sm font-bold text-gray-900">0%</span>
+                    <span className="font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                      0%
+                    </span>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full w-[0%] bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
+                  <div className="h-2 rounded-full bg-slate-100 dark:bg-[#242424] overflow-hidden">
+                    <div className="h-full w-[0%] rounded-full bg-gradient-to-r from-blue-600 to-violet-600" />
                   </div>
                 </div>
-                <p className="text-xs text-gray-500">
-                  Start learning to track your progress
+                <p className="text-[11px] text-slate-500 dark:text-[#bdbdbd]">
+                  Start a course, roadmap, or flashcard session to see your
+                  progress here.
                 </p>
               </div>
             </section>

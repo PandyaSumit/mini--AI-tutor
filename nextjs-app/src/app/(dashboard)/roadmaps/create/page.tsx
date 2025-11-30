@@ -3,11 +3,11 @@
  * AI-powered roadmap generation wizard
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { roadmapService } from '@/services/roadmap';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { roadmapService } from "@/services/roadmap";
 import {
   Target,
   Clock,
@@ -21,10 +21,10 @@ import {
   BookOpen,
   Zap,
   Gamepad2,
-} from 'lucide-react';
+} from "lucide-react";
 
-type Level = 'novice' | 'intermediate' | 'advanced';
-type LearningMode = 'video' | 'text' | 'hands-on' | 'interactive';
+type Level = "novice" | "intermediate" | "advanced";
+type LearningMode = "video" | "text" | "hands-on" | "interactive";
 
 interface FormData {
   goal: string;
@@ -39,24 +39,24 @@ export default function CreateRoadmapPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
-    goal: '',
-    currentLevel: 'intermediate',
+    goal: "",
+    currentLevel: "intermediate",
     weeklyTimeCommitment: 10,
-    targetDate: '',
-    preferredLearningModes: ['text', 'hands-on'],
+    targetDate: "",
+    preferredLearningModes: ["text", "hands-on"],
   });
 
   const levels = [
-    { value: 'novice' as Level, label: 'Beginner', description: 'Just starting out' },
-    { value: 'intermediate' as Level, label: 'Intermediate', description: 'Some experience' },
-    { value: 'advanced' as Level, label: 'Advanced', description: 'Experienced learner' },
+    { value: "novice" as Level, label: "Beginner", description: "Just starting out" },
+    { value: "intermediate" as Level, label: "Intermediate", description: "Some experience" },
+    { value: "advanced" as Level, label: "Advanced", description: "Experienced learner" },
   ];
 
   const learningModes = [
-    { value: 'video' as LearningMode, label: 'Video', icon: Video },
-    { value: 'text' as LearningMode, label: 'Reading', icon: BookOpen },
-    { value: 'hands-on' as LearningMode, label: 'Practice', icon: Zap },
-    { value: 'interactive' as LearningMode, label: 'Interactive', icon: Gamepad2 },
+    { value: "video" as LearningMode, label: "Video", icon: Video },
+    { value: "text" as LearningMode, label: "Reading", icon: BookOpen },
+    { value: "hands-on" as LearningMode, label: "Practice", icon: Zap },
+    { value: "interactive" as LearningMode, label: "Interactive", icon: Gamepad2 },
   ];
 
   const handleChange = (field: keyof FormData, value: any) => {
@@ -80,8 +80,8 @@ export default function CreateRoadmapPage() {
       const response = await roadmapService.generateRoadmap(formData);
       router.push(`/roadmaps/${response._id}`);
     } catch (error) {
-      console.error('Error creating roadmap:', error);
-      alert('Failed to create roadmap');
+      console.error("Error creating roadmap:", error);
+      alert("Failed to create roadmap");
     } finally {
       setLoading(false);
     }
@@ -91,104 +91,124 @@ export default function CreateRoadmapPage() {
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
   const steps = [
-    { number: 1, label: 'Your Goal' },
-    { number: 2, label: 'Experience' },
-    { number: 3, label: 'Preferences' },
+    { number: 1, label: "Your goal" },
+    { number: 2, label: "Experience" },
+    { number: 3, label: "Preferences" },
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#212121]">
       {/* Header */}
-      <div className="border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-4xl mx-auto px-6 lg:px-8 py-8 lg:py-12">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-gray-600" strokeWidth={2} />
-              </div>
-              <span className="text-sm font-medium text-gray-600">AI-Powered Learning Path</span>
+      <div className="border-b border-slate-200 dark:border-[#2a2a2a] bg-gradient-to-b from-slate-50 to-white dark:from-[#1a1a1a] dark:to-[#212121]">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+          <div className="text-center space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-[#2a2a2a] bg-white/80 dark:bg-[#1a1a1a]/90 px-3 py-1">
+              <Sparkles className="w-4 h-4 text-slate-700 dark:text-[#f5f5f5]" />
+              <span className="text-[11px] font-medium text-slate-600 dark:text-[#c2c2c2]">
+                AI-powered learning path
+              </span>
             </div>
-            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
-              Create Your Roadmap
+            <h1 className="text-3xl lg:text-[2.1rem] font-semibold tracking-tight text-slate-900 dark:text-[#f5f5f5]">
+              Create your roadmap
             </h1>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Let&apos;s design a personalized learning path for your goals
+            <p className="text-sm sm:text-base text-slate-600 dark:text-[#c2c2c2] max-w-xl mx-auto">
+              Tell us about your goals and we&apos;ll design a focused learning path for you.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 lg:px-8 py-8 lg:py-10">
-        {/* Progress Indicator */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            {steps.map((s, index) => (
-              <div key={s.number} className="flex items-center flex-1">
-                <div className="flex flex-col items-center flex-1">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+        {/* Stepper */}
+        <div className="mb-8 sm:mb-10">
+          <div className="mx-auto max-w-xl rounded-full border border-slate-200 dark:border-[#2a2a2a] bg-white/80 dark:bg-[#1a1a1a]/90 px-3 py-3 shadow-sm">
+            <div className="flex items-center justify-between gap-2">
+              {steps.map((s, idx) => {
+                const isActive = s.number === step;
+                const isDone = s.number < step;
+                return (
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all mb-2 ${
-                      s.number === step
-                        ? 'bg-gray-900 text-white'
-                        : s.number < step
-                        ? 'bg-gray-200 text-gray-600'
-                        : 'bg-gray-100 text-gray-400'
-                    }`}
+                    key={s.number}
+                    className="flex-1 flex items-center gap-2 last:flex-none last:w-auto"
                   >
-                    {s.number < step ? (
-                      <CheckCircle2 className="w-5 h-5" strokeWidth={2} />
-                    ) : (
-                      s.number
+                    <div className="flex items-center gap-2 flex-1">
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold border transition-all
+                          ${
+                            isActive
+                              ? "bg-slate-900 text-white border-slate-900 dark:bg-[#f5f5f5] dark:text-[#212121] dark:border-[#f5f5f5]"
+                              : isDone
+                              ? "bg-slate-900/5 text-slate-900 border-slate-300 dark:bg-[#2a2a2a] dark:text-[#f5f5f5] dark:border-[#3a3a3a]"
+                              : "bg-transparent text-slate-400 border-slate-200 dark:text-[#7a7a7a] dark:border-[#2a2a2a]"
+                          }`}
+                      >
+                        {isDone ? (
+                          <CheckCircle2 className="w-4 h-4" />
+                        ) : (
+                          s.number
+                        )}
+                      </div>
+                      <span
+                        className={`hidden sm:inline-block text-[11px] font-medium truncate
+                          ${
+                            isActive
+                              ? "text-slate-900 dark:text-[#f5f5f5]"
+                              : "text-slate-500 dark:text-[#a8a8a8]"
+                          }`}
+                      >
+                        {s.label}
+                      </span>
+                    </div>
+                    {idx < steps.length - 1 && (
+                      <div
+                        className={`hidden sm:block h-px flex-1 rounded-full
+                          ${
+                            s.number < step
+                              ? "bg-slate-900 dark:bg-[#f5f5f5]"
+                              : "bg-slate-200 dark:bg-[#2a2a2a]"
+                          }`}
+                      />
                     )}
                   </div>
-                  <span
-                    className={`text-xs font-medium ${
-                      s.number === step ? 'text-gray-900' : 'text-gray-500'
-                    }`}
-                  >
-                    {s.label}
-                  </span>
-                </div>
-                {index < steps.length - 1 && (
-                  <div
-                    className={`h-0.5 flex-1 mx-2 transition-all ${
-                      s.number < step ? 'bg-gray-900' : 'bg-gray-200'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Form Card */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-100 p-8">
-          {/* Step 1: Goal */}
+        {/* Form card */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
+        >
+          {/* STEP 1 */}
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-3">
-                  <Target className="w-5 h-5 text-gray-600" strokeWidth={2} />
+                <label className="flex items-center gap-2 text-base sm:text-lg font-semibold text-slate-900 dark:text-[#f5f5f5] mb-3">
+                  <Target className="w-5 h-5 text-slate-600 dark:text-[#e0e0e0]" />
                   What do you want to learn?
                 </label>
                 <textarea
                   value={formData.goal}
-                  onChange={(e) => handleChange('goal', e.target.value)}
-                  className="w-full px-4 py-3 min-h-32 text-[15px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-400 bg-white resize-none"
-                  placeholder="e.g., Become a full-stack developer, Master data science, Learn Spanish fluently..."
+                  onChange={(e) => handleChange("goal", e.target.value)}
+                  className="w-full px-4 py-3 min-h-32 text-[15px] rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#111111] text-slate-900 dark:text-[#f5f5f5] placeholder:text-slate-400 dark:placeholder:text-[#7a7a7a] focus:outline-none focus:ring-2 focus:ring-slate-900/80 dark:focus:ring-[#f5f5f5]/70 focus:border-transparent transition-all resize-none"
+                  placeholder="e.g., Become a full-stack developer, master data structures, learn system design, crack FAANG interviews..."
                   required
                 />
-                <p className="text-sm text-gray-500 mt-2">
-                  Be specific about your learning goal to get a better roadmap
+                <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-[#bdbdbd]">
+                  Be specific and include timeframe or outcome if possible (e.g., &quot;crack
+                  interviews in 4 months&quot;).
                 </p>
               </div>
             </div>
           )}
 
-          {/* Step 2: Experience & Time */}
+          {/* STEP 2 */}
           {step === 2 && (
             <div className="space-y-8">
               <div>
-                <label className="text-lg font-semibold text-gray-900 mb-4 block">
+                <label className="text-base sm:text-lg font-semibold text-slate-900 dark:text-[#f5f5f5] mb-4 block">
                   What&apos;s your current level?
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -196,68 +216,93 @@ export default function CreateRoadmapPage() {
                     <button
                       key={level.value}
                       type="button"
-                      onClick={() => handleChange('currentLevel', level.value)}
-                      className={`p-5 border rounded-xl text-left transition-all ${
-                        formData.currentLevel === level.value
-                          ? 'border-gray-900 bg-gray-50'
-                          : 'border-gray-200 hover:border-gray-900 hover:bg-gray-50'
-                      }`}
+                      onClick={() => handleChange("currentLevel", level.value)}
+                      className={`p-4 sm:p-5 rounded-xl text-left border transition-all
+                        ${
+                          formData.currentLevel === level.value
+                            ? "border-slate-900 bg-slate-50 dark:border-[#f5f5f5] dark:bg-[#202020]"
+                            : "border-slate-200 bg-white dark:border-[#2a2a2a] dark:bg-[#151515] hover:border-slate-900 dark:hover:border-[#f5f5f5] hover:bg-slate-50 dark:hover:bg-[#202020]"
+                        }`}
                     >
-                      <div className="font-semibold text-base text-gray-900 mb-1">
+                      <div className="text-sm sm:text-base font-semibold text-slate-900 dark:text-[#f5f5f5] mb-1">
                         {level.label}
                       </div>
-                      <div className="text-sm text-gray-600">{level.description}</div>
+                      <div className="text-xs sm:text-sm text-slate-600 dark:text-[#c2c2c2]">
+                        {level.description}
+                      </div>
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
-                  <Clock className="w-5 h-5 text-gray-600" strokeWidth={2} />
+                <label className="flex items-center gap-2 text-base sm:text-lg font-semibold text-slate-900 dark:text-[#f5f5f5] mb-4">
+                  <Clock className="w-5 h-5 text-slate-600 dark:text-[#e0e0e0]" />
                   Weekly time commitment
                 </label>
-                <div className="flex items-center gap-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                   <input
                     type="range"
                     min="2"
                     max="40"
                     value={formData.weeklyTimeCommitment}
-                    onChange={(e) => handleChange('weeklyTimeCommitment', parseInt(e.target.value))}
-                    className="flex-1 h-2 bg-gray-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gray-900 [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-gray-900 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                    onChange={(e) =>
+                      handleChange("weeklyTimeCommitment", parseInt(e.target.value))
+                    }
+                    className="flex-1 h-2 rounded-full appearance-none cursor-pointer bg-slate-200 dark:bg-[#2a2a2a]
+                      [&::-webkit-slider-thumb]:appearance-none
+                      [&::-webkit-slider-thumb]:w-5
+                      [&::-webkit-slider-thumb]:h-5
+                      [&::-webkit-slider-thumb]:rounded-full
+                      [&::-webkit-slider-thumb]:bg-slate-900
+                      dark:[&::-webkit-slider-thumb]:bg-[#f5f5f5]
+                      [&::-webkit-slider-thumb]:cursor-pointer
+                      [&::-moz-range-thumb]:w-5
+                      [&::-moz-range-thumb]:h-5
+                      [&::-moz-range-thumb]:rounded-full
+                      [&::-moz-range-thumb]:bg-slate-900
+                      dark:[&::-moz-range-thumb]:bg-[#f5f5f5]
+                      [&::-moz-range-thumb]:border-0
+                      [&::-moz-range-thumb]:cursor-pointer"
                   />
-                  <div className="text-3xl font-bold text-gray-900 min-w-[100px] text-center">
-                    {formData.weeklyTimeCommitment}{' '}
-                    <span className="text-lg text-gray-500">hrs</span>
+                  <div className="text-center min-w-[96px]">
+                    <div className="text-3xl font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                      {formData.weeklyTimeCommitment}
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-[#bdbdbd]">
+                      hours / week
+                    </div>
                   </div>
                 </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  Hours per week you can dedicate to learning
+                <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-[#bdbdbd]">
+                  Hours per week you can dedicate to learning.
                 </p>
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-3">
-                  <Calendar className="w-5 h-5 text-gray-600" strokeWidth={2} />
-                  Target completion date{' '}
-                  <span className="text-sm font-normal text-gray-500">(optional)</span>
+                <label className="flex items-center gap-2 text-base sm:text-lg font-semibold text-slate-900 dark:text-[#f5f5f5] mb-3">
+                  <Calendar className="w-5 h-5 text-slate-600 dark:text-[#e0e0e0]" />
+                  Target completion date{" "}
+                  <span className="text-xs sm:text-sm font-normal text-slate-500 dark:text-[#a8a8a8]">
+                    (optional)
+                  </span>
                 </label>
                 <input
                   type="date"
                   value={formData.targetDate}
-                  onChange={(e) => handleChange('targetDate', e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 text-[15px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all text-gray-900 bg-white"
+                  onChange={(e) => handleChange("targetDate", e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="w-full px-4 py-3 text-[15px] rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#111111] text-slate-900 dark:text-[#f5f5f5] focus:outline-none focus:ring-2 focus:ring-slate-900/80 dark:focus:ring-[#f5f5f5]/70 focus:border-transparent transition-all"
                 />
               </div>
             </div>
           )}
 
-          {/* Step 3: Learning Preferences */}
+          {/* STEP 3 */}
           {step === 3 && (
             <div className="space-y-6">
               <div>
-                <label className="text-lg font-semibold text-gray-900 mb-4 block">
+                <label className="text-base sm:text-lg font-semibold text-slate-900 dark:text-[#f5f5f5] mb-4 block">
                   How do you prefer to learn?
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -269,76 +314,85 @@ export default function CreateRoadmapPage() {
                         key={mode.value}
                         type="button"
                         onClick={() => toggleLearningMode(mode.value)}
-                        className={`p-6 border rounded-xl text-center transition-all relative ${
-                          isSelected
-                            ? 'border-gray-900 bg-gray-50'
-                            : 'border-gray-200 hover:border-gray-900 hover:bg-gray-50'
-                        }`}
+                        className={`relative p-5 sm:p-6 rounded-xl border text-center transition-all
+                          ${
+                            isSelected
+                              ? "border-slate-900 bg-slate-50 dark:border-[#f5f5f5] dark:bg-[#202020]"
+                              : "border-slate-200 bg-white dark:border-[#2a2a2a] dark:bg-[#151515] hover:border-slate-900 dark:hover:border-[#f5f5f5] hover:bg-slate-50 dark:hover:bg-[#202020]"
+                          }`}
                       >
                         {isSelected && (
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
+                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-slate-900 dark:bg-[#f5f5f5] flex items-center justify-center">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white dark:text-[#212121]" />
                           </div>
                         )}
                         <div
-                          className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3 ${
-                            isSelected ? 'bg-gray-900' : 'bg-gray-100'
-                          }`}
+                          className={`w-11 h-11 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center mx-auto mb-3
+                            ${
+                              isSelected
+                                ? "bg-slate-900 dark:bg-[#f5f5f5]"
+                                : "bg-slate-100 dark:bg-[#2a2a2a]"
+                            }`}
                         >
                           <Icon
-                            className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-gray-600'}`}
-                            strokeWidth={2}
+                            className={`w-5 h-5 sm:w-6 sm:h-6 ${
+                              isSelected
+                                ? "text-white dark:text-[#212121]"
+                                : "text-slate-600 dark:text-[#e0e0e0]"
+                            }`}
                           />
                         </div>
-                        <div className="font-medium text-gray-900 text-sm">{mode.label}</div>
+                        <div className="text-xs sm:text-sm font-medium text-slate-900 dark:text-[#f5f5f5]">
+                          {mode.label}
+                        </div>
                       </button>
                     );
                   })}
                 </div>
-                <p className="text-sm text-gray-500 mt-4">
+                <p className="mt-3 text-xs sm:text-sm text-slate-500 dark:text-[#bdbdbd]">
                   Select all that apply. We&apos;ll prioritize these in your roadmap.
                 </p>
               </div>
             </div>
           )}
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
+          {/* Navigation */}
+          <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-100 dark:border-[#2a2a2a]">
             <button
               type="button"
               onClick={prevStep}
-              disabled={step === 1}
-              className="inline-flex items-center gap-2 px-5 py-2.5 border border-gray-200 hover:border-gray-900 hover:bg-gray-50 text-gray-900 font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white"
+              disabled={step === 1 || loading}
+              className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg border border-slate-200 dark:border-[#2a2a2a] text-xs sm:text-sm font-medium text-slate-900 dark:text-[#f5f5f5] bg-white dark:bg-[#1a1a1a] hover:border-slate-900 dark:hover:border-[#f5f5f5] hover:bg-slate-50 dark:hover:bg-[#222222] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ArrowLeft className="w-4 h-4" strokeWidth={2} />
-              Previous
+              <ArrowLeft className="w-4 h-4" />
+              <span>Previous</span>
             </button>
 
             {step < 3 ? (
               <button
                 type="button"
                 onClick={nextStep}
-                disabled={step === 1 && !formData.goal}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                disabled={(step === 1 && !formData.goal) || loading}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-slate-900 text-white dark:bg-[#f5f5f5] dark:text-[#212121] text-xs sm:text-sm font-medium hover:bg-black dark:hover:bg-white shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
-                <ArrowRight className="w-4 h-4" strokeWidth={2} />
+                <span>Next</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex items-center gap-2 px-8 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                className="inline-flex items-center gap-2 px-7 sm:px-8 py-2.5 rounded-lg bg-slate-900 text-white dark:bg-[#f5f5f5] dark:text-[#212121] text-xs sm:text-sm font-semibold hover:bg-black dark:hover:bg-white shadow-sm hover:shadow-md transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
-                    <Loader className="w-5 h-5 animate-spin" strokeWidth={2} />
-                    Generating...
+                    <Loader className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                    <span>Generating...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-5 h-5" strokeWidth={2} />
-                    Generate Roadmap
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span>Generate Roadmap</span>
                   </>
                 )}
               </button>
@@ -346,11 +400,11 @@ export default function CreateRoadmapPage() {
           </div>
         </form>
 
-        {/* Help Text */}
+        {/* Helper text */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            This usually takes 10-15 seconds. We&apos;re analyzing your goals and creating a
-            personalized roadmap.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-[#bdbdbd]">
+            Generation usually takes around 10–15 seconds while we analyze your goal and build a
+            structured plan.
           </p>
         </div>
       </div>

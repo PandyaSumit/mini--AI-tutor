@@ -38,8 +38,7 @@ export default function FlashcardsPage() {
 
   const fetchDecks = async () => {
     try {
-      // For now, using mock data since the service might not return decks
-      // In production, this would call flashcardService.getDecks() or similar
+      // TODO: replace with flashcardService.getDecks()
       setDecks([]);
     } catch (error) {
       console.error("Error fetching decks:", error);
@@ -51,13 +50,16 @@ export default function FlashcardsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
-        <div className="mx-auto px-6 py-8">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#212121]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 w-48 bg-gray-200 rounded"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="h-7 w-40 bg-slate-200 dark:bg-[#2a2a2a] rounded-lg" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-64 bg-gray-200 rounded-xl"></div>
+                <div
+                  key={i}
+                  className="h-56 rounded-2xl bg-slate-100 dark:bg-[#1a1a1a] border border-slate-100 dark:border-[#2a2a2a]"
+                />
               ))}
             </div>
           </div>
@@ -67,61 +69,71 @@ export default function FlashcardsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="mx-auto px-6 py-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#212121]">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-[#f5f5f5] mb-1">
               Flashcards
             </h1>
-            <p className="text-gray-600">
-              Study with spaced repetition for better retention
+            <p className="text-sm text-slate-600 dark:text-[#bdbdbd]">
+              Study with spaced repetition and short active recall sessions.
             </p>
           </div>
           <Link
             href="/flashcards/create"
-            className="inline-flex items-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-slate-900 text-white dark:bg-[#f5f5f5] dark:text-[#212121] hover:bg-black dark:hover:bg-white shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
           >
-            <Plus className="w-5 h-5" strokeWidth={2} />
-            <span>Create Deck</span>
+            <Plus className="w-4 h-4" />
+            <span>Create deck</span>
           </Link>
         </div>
 
         {/* Stats Summary */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
-                <Brain className="w-5 h-5 text-white" strokeWidth={2} />
+          <div className="rounded-2xl border border-slate-200 dark:border-[#2a2a2a] bg-gradient-to-br from-blue-50 to-slate-50 dark:from-[#1a1a1a] dark:to-[#1f1f1f] px-5 py-4">
+            <div className="flex items-center gap-3 mb-1.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white">
+                <Brain className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-sm text-blue-700">Total Cards</p>
-                <p className="text-2xl font-bold text-blue-900">0</p>
+                <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                  Total cards
+                </p>
+                <p className="text-xl font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                  0
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" strokeWidth={2} />
+          <div className="rounded-2xl border border-slate-200 dark:border-[#2a2a2a] bg-gradient-to-br from-emerald-50 to-slate-50 dark:from-[#1a1a1a] dark:to-[#1f1f1f] px-5 py-4">
+            <div className="flex items-center gap-3 mb-1.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-white">
+                <Zap className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-sm text-green-700">Due Today</p>
-                <p className="text-2xl font-bold text-green-900">0</p>
+                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                  Due today
+                </p>
+                <p className="text-xl font-semibold text-slate-900 dark:text-[#f5f5f5]">
+                  0
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-white" strokeWidth={2} />
+          <div className="rounded-2xl border border-slate-200 dark:border-[#2a2a2a] bg-gradient-to-br from-violet-50 to-slate-50 dark:from-[#1a1a1a] dark:to-[#1f1f1f] px-5 py-4">
+            <div className="flex items-center gap-3 mb-1.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500 text-white">
+                <BookOpen className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-sm text-purple-700">Total Decks</p>
-                <p className="text-2xl font-bold text-purple-900">
+                <p className="text-xs font-medium text-violet-700 dark:text-violet-300">
+                  Total decks
+                </p>
+                <p className="text-xl font-semibold text-slate-900 dark:text-[#f5f5f5]">
                   {decks.length}
                 </p>
               </div>
@@ -129,56 +141,56 @@ export default function FlashcardsPage() {
           </div>
         </div>
 
-        {/* Decks Grid */}
+        {/* Decks Grid / Empty state */}
         {decks.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
-              <Brain className="w-10 h-10 text-gray-400" strokeWidth={1.5} />
+          <div className="text-center py-16 rounded-2xl border border-dashed border-slate-200 dark:border-[#2a2a2a] bg-white/70 dark:bg-[#1a1a1a]/80">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-[#2a2a2a] mx-auto mb-5">
+              <Brain className="w-8 h-8 text-slate-400 dark:text-[#9e9e9e]" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-[#f5f5f5] mb-2">
               No flashcard decks yet
             </h2>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Create your first deck or generate flashcards from your study
-              materials using AI
+            <p className="text-sm text-slate-600 dark:text-[#bdbdbd] mb-6 max-w-md mx-auto">
+              Create your first deck or generate flashcards from your notes,
+              transcripts, or resources using AI.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
                 href="/flashcards/create"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md"
+                className="inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium bg-slate-900 text-white dark:bg-[#f5f5f5] dark:text-[#212121] hover:bg-black dark:hover:bg-white shadow-sm transition-all"
               >
-                <Plus className="w-5 h-5" strokeWidth={2} />
-                <span>Create Deck Manually</span>
+                <Plus className="w-4 h-4" />
+                <span>Create manually</span>
               </Link>
               <Link
                 href="/flashcards/generate"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 font-semibold rounded-xl border-2 border-gray-200 transition-all"
+                className="inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium border border-slate-200 dark:border-[#2a2a2a] bg-white text-slate-900 hover:bg-slate-50 dark:bg-[#212121] dark:text-[#f5f5f5] dark:hover:bg-[#262626] transition-all"
               >
-                <Sparkles className="w-5 h-5" strokeWidth={2} />
+                <Sparkles className="w-4 h-4" />
                 <span>Generate with AI</span>
               </Link>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {decks.map((deck) => (
               <Link
                 key={deck._id}
                 href={`/flashcards/study/${deck._id}`}
-                className="group bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all duration-200 overflow-hidden"
+                className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-[#2a2a2a] bg-white/90 dark:bg-[#1a1a1a] shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-[#3a3a3a] transition-all"
               >
                 {/* Header */}
-                <div className="p-6 border-b border-gray-100">
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
-                      <Brain className="w-6 h-6 text-white" strokeWidth={2} />
+                <div className="px-5 py-5 border-b border-slate-100 dark:border-[#2a2a2a]">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 text-white flex-shrink-0">
+                      <Brain className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-bold text-gray-900 mb-1 truncate group-hover:text-green-600 transition-colors">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-[#f5f5f5] truncate group-hover:text-emerald-500">
                         {deck.name}
                       </h3>
                       {deck.category && (
-                        <span className="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+                        <span className="mt-1 inline-block rounded-full border border-slate-200 dark:border-[#3a3a3a] bg-slate-50 dark:bg-[#252525] px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:text-[#e0e0e0]">
                           {deck.category}
                         </span>
                       )}
@@ -186,33 +198,34 @@ export default function FlashcardsPage() {
                   </div>
 
                   {deck.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">
+                    <p className="text-xs text-slate-600 dark:text-[#c2c2c2] line-clamp-2">
                       {deck.description}
                     </p>
                   )}
                 </div>
 
                 {/* Stats */}
-                <div className="p-6 bg-gray-50">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-900">
+                <div className="px-5 py-4 bg-slate-50 dark:bg-[#1f1f1f]">
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div>
+                      <p className="text-lg font-semibold text-slate-900 dark:text-[#f5f5f5]">
                         {deck.totalCards}
                       </p>
-                      <p className="text-xs text-gray-500">Total</p>
+                      <p className="text-[11px] text-slate-500 dark:text-[#bdbdbd]">
+                        Total
+                      </p>
                     </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">
+                    <div>
+                      <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
                         {deck.dueCards || 0}
                       </p>
-                      <p className="text-xs text-gray-500">Due</p>
+                      <p className="text-[11px] text-slate-500 dark:text-[#bdbdbd]">
+                        Due
+                      </p>
                     </div>
-                    <div className="text-center">
-                      <Clock
-                        className="w-4 h-4 text-gray-400 mx-auto mb-1"
-                        strokeWidth={2}
-                      />
-                      <p className="text-xs text-gray-500">
+                    <div>
+                      <Clock className="w-4 h-4 text-slate-400 dark:text-[#9e9e9e] mx-auto mb-1" />
+                      <p className="text-[11px] text-slate-500 dark:text-[#bdbdbd]">
                         {deck.lastStudied
                           ? new Date(deck.lastStudied).toLocaleDateString()
                           : "Never"}
@@ -221,9 +234,9 @@ export default function FlashcardsPage() {
                   </div>
 
                   {deck.dueCards && deck.dueCards > 0 && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="flex items-center justify-center gap-2 text-sm font-medium text-green-600">
-                        <TrendingUp className="w-4 h-4" strokeWidth={2} />
+                    <div className="mt-3 pt-3 border-t border-slate-200 dark:border-[#2a2a2a]">
+                      <div className="flex items-center justify-center gap-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                        <TrendingUp className="w-4 h-4" />
                         <span>Ready to study</span>
                       </div>
                     </div>
@@ -235,30 +248,35 @@ export default function FlashcardsPage() {
         )}
 
         {/* Study Tips */}
-        <div className="mt-12 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-6 h-6 text-white" strokeWidth={2} />
+        <div className="mt-10 rounded-2xl border border-blue-100 dark:border-[#2a2a2a] bg-gradient-to-br from-blue-50 via-slate-50 to-indigo-50 dark:from-[#1a1a1a] dark:via-[#212121] dark:to-[#1a1a1a] px-5 py-5 sm:px-6 sm:py-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white flex-shrink-0">
+              <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 mb-2">Study Tips</h3>
-              <ul className="space-y-2 text-sm text-gray-700">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-[#f5f5f5] mb-2">
+                Study tips
+              </h3>
+              <ul className="space-y-1.5 text-xs text-slate-700 dark:text-[#c2c2c2]">
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500" />
                   <span>
-                    Review cards daily for best retention with spaced repetition
+                    Review a small set of cards every day instead of cramming
+                    once a week.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500" />
                   <span>
-                    Focus on understanding concepts, not just memorization
+                    Say answers out loud or type them before revealing the
+                    back of the card.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500" />
                   <span>
-                    Study in short sessions (20-30 minutes) for better focus
+                    Keep sessions short (20–30 minutes) and come back multiple
+                    times a day.
                   </span>
                 </li>
               </ul>

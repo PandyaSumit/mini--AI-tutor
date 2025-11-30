@@ -9,68 +9,69 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true, // Important for cookie-based auth
+    baseURL: API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    withCredentials: true, // Important for cookie-based auth
 });
 
 // Request interceptor
 apiClient.interceptors.request.use(
-  (config) => {
-    // Add auth token from localStorage if exists
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('authToken');
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    (config) => {
+        // Add auth token from localStorage if exists
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('authToken');
+            if (token && config.headers) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
 );
 
 // Response interceptor
 apiClient.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => {
-    return response;
-  },
-  (error: AxiosError<ApiError>) => {
-    if (error.response) {
-      // Server responded with error status
-      const apiError: ApiError = {
-        message: error.response.data?.message || 'An error occurred',
-        statusCode: error.response.status,
-        errors: error.response.data?.errors,
-      };
+    (response: AxiosResponse<ApiResponse>) => {
+        return response;
+    },
+    (error: AxiosError<ApiError>) => {
+        if (error.response) {
+            // Server responded with error status
+            const apiError: ApiError = {
+                message: error.response.data?.message || 'An error occurred',
+                statusCode: error.response.status,
+                errors: error.response.data?.errors,
+            };
 
-      // Handle authentication errors
-      if (error.response.status === 401) {
-        // Redirect to login
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('authToken');
-          window.location.href = '/login';
+            // Handle authentication errors
+            if (error.response.status === 401) {
+                // Clear stored token but do NOT perform a hard redirect here.
+                // Let the app-level auth logic (AuthProvider) handle routing so
+                // UI can show errors and avoid unexpected full-page reloads.
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('authToken');
+                }
+            }
+
+            return Promise.reject(apiError);
+        } else if (error.request) {
+            // Request made but no response
+            return Promise.reject({
+                message: 'Network error. Please check your connection.',
+                statusCode: 0,
+            });
+        } else {
+            // Something else happened
+            return Promise.reject({
+                message: error.message,
+                statusCode: 0,
+            });
         }
-      }
-
-      return Promise.reject(apiError);
-    } else if (error.request) {
-      // Request made but no response
-      return Promise.reject({
-        message: 'Network error. Please check your connection.',
-        statusCode: 0,
-      });
-    } else {
-      // Something else happened
-      return Promise.reject({
-        message: error.message,
-        statusCode: 0,
-      });
     }
-  }
 );
 
 export default apiClient;

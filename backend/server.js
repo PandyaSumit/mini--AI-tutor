@@ -136,7 +136,23 @@ if (aiService.isReady()) {
 
 // Middleware
 app.use(helmet()); // Security headers
-app.use(cors()); // Enable CORS
+
+// Configure CORS to allow the frontend origin and credentials (cookies)
+const allowedFrontend = process.env.FRONTEND_URL || 'http://localhost:3000';
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow requests with no origin (e.g., server-to-server, mobile tools)
+        if (!origin) return callback(null, true);
+        const allowed = [allowedFrontend, 'http://localhost:5173', 'http://localhost:5174'];
+        if (allowed.includes(origin)) return callback(null, true);
+        return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+};
+
+app.use(cors(corsOptions)); // Enable CORS with options
+app.options('*', cors(corsOptions)); // Preflight support
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(morgan('dev')); // HTTP request logger

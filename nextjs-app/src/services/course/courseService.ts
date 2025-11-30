@@ -104,6 +104,88 @@ class CourseService {
       throw error;
     }
   }
+
+  /**
+   * Alias for getCourseById (used by CourseDetail page)
+   */
+  async getCourse(id: string): Promise<Course> {
+    return this.getCourseById(id);
+  }
+
+  /**
+   * Alias for enrollInCourse (used by CourseDetail page)
+   */
+  async enroll(id: string): Promise<CourseEnrollment> {
+    return this.enrollInCourse(id);
+  }
+
+  /**
+   * Check for similar courses
+   */
+  async checkSimilar(data: { prompt: string; level: string }): Promise<any> {
+    try {
+      const response = await apiClient.post<ApiResponse<any>>(
+        '/courses/check-similar',
+        data
+      );
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Generate course preview
+   */
+  async generatePreview(data: {
+    prompt: string;
+    level: string;
+    numModules: number;
+  }): Promise<any> {
+    try {
+      const response = await apiClient.post<ApiResponse<any>>(
+        '/courses/generate/preview',
+        data
+      );
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Generate full course
+   */
+  async generate(data: {
+    prompt: string;
+    level: string;
+    numModules: number;
+    lessonsPerModule: number;
+  }): Promise<Course> {
+    try {
+      const response = await apiClient.post<ApiResponse<Course>>(
+        '/courses/generate',
+        data
+      );
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Publish a course
+   */
+  async publishCourse(id: string): Promise<Course> {
+    try {
+      const response = await apiClient.post<ApiResponse<Course>>(
+        `/courses/${id}/publish`
+      );
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export const courseService = new CourseService();

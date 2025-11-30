@@ -3,12 +3,12 @@
  * Main dashboard with stats, roadmaps, and recent activity
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useAuth } from '@/hooks';
-import { dashboardService } from '@/services/dashboard';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useAuth } from "@/hooks";
+import { dashboardService } from "@/services/dashboard";
 import {
   MessageSquare,
   Brain,
@@ -21,10 +21,10 @@ import {
   TrendingUp,
   Clock,
   BookOpen,
-} from 'lucide-react';
-import type { DashboardStats } from '@/types';
+} from "lucide-react";
+import type { DashboardStats } from "@/types";
 
-interface Flashcard Stats {
+interface FlashcardStats {
   totalCards: number;
   dueCards: number;
   decks: number;
@@ -46,9 +46,13 @@ interface Roadmap {
 export default function DashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentConversations, setRecentConversations] = useState<Conversation[]>([]);
+  const [recentConversations, setRecentConversations] = useState<
+    Conversation[]
+  >([]);
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
-  const [flashcardStats, setFlashcardStats] = useState<FlashcardStats | null>(null);
+  const [flashcardStats, setFlashcardStats] = useState<FlashcardStats | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -68,7 +72,7 @@ export default function DashboardPage() {
       setRoadmaps([]);
       setFlashcardStats({ totalCards: 0, dueCards: 0, decks: 0 });
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error("Error fetching dashboard data:", error);
       setStats(null);
       setRecentConversations([]);
       setRoadmaps([]);
@@ -80,9 +84,9 @@ export default function DashboardPage() {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
   };
 
   const DashboardSkeleton = () => (
@@ -100,7 +104,10 @@ export default function DashboardPage() {
       <div className="mx-auto px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl p-6 border border-gray-100">
+            <div
+              key={i}
+              className="bg-white rounded-xl p-6 border border-gray-100"
+            >
               <div className="animate-pulse space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="w-10 h-10 rounded-lg bg-gray-200"></div>
@@ -124,28 +131,33 @@ export default function DashboardPage() {
   const statCards = [
     {
       icon: MessageSquare,
-      label: 'Conversations',
+      label: "Conversations",
       value: stats?.totalConversations || 0,
-      change: '+12%',
-      changeLabel: 'vs last week',
+      change: "+12%",
+      changeLabel: "vs last week",
     },
     {
       icon: Map,
-      label: 'Active Roadmaps',
+      label: "Active Roadmaps",
       value: roadmaps.length || 0,
-      change: roadmaps.length > 0 ? 'In progress' : 'Get started',
+      change: roadmaps.length > 0 ? "In progress" : "Get started",
     },
     {
       icon: Brain,
-      label: 'Cards Due',
+      label: "Cards Due",
       value: flashcardStats?.dueCards || 0,
-      change: flashcardStats?.totalCards ? `${flashcardStats.totalCards} total` : 'No cards yet',
+      change: flashcardStats?.totalCards
+        ? `${flashcardStats.totalCards} total`
+        : "No cards yet",
     },
     {
       icon: Flame,
-      label: 'Day Streak',
+      label: "Day Streak",
       value: stats?.currentStreak || 0,
-      change: stats?.currentStreak && stats.currentStreak > 0 ? 'Keep it up!' : 'Start today',
+      change:
+        stats?.currentStreak && stats.currentStreak > 0
+          ? "Keep it up!"
+          : "Start today",
       highlight: stats?.currentStreak && stats.currentStreak >= 7,
     },
   ];
@@ -160,12 +172,17 @@ export default function DashboardPage() {
             <div className="flex-1 space-y-4">
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-                  {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}! 👋
+                  {getGreeting()}, {user?.name?.split(" ")[0] || "there"}! 👋
                 </h1>
                 {stats?.currentStreak && stats.currentStreak > 0 && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 rounded-full">
-                    <Flame className="w-4 h-4 text-orange-600" strokeWidth={2} />
-                    <span className="text-sm font-bold text-orange-900">{stats.currentStreak} day streak</span>
+                    <Flame
+                      className="w-4 h-4 text-orange-600"
+                      strokeWidth={2}
+                    />
+                    <span className="text-sm font-bold text-orange-900">
+                      {stats.currentStreak} day streak
+                    </span>
                   </div>
                 )}
               </div>
@@ -173,15 +190,23 @@ export default function DashboardPage() {
               <div className="space-y-2">
                 {flashcardStats?.dueCards && flashcardStats.dueCards > 0 ? (
                   <p className="text-gray-700 text-base">
-                    You have <span className="font-semibold text-gray-900">{flashcardStats.dueCards} cards</span> ready
-                    to review today
+                    You have{" "}
+                    <span className="font-semibold text-gray-900">
+                      {flashcardStats.dueCards} cards
+                    </span>{" "}
+                    ready to review today
                   </p>
                 ) : roadmaps.length > 0 ? (
                   <p className="text-gray-700 text-base">
-                    Continue your progress on <span className="font-semibold text-gray-900">{roadmaps[0]?.goal}</span>
+                    Continue your progress on{" "}
+                    <span className="font-semibold text-gray-900">
+                      {roadmaps[0]?.goal}
+                    </span>
                   </p>
                 ) : (
-                  <p className="text-gray-700 text-base">Let&apos;s start building your personalized learning path</p>
+                  <p className="text-gray-700 text-base">
+                    Let&apos;s start building your personalized learning path
+                  </p>
                 )}
               </div>
             </div>
@@ -228,23 +253,31 @@ export default function DashboardPage() {
               <div
                 key={index}
                 className={`p-6 rounded-xl border transition-all ${
-                  stat.highlight ? 'border-yellow-200 bg-yellow-50' : 'border-gray-100 bg-white hover:border-gray-200'
+                  stat.highlight
+                    ? "border-yellow-200 bg-yellow-50"
+                    : "border-gray-100 bg-white hover:border-gray-200"
                 }`}
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div
                     className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      stat.highlight ? 'bg-yellow-200' : 'bg-gray-100'
+                      stat.highlight ? "bg-yellow-200" : "bg-gray-100"
                     }`}
                   >
                     <Icon
-                      className={`w-5 h-5 ${stat.highlight ? 'text-yellow-700' : 'text-gray-600'}`}
+                      className={`w-5 h-5 ${
+                        stat.highlight ? "text-yellow-700" : "text-gray-600"
+                      }`}
                       strokeWidth={2}
                     />
                   </div>
                 </div>
-                <p className="text-sm font-medium text-gray-600 mb-1">{stat.label}</p>
-                <p className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</p>
+                <p className="text-sm font-medium text-gray-600 mb-1">
+                  {stat.label}
+                </p>
+                <p className="text-3xl font-bold text-gray-900 mb-2">
+                  {stat.value}
+                </p>
                 <p className="text-xs text-gray-500">{stat.change}</p>
               </div>
             );
@@ -257,7 +290,9 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Quick Actions */}
             <section className="bg-white rounded-xl border border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Quick Actions
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Link
                   href="/chat"
@@ -265,11 +300,18 @@ export default function DashboardPage() {
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                      <MessageSquare className="w-5 h-5 text-blue-600" strokeWidth={2} />
+                      <MessageSquare
+                        className="w-5 h-5 text-blue-600"
+                        strokeWidth={2}
+                      />
                     </div>
-                    <h3 className="font-semibold text-gray-900">Ask AI Tutor</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      Ask AI Tutor
+                    </h3>
                   </div>
-                  <p className="text-sm text-gray-600">Get instant help with any topic</p>
+                  <p className="text-sm text-gray-600">
+                    Get instant help with any topic
+                  </p>
                 </Link>
 
                 <Link
@@ -278,11 +320,18 @@ export default function DashboardPage() {
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                      <Map className="w-5 h-5 text-purple-600" strokeWidth={2} />
+                      <Map
+                        className="w-5 h-5 text-purple-600"
+                        strokeWidth={2}
+                      />
                     </div>
-                    <h3 className="font-semibold text-gray-900">Create Roadmap</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      Create Roadmap
+                    </h3>
                   </div>
-                  <p className="text-sm text-gray-600">Plan your learning journey</p>
+                  <p className="text-sm text-gray-600">
+                    Plan your learning journey
+                  </p>
                 </Link>
 
                 <Link
@@ -291,11 +340,18 @@ export default function DashboardPage() {
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                      <Brain className="w-5 h-5 text-green-600" strokeWidth={2} />
+                      <Brain
+                        className="w-5 h-5 text-green-600"
+                        strokeWidth={2}
+                      />
                     </div>
-                    <h3 className="font-semibold text-gray-900">Study Flashcards</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      Study Flashcards
+                    </h3>
                   </div>
-                  <p className="text-sm text-gray-600">Review with spaced repetition</p>
+                  <p className="text-sm text-gray-600">
+                    Review with spaced repetition
+                  </p>
                 </Link>
 
                 <Link
@@ -304,11 +360,18 @@ export default function DashboardPage() {
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-orange-600" strokeWidth={2} />
+                      <BookOpen
+                        className="w-5 h-5 text-orange-600"
+                        strokeWidth={2}
+                      />
                     </div>
-                    <h3 className="font-semibold text-gray-900">Browse Courses</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      Browse Courses
+                    </h3>
                   </div>
-                  <p className="text-sm text-gray-600">Explore structured content</p>
+                  <p className="text-sm text-gray-600">
+                    Explore structured content
+                  </p>
                 </Link>
               </div>
             </section>
@@ -320,7 +383,9 @@ export default function DashboardPage() {
                   <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
                     <Clock className="w-5 h-5 text-gray-600" strokeWidth={2} />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Recent Activity
+                  </h2>
                 </div>
                 <Link
                   href="/conversations"
@@ -333,7 +398,10 @@ export default function DashboardPage() {
 
               {recentConversations.length === 0 ? (
                 <div className="text-center py-12">
-                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" strokeWidth={1.5} />
+                  <MessageSquare
+                    className="w-12 h-12 text-gray-300 mx-auto mb-4"
+                    strokeWidth={1.5}
+                  />
                   <p className="text-gray-500 mb-4">No recent conversations</p>
                   <Link
                     href="/chat"
@@ -351,9 +419,13 @@ export default function DashboardPage() {
                       href={`/chat/${conversation._id}`}
                       className="block p-4 rounded-lg border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all"
                     >
-                      <h3 className="font-semibold text-gray-900 mb-1">{conversation.topic}</h3>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        {conversation.topic}
+                      </h3>
                       {conversation.lastMessage && (
-                        <p className="text-sm text-gray-600 truncate">{conversation.lastMessage}</p>
+                        <p className="text-sm text-gray-600 truncate">
+                          {conversation.lastMessage}
+                        </p>
                       )}
                       <p className="text-xs text-gray-400 mt-2">
                         {new Date(conversation.createdAt).toLocaleDateString()}
@@ -374,7 +446,8 @@ export default function DashboardPage() {
                 <h3 className="font-bold text-gray-900">Study Tip</h3>
               </div>
               <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                Regular practice is key! Try to study for at least 20 minutes each day to build a strong learning habit.
+                Regular practice is key! Try to study for at least 20 minutes
+                each day to build a strong learning habit.
               </p>
               <div className="flex items-center gap-2 text-xs text-blue-600">
                 <TrendingUp className="w-4 h-4" strokeWidth={2} />
@@ -388,14 +461,18 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Overall Progress</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Overall Progress
+                    </span>
                     <span className="text-sm font-bold text-gray-900">0%</span>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div className="h-full w-[0%] bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500">Start learning to track your progress</p>
+                <p className="text-xs text-gray-500">
+                  Start learning to track your progress
+                </p>
               </div>
             </section>
           </div>

@@ -3,12 +3,20 @@
  * List of all flashcard decks
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { flashcardService } from '@/services/flashcard';
-import { Brain, Plus, BookOpen, Clock, TrendingUp, Sparkles, Zap } from 'lucide-react';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { flashcardService } from "@/services/flashcard";
+import {
+  Brain,
+  Plus,
+  BookOpen,
+  Clock,
+  TrendingUp,
+  Sparkles,
+  Zap,
+} from "lucide-react";
 
 interface Deck {
   _id: string;
@@ -34,7 +42,7 @@ export default function FlashcardsPage() {
       // In production, this would call flashcardService.getDecks() or similar
       setDecks([]);
     } catch (error) {
-      console.error('Error fetching decks:', error);
+      console.error("Error fetching decks:", error);
       setDecks([]);
     } finally {
       setLoading(false);
@@ -44,7 +52,7 @@ export default function FlashcardsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="mx-auto px-6 py-8">
           <div className="animate-pulse space-y-6">
             <div className="h-8 w-48 bg-gray-200 rounded"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -60,12 +68,16 @@ export default function FlashcardsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Flashcards</h1>
-            <p className="text-gray-600">Study with spaced repetition for better retention</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Flashcards
+            </h1>
+            <p className="text-gray-600">
+              Study with spaced repetition for better retention
+            </p>
           </div>
           <Link
             href="/flashcards/create"
@@ -109,7 +121,9 @@ export default function FlashcardsPage() {
               </div>
               <div>
                 <p className="text-sm text-purple-700">Total Decks</p>
-                <p className="text-2xl font-bold text-purple-900">{decks.length}</p>
+                <p className="text-2xl font-bold text-purple-900">
+                  {decks.length}
+                </p>
               </div>
             </div>
           </div>
@@ -121,9 +135,12 @@ export default function FlashcardsPage() {
             <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
               <Brain className="w-10 h-10 text-gray-400" strokeWidth={1.5} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No flashcard decks yet</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              No flashcard decks yet
+            </h2>
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Create your first deck or generate flashcards from your study materials using AI
+              Create your first deck or generate flashcards from your study
+              materials using AI
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
@@ -169,7 +186,9 @@ export default function FlashcardsPage() {
                   </div>
 
                   {deck.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">{deck.description}</p>
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {deck.description}
+                    </p>
                   )}
                 </div>
 
@@ -177,17 +196,26 @@ export default function FlashcardsPage() {
                 <div className="p-6 bg-gray-50">
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-900">{deck.totalCards}</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {deck.totalCards}
+                      </p>
                       <p className="text-xs text-gray-500">Total</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">{deck.dueCards || 0}</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {deck.dueCards || 0}
+                      </p>
                       <p className="text-xs text-gray-500">Due</p>
                     </div>
                     <div className="text-center">
-                      <Clock className="w-4 h-4 text-gray-400 mx-auto mb-1" strokeWidth={2} />
+                      <Clock
+                        className="w-4 h-4 text-gray-400 mx-auto mb-1"
+                        strokeWidth={2}
+                      />
                       <p className="text-xs text-gray-500">
-                        {deck.lastStudied ? new Date(deck.lastStudied).toLocaleDateString() : 'Never'}
+                        {deck.lastStudied
+                          ? new Date(deck.lastStudied).toLocaleDateString()
+                          : "Never"}
                       </p>
                     </div>
                   </div>
@@ -217,15 +245,21 @@ export default function FlashcardsPage() {
               <ul className="space-y-2 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-1">•</span>
-                  <span>Review cards daily for best retention with spaced repetition</span>
+                  <span>
+                    Review cards daily for best retention with spaced repetition
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-1">•</span>
-                  <span>Focus on understanding concepts, not just memorization</span>
+                  <span>
+                    Focus on understanding concepts, not just memorization
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-1">•</span>
-                  <span>Study in short sessions (20-30 minutes) for better focus</span>
+                  <span>
+                    Study in short sessions (20-30 minutes) for better focus
+                  </span>
                 </li>
               </ul>
             </div>

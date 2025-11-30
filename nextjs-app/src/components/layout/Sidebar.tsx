@@ -3,12 +3,12 @@
  * Desktop navigation sidebar with collapsible functionality
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/hooks";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -22,8 +22,8 @@ import {
   Bell,
   Command,
   GraduationCap,
-} from 'lucide-react';
-import { PlatformLogo, SidebarHandlerIcon } from '@/components/icons';
+} from "lucide-react";
+import { PlatformLogo, SidebarHandlerIcon } from "@/components/icons";
 
 interface NavItem {
   to: string;
@@ -36,45 +36,45 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    to: '/dashboard',
-    label: 'Dashboard',
+    to: "/dashboard",
+    label: "Dashboard",
     icon: LayoutDashboard,
-    match: (path) => path === '/dashboard',
+    match: (path) => path === "/dashboard",
     showInBottomNav: true,
   },
   {
-    to: '/chat',
-    label: 'AI Chat',
+    to: "/chat",
+    label: "AI Chat",
     icon: MessageSquare,
-    match: (path) => path.startsWith('/chat'),
+    match: (path) => path.startsWith("/chat"),
     showInBottomNav: true,
   },
   {
-    to: '/roadmaps',
-    label: 'Roadmaps',
+    to: "/roadmaps",
+    label: "Roadmaps",
     icon: Map,
-    match: (path) => path.startsWith('/roadmaps'),
+    match: (path) => path.startsWith("/roadmaps"),
     showInBottomNav: true,
   },
   {
-    to: '/flashcards',
-    label: 'Flashcards',
+    to: "/flashcards",
+    label: "Flashcards",
     icon: Brain,
-    match: (path) => path.startsWith('/flashcards'),
+    match: (path) => path.startsWith("/flashcards"),
     showInBottomNav: true,
   },
   {
-    to: '/courses',
-    label: 'Courses',
+    to: "/courses",
+    label: "Courses",
     icon: GraduationCap,
-    match: (path) => path.startsWith('/courses'),
+    match: (path) => path.startsWith("/courses"),
     showInBottomNav: false,
   },
   {
-    to: '/conversations',
-    label: 'History',
+    to: "/conversations",
+    label: "History",
     icon: BookOpen,
-    match: (path) => path === '/conversations',
+    match: (path) => path === "/conversations",
     showInBottomNav: false,
   },
 ];
@@ -86,14 +86,19 @@ interface SidebarContentProps {
   onClose?: () => void;
 }
 
-const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: SidebarContentProps) => {
+const SidebarContent = ({
+  isMobile = false,
+  collapsed,
+  setCollapsed,
+  onClose,
+}: SidebarContentProps) => {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleLogout = async () => {
-    if (window.confirm('Are you sure you want to logout?')) {
+    if (window.confirm("Are you sure you want to logout?")) {
       await logout();
     }
   };
@@ -101,14 +106,22 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header with Logo */}
-      <div className={`${collapsed && !isMobile ? 'px-3 pt-[0.9rem] pb-4' : 'px-5 pt-[0.9rem] pb-4'} relative`}>
+      <div
+        className={`${
+          collapsed && !isMobile
+            ? "px-3 pt-[0.9rem] pb-4"
+            : "px-5 pt-[0.9rem] pb-4"
+        } relative`}
+      >
         {!collapsed || isMobile ? (
           <div className="flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center gap-2.5 group">
               <div className="w-8 h-8 flex items-center justify-center">
                 <PlatformLogo />
               </div>
-              <span className="text-[17px] font-bold text-gray-900">Mindrift</span>
+              <span className="text-[17px] font-bold text-gray-900">
+                Mindrift
+              </span>
             </Link>
 
             {!isMobile && (
@@ -166,11 +179,15 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
       )}
 
       {/* Main Navigation */}
-      <nav className={`flex-1 overflow-y-auto ${collapsed && !isMobile ? 'px-2' : 'px-3'}`}>
+      <nav
+        className={`flex-1 overflow-y-auto ${
+          collapsed && !isMobile ? "px-2" : "px-3"
+        }`}
+      >
         <div className="space-y-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = item.match(pathname || '');
+            const isActive = item.match(pathname || "");
 
             return (
               <Link
@@ -180,25 +197,35 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
                 className={`
                   flex items-center gap-3 rounded-md
                   transition-all duration-150 group relative
-                  ${collapsed && !isMobile ? 'px-2 py-2 justify-center' : 'px-2.5 py-2'}
+                  ${
+                    collapsed && !isMobile
+                      ? "px-2 py-2 justify-center"
+                      : "px-2.5 py-2"
+                  }
                   ${
                     isActive
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? "bg-gray-100 text-gray-900"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }
                 `}
-                title={collapsed && !isMobile ? item.label : ''}
+                title={collapsed && !isMobile ? item.label : ""}
                 aria-label={item.label}
               >
                 <Icon
-                  className={`flex-shrink-0 ${collapsed && !isMobile ? 'w-5 h-5' : 'w-[18px] h-[18px]'} ${
-                    isActive ? 'text-gray-700' : 'text-gray-400 group-hover:text-gray-600'
+                  className={`flex-shrink-0 ${
+                    collapsed && !isMobile ? "w-5 h-5" : "w-[18px] h-[18px]"
+                  } ${
+                    isActive
+                      ? "text-gray-700"
+                      : "text-gray-400 group-hover:text-gray-600"
                   }`}
                   strokeWidth={2}
                 />
                 {(!collapsed || isMobile) && (
                   <>
-                    <span className="text-[14px] font-medium flex-1">{item.label}</span>
+                    <span className="text-[14px] font-medium flex-1">
+                      {item.label}
+                    </span>
                     {item.badge && (
                       <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded">
                         {item.badge}
@@ -220,11 +247,18 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
       </nav>
 
       {/* Bottom Section */}
-      <div className={`border-t border-gray-100 py-3 space-y-0.5 ${collapsed && !isMobile ? 'px-2' : 'px-3'}`}>
+      <div
+        className={`border-t border-gray-100 py-3 space-y-0.5 ${
+          collapsed && !isMobile ? "px-2" : "px-3"
+        }`}
+      >
         {/* Help Center */}
         {!collapsed || isMobile ? (
           <button className="w-full flex items-center gap-3 px-2.5 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-150 group">
-            <HelpCircle className="w-[18px] h-[18px] text-gray-400 group-hover:text-gray-600" strokeWidth={2} />
+            <HelpCircle
+              className="w-[18px] h-[18px] text-gray-400 group-hover:text-gray-600"
+              strokeWidth={2}
+            />
             <span className="text-[14px] font-medium">Help center</span>
           </button>
         ) : (
@@ -232,7 +266,10 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
             className="w-full flex items-center justify-center px-2 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-all group relative"
             title="Help center"
           >
-            <HelpCircle className="w-5 h-5 text-gray-400 group-hover:text-gray-600" strokeWidth={2} />
+            <HelpCircle
+              className="w-5 h-5 text-gray-400 group-hover:text-gray-600"
+              strokeWidth={2}
+            />
             <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
               Help center
             </div>
@@ -242,8 +279,13 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
         {/* Notifications */}
         {!collapsed || isMobile ? (
           <button className="w-full flex items-center gap-3 px-2.5 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-150 group relative">
-            <Bell className="w-[18px] h-[18px] text-gray-400 group-hover:text-gray-600" strokeWidth={2} />
-            <span className="text-[14px] font-medium flex-1 text-left">Notifications</span>
+            <Bell
+              className="w-[18px] h-[18px] text-gray-400 group-hover:text-gray-600"
+              strokeWidth={2}
+            />
+            <span className="text-[14px] font-medium flex-1 text-left">
+              Notifications
+            </span>
             <span className="w-5 h-5 bg-red-500 text-white text-[11px] font-semibold rounded-full flex items-center justify-center">
               3
             </span>
@@ -254,7 +296,10 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
             title="Notifications"
           >
             <div className="relative">
-              <Bell className="w-5 h-5 text-gray-400 group-hover:text-gray-600" strokeWidth={2} />
+              <Bell
+                className="w-5 h-5 text-gray-400 group-hover:text-gray-600"
+                strokeWidth={2}
+              />
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </div>
             <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
@@ -271,22 +316,24 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
             className="w-full flex items-center gap-3 px-2.5 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-150 group"
           >
             <div className="w-[18px] h-[18px] rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </div>
-            <span className="text-[14px] font-medium truncate">{user?.name || 'User Profile'}</span>
+            <span className="text-[14px] font-medium truncate">
+              {user?.name || "User Profile"}
+            </span>
           </Link>
         ) : (
           <Link
             href="/profile"
             onClick={onClose}
             className="w-full flex items-center justify-center px-2 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-all group relative"
-            title={user?.name || 'Profile'}
+            title={user?.name || "Profile"}
           >
             <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-semibold">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </div>
             <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-              {user?.name || 'Profile'}
+              {user?.name || "Profile"}
             </div>
           </Link>
         )}
@@ -298,7 +345,10 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
             className="w-full flex items-center gap-3 px-2.5 py-2 rounded-md text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-150 group"
             aria-label="Logout"
           >
-            <LogOut className="w-[18px] h-[18px] text-gray-400 group-hover:text-red-500" strokeWidth={2} />
+            <LogOut
+              className="w-[18px] h-[18px] text-gray-400 group-hover:text-red-500"
+              strokeWidth={2}
+            />
             <span className="text-[14px] font-medium">Logout</span>
           </button>
         ) : (
@@ -308,7 +358,10 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
             title="Logout"
             aria-label="Logout"
           >
-            <LogOut className="w-5 h-5 text-gray-400 group-hover:text-red-500" strokeWidth={2} />
+            <LogOut
+              className="w-5 h-5 text-gray-400 group-hover:text-red-500"
+              strokeWidth={2}
+            />
             <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
               Logout
             </div>
@@ -321,17 +374,18 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
         <div className="px-3 pb-4">
           <div className="bg-gradient-to-br from-gray-50 to-gray-100/80 rounded-xl p-4 border border-gray-200/60">
             <div className="space-y-3">
-              <div>
-                <h4 className="text-[13px] font-semibold text-gray-900 mb-1">Learning Progress</h4>
-                <p className="text-[11px] text-gray-500 leading-relaxed">Track your learning journey</p>
-              </div>
+              <p className="text-[11px] text-gray-500 leading-relaxed">
+                Track your learning journey
+              </p>
 
               {/* Progress Stats */}
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                   <div className="h-full w-[60%] bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
                 </div>
-                <span className="text-[11px] font-semibold text-gray-600">60%</span>
+                <span className="text-[11px] font-semibold text-gray-600">
+                  60%
+                </span>
               </div>
 
               {/* CTA Button */}
@@ -347,19 +401,32 @@ const SidebarContent = ({ isMobile = false, collapsed, setCollapsed, onClose }: 
   );
 };
 
-export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarProps {
+  collapsed?: boolean;
+  setCollapsed?: (b: boolean) => void;
+}
+
+export default function Sidebar({
+  collapsed: collapsedProp,
+  setCollapsed: setCollapsedProp,
+}: SidebarProps) {
+  // Support external control of collapsed state (from layout) while
+  // falling back to internal state when not provided.
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const collapsed =
+    typeof collapsedProp === "boolean" ? collapsedProp : internalCollapsed;
+  const setCollapsed = setCollapsedProp ?? setInternalCollapsed;
 
   // Keyboard shortcut for search (Cmd+K or Ctrl+K)
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        document.getElementById('sidebar-search')?.focus();
+        document.getElementById("sidebar-search")?.focus();
       }
     };
-    document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
+    document.addEventListener("keydown", handleKeyPress);
+    return () => document.removeEventListener("keydown", handleKeyPress);
   }, []);
 
   return (
@@ -367,15 +434,13 @@ export default function Sidebar() {
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <div
-          className={`fixed left-0 top-0 h-full bg-white border-r border-gray-100 flex flex-col transition-all duration-300 z-40 ${
-            collapsed ? 'w-20' : 'w-64'
+          className={`fixed left-0 top-0 h-full bg-white border-r border-gray-100 flex flex-col transition-all duration-300 ease-in-out z-40 ${
+            collapsed ? "w-20" : "w-64"
           }`}
+          style={{ willChange: "width" }}
         >
           <SidebarContent collapsed={collapsed} setCollapsed={setCollapsed} />
         </div>
-
-        {/* Spacer */}
-        <div className={`flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'}`} />
       </div>
     </>
   );

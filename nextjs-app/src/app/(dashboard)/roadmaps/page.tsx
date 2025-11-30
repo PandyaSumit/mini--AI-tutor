@@ -3,13 +3,21 @@
  * List of all user's learning roadmaps
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { roadmapService } from '@/services/roadmap';
-import { Map, Plus, TrendingUp, Clock, Target, CheckCircle2, Sparkles } from 'lucide-react';
-import type { Roadmap } from '@/types';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { roadmapService } from "@/services/roadmap";
+import {
+  Map,
+  Plus,
+  TrendingUp,
+  Clock,
+  Target,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
+import type { Roadmap } from "@/types";
 
 export default function RoadmapsPage() {
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
@@ -24,7 +32,7 @@ export default function RoadmapsPage() {
       const data = await roadmapService.getRoadmaps();
       setRoadmaps(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Error fetching roadmaps:', error);
+      console.error("Error fetching roadmaps:", error);
       setRoadmaps([]);
     } finally {
       setLoading(false);
@@ -33,14 +41,16 @@ export default function RoadmapsPage() {
 
   const getProgress = (roadmap: Roadmap) => {
     if (!roadmap.milestones || roadmap.milestones.length === 0) return 0;
-    const completed = roadmap.milestones.filter((m) => m.status === 'completed').length;
+    const completed = roadmap.milestones.filter(
+      (m) => m.status === "completed"
+    ).length;
     return Math.round((completed / roadmap.milestones.length) * 100);
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="mx-auto px-6 py-8">
           <div className="animate-pulse space-y-6">
             <div className="h-8 w-48 bg-gray-200 rounded"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -56,12 +66,16 @@ export default function RoadmapsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Learning Roadmaps</h1>
-            <p className="text-gray-600">Create and track your personalized learning paths</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Learning Roadmaps
+            </h1>
+            <p className="text-gray-600">
+              Create and track your personalized learning paths
+            </p>
           </div>
           <Link
             href="/roadmaps/create"
@@ -78,9 +92,12 @@ export default function RoadmapsPage() {
             <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
               <Map className="w-10 h-10 text-gray-400" strokeWidth={1.5} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No roadmaps yet</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              No roadmaps yet
+            </h2>
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Create your first learning roadmap to start tracking your educational journey
+              Create your first learning roadmap to start tracking your
+              educational journey
             </p>
             <Link
               href="/roadmaps/create"
@@ -110,20 +127,26 @@ export default function RoadmapsPage() {
                         <h3 className="text-lg font-bold text-gray-900 mb-1 truncate group-hover:text-blue-600 transition-colors">
                           {roadmap.title || roadmap.goal}
                         </h3>
-                        <p className="text-sm text-gray-500">{roadmap.difficulty || 'Intermediate'}</p>
+                        <p className="text-sm text-gray-500">
+                          {roadmap.difficulty || "Intermediate"}
+                        </p>
                       </div>
                     </div>
 
                     {/* Description */}
                     {roadmap.description && (
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-4">{roadmap.description}</p>
+                      <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+                        {roadmap.description}
+                      </p>
                     )}
 
                     {/* Progress */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-gray-600">Progress</span>
-                        <span className="font-semibold text-gray-900">{progress}%</span>
+                        <span className="font-semibold text-gray-900">
+                          {progress}%
+                        </span>
                       </div>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div
@@ -139,25 +162,40 @@ export default function RoadmapsPage() {
                     <div className="grid grid-cols-3 gap-4">
                       <div className="text-center">
                         <div className="flex items-center justify-center gap-1 mb-1">
-                          <Target className="w-4 h-4 text-gray-400" strokeWidth={2} />
+                          <Target
+                            className="w-4 h-4 text-gray-400"
+                            strokeWidth={2}
+                          />
                         </div>
-                        <p className="text-lg font-bold text-gray-900">{roadmap.milestones?.length || 0}</p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {roadmap.milestones?.length || 0}
+                        </p>
                         <p className="text-xs text-gray-500">Milestones</p>
                       </div>
                       <div className="text-center">
                         <div className="flex items-center justify-center gap-1 mb-1">
-                          <CheckCircle2 className="w-4 h-4 text-green-500" strokeWidth={2} />
+                          <CheckCircle2
+                            className="w-4 h-4 text-green-500"
+                            strokeWidth={2}
+                          />
                         </div>
                         <p className="text-lg font-bold text-gray-900">
-                          {roadmap.milestones?.filter((m) => m.status === 'completed').length || 0}
+                          {roadmap.milestones?.filter(
+                            (m) => m.status === "completed"
+                          ).length || 0}
                         </p>
                         <p className="text-xs text-gray-500">Completed</p>
                       </div>
                       <div className="text-center">
                         <div className="flex items-center justify-center gap-1 mb-1">
-                          <Clock className="w-4 h-4 text-gray-400" strokeWidth={2} />
+                          <Clock
+                            className="w-4 h-4 text-gray-400"
+                            strokeWidth={2}
+                          />
                         </div>
-                        <p className="text-lg font-bold text-gray-900">{roadmap.estimatedDuration || '12'}</p>
+                        <p className="text-lg font-bold text-gray-900">
+                          {roadmap.estimatedDuration || "12"}
+                        </p>
                         <p className="text-xs text-gray-500">Weeks</p>
                       </div>
                     </div>

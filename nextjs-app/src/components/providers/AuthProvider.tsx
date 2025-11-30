@@ -43,9 +43,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Auth check failed:', err);
       setError(err.message || 'Failed to authenticate');
       setUser(null);
-      // Clear invalid token
+      // Clear invalid token from both localStorage and cookies
       if (typeof window !== 'undefined') {
         localStorage.removeItem('authToken');
+        document.cookie = 'authToken=; path=/; max-age=0';
       }
     } finally {
       setLoading(false);
@@ -99,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       if (typeof window !== 'undefined') {
         localStorage.removeItem('authToken');
+        document.cookie = 'authToken=; path=/; max-age=0';
       }
       router.push('/login');
     }

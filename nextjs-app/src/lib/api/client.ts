@@ -49,11 +49,12 @@ apiClient.interceptors.response.use(
 
             // Handle authentication errors
             if (error.response.status === 401) {
-                // Clear stored token but do NOT perform a hard redirect here.
+                // Clear stored token from both localStorage and cookies
                 // Let the app-level auth logic (AuthProvider) handle routing so
                 // UI can show errors and avoid unexpected full-page reloads.
                 if (typeof window !== 'undefined') {
                     localStorage.removeItem('authToken');
+                    document.cookie = 'authToken=; path=/; max-age=0';
                 }
             }
 

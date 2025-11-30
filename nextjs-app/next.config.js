@@ -11,10 +11,11 @@ const nextConfig = {
 
   // API proxy to backend
   async rewrites() {
+    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:5000/api';
     return [
       {
         source: '/api/:path*',
-        destination: process.env.NEXT_PUBLIC_API_URL + '/:path*',
+        destination: `${backendUrl}/:path*`,
       },
     ];
   },

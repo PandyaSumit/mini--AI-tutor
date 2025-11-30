@@ -124,8 +124,19 @@ router.post('/sessions', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      session: populatedSession,
-      voiceSession
+      data: {
+        _id: voiceSession._id,
+        user: req.user._id,
+        lesson: lesson || undefined,
+        enrollment: enrollment || undefined,
+        title: title || 'Voice Learning Session',
+        status: 'active',
+        conversationId: conversation._id,
+        startedAt: voiceSession.createdAt,
+        metadata: {
+          sessionId: session._id
+        }
+      }
     });
   } catch (error) {
     console.error('Error creating voice session:', error);
@@ -191,7 +202,7 @@ router.get('/sessions/:sessionId', async (req, res) => {
     console.log('✅ Sending session response');
     res.json({
       success: true,
-      session
+      data: session
     });
   } catch (error) {
     console.error('❌ Error fetching session:', error);

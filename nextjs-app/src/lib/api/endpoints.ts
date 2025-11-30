@@ -14,7 +14,7 @@ export const API_ENDPOINTS = {
 
   // Chat
   CHAT: {
-    SEND_MESSAGE: '/chat/send',
+    SEND_MESSAGE: '/ai/chat',
     GET_CONVERSATIONS: '/chat/conversations',
     GET_CONVERSATION: (id: string) => `/chat/conversations/${id}`,
     DELETE_CONVERSATION: (id: string) => `/chat/conversations/${id}`,

@@ -5,7 +5,7 @@
 
 import apiClient from '@/lib/api/client';
 import { API_ENDPOINTS } from '@/lib/api/endpoints';
-import type { Conversation, Message, ApiResponse, ConversationTopic } from '@/types';
+import type { Conversation, Message, ApiResponse, ConversationTopic, AIResponse } from '@/types';
 
 interface SendMessageData {
   conversationId?: string;
@@ -17,14 +17,13 @@ class ChatService {
   /**
    * Send a message in a conversation
    */
-  async sendMessage(data: SendMessageData): Promise<Message> {
+  async sendMessage(data: SendMessageData): Promise<AIResponse> {
     try {
-      const response = await apiClient.post<ApiResponse<Message>>(
+      const response = await apiClient.post<AIResponse>(
         API_ENDPOINTS.CHAT.SEND_MESSAGE,
         data
       );
-
-      return response.data.data;
+      return response.data;
     } catch (error) {
       throw error;
     }

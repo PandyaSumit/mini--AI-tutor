@@ -3,19 +3,34 @@
  * Barrel file that re-exports all available services
  */
 
-export { courseService } from './course/courseService';
-export { authService } from './auth/authService';
-export { userService } from './user/userService';
-export { studyMaterialService } from './studyMaterial/studyMaterialService';
-export { flashcardService } from './flashcard/flashcardService';
-export { dashboardService } from './dashboard/dashboardService';
-export { chatService } from './chat/chatService';
-export { roadmapService } from './roadmap/roadmapService';
-export { aiService } from './ai/aiService';
-export { enrollmentService } from './enrollment/enrollmentService';
-export { voiceService } from './voice/voiceService';
+import { courseService } from './course/courseService';
+import { authService } from './auth/authService';
+import { userService } from './user/userService';
+import { studyMaterialService } from './studyMaterial/studyMaterialService';
+import { flashcardService } from './flashcard/flashcardService';
+import { dashboardService } from './dashboard/dashboardService';
+import { chatService } from './chat/chatService';
+import { roadmapService } from './roadmap/roadmapService';
+import { aiService } from './ai/aiService';
+import { enrollmentService } from './enrollment/enrollmentService';
+import { voiceService } from './voice/voiceService';
 
-// Re-export a default object for convenience
+// Export named services
+export {
+    courseService,
+    authService,
+    userService,
+    studyMaterialService,
+    flashcardService,
+    dashboardService,
+    chatService,
+    roadmapService,
+    aiService,
+    enrollmentService,
+    voiceService,
+};
+
+// Export default object for convenience
 export default {
     courseService,
     authService,

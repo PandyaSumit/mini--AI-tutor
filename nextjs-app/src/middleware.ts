@@ -16,6 +16,7 @@ const protectedRoutes = [
   '/flashcards',
   '/courses',
   '/session',
+  '/admin', // Admin panel - requires authentication + admin role
 ];
 
 // Public routes (explicitly allowed without auth)

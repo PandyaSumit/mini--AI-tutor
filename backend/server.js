@@ -28,6 +28,7 @@ import moduleRoutes from './routes/modules.js';
 import lessonRoutes from './routes/lessons.js';
 import enrollmentRoutes from './routes/enrollments.js';
 import adminRoutes from './routes/admin.js';
+import publicCourseRoutes from './routes/publicCourseRoutes.js';
 import { errorHandler} from './middleware/errorHandler.js';
 import rateLimiter from './middleware/rateLimiter.js';
 import moderateContent from './middleware/contentModeration.js';
@@ -172,6 +173,7 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/public', publicCourseRoutes); // PUBLIC - No auth required for course discovery
 app.use('/api/admin', adminRoutes); // ADMIN ONLY - Protected by admin middleware
 app.use('/api/chat', moderateContent, chatRoutes); // Apply content moderation to chat
 app.use('/api/user', userRoutes);

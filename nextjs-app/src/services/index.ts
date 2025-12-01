@@ -14,6 +14,7 @@ import { roadmapService } from './roadmap/roadmapService';
 import { aiService } from './ai/aiService';
 import { enrollmentService } from './enrollment/enrollmentService';
 import { voiceService } from './voice/voiceService';
+import { adminService } from './admin/adminService';
 
 // Export named services
 export {
@@ -28,6 +29,7 @@ export {
     aiService,
     enrollmentService,
     voiceService,
+    adminService,
 };
 
 // Export default object for convenience
@@ -43,4 +45,5 @@ export default {
     aiService,
     enrollmentService,
     voiceService,
+    adminService,
 };

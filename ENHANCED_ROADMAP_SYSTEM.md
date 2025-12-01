@@ -7,12 +7,14 @@ The Enhanced Learning Roadmap System is a comprehensive, AI-powered feature that
 ## Key Features
 
 ### 1. **AI-Powered Skill Detection**
+
 - Analyzes user's chat history to detect actual skill level
 - Combines AI-detected level with user's self-assessment
 - Provides confidence scores and evidence for skill assessment
 - Automatically adjusts roadmap difficulty based on detected skills
 
 ### 2. **Deep Hierarchical Structure**
+
 ```
 Roadmap
   └── Phases (Major learning stages)
@@ -34,6 +36,7 @@ Roadmap
 ### 3. **Comprehensive Learning Components**
 
 #### Per Module:
+
 - **Learning Objectives**: What you'll learn
 - **Learning Outcomes**: What you'll be able to do
 - **Real-World Applications**: Industry use cases
@@ -59,13 +62,16 @@ Roadmap
 ### 4. **Personalization**
 
 #### Skill Level Detection
+
 - Analyzes chat history using AI
 - Determines skill level: absolute_beginner → beginner → intermediate → advanced → expert
 - Provides evidence and confidence scores
 - Combines with user's self-assessment for final level
 
 #### Learning Path Optimization
+
 - **Fast-Track**: For advanced users or those with prior experience
+
   - Accelerated pace
   - Skip basics
   - Focus on advanced topics
@@ -78,6 +84,7 @@ Roadmap
   - 120-200 total hours
 
 #### Domain-Specific Examples
+
 - Detects user's industry/domain from chat history
 - Provides relevant examples:
   - Finance: Trading systems, risk calculation
@@ -88,11 +95,13 @@ Roadmap
 ### 5. **Progress Tracking**
 
 #### Unique IDs
+
 - Every component has a unique nanoid (10 characters)
 - Enables precise progress tracking
 - Allows deep linking to specific concepts
 
 #### Progress Metrics
+
 - Overall progress percentage
 - Phases completed
 - Modules completed
@@ -104,6 +113,7 @@ Roadmap
 - Current learning streak
 
 #### Status Management
+
 - Draft, Active, Paused, Completed, Abandoned
 - Per-module status tracking
 - Per-phase completion tracking
@@ -111,6 +121,7 @@ Roadmap
 ### 6. **Integrated Assessments**
 
 #### Module Quizzes
+
 - Automatically generated for each module
 - 8-12 questions per quiz
 - Multiple question types:
@@ -127,6 +138,7 @@ Roadmap
 - Best score tracking
 
 #### Checkpoints
+
 - 2-4 skill validation points per module
 - Types:
   - Quiz
@@ -137,12 +149,14 @@ Roadmap
 ### 7. **Adaptive Learning**
 
 #### Performance Tracking
+
 - Monitors quiz scores
 - Identifies struggling topics (< 60% correct)
 - Tracks mastered topics
 - Provides recommended focus areas
 
 #### Path Adjustments
+
 - Enters remediation mode if struggling (2+ consecutive milestone failures)
 - Accelerated mode for high performers
 - Automatic difficulty adjustments
@@ -153,6 +167,7 @@ Roadmap
 ### Backend Components
 
 #### Models
+
 - **EnhancedRoadmap** (`/backend/models/EnhancedRoadmap.js`)
   - Main roadmap schema with phases, modules, sub-modules
   - Methods for progress calculation
@@ -160,12 +175,15 @@ Roadmap
   - Progress tracking methods
 
 #### Services
+
 - **enhancedRoadmapService.js** - Roadmap generation logic
+
   - AI-powered roadmap creation
   - Quiz integration
   - Metadata management
 
 - **skillDetectionService.js** - Skill level detection
+
   - Chat history analysis
   - AI-based skill assessment
   - Domain detection
@@ -177,31 +195,35 @@ Roadmap
   - Coding challenges
 
 #### API Endpoints
+
 All endpoints at `/api/enhanced-roadmaps`
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/generate` | Generate new roadmap |
-| GET | `/` | Get all user roadmaps |
-| GET | `/:id` | Get specific roadmap |
-| PUT | `/:id/module/:moduleId/complete` | Complete module |
-| PUT | `/:id/concept/:conceptId/complete` | Complete concept |
-| PUT | `/:id/task/:taskId/complete` | Complete task |
-| POST | `/:id/quiz/:quizId/submit` | Submit quiz |
-| GET | `/:id/progress` | Get detailed progress |
-| PUT | `/:id/status` | Update status |
-| DELETE | `/:id` | Delete roadmap |
+| Method | Endpoint                           | Description           |
+| ------ | ---------------------------------- | --------------------- |
+| POST   | `/generate`                        | Generate new roadmap  |
+| GET    | `/`                                | Get all user roadmaps |
+| GET    | `/:id`                             | Get specific roadmap  |
+| PUT    | `/:id/module/:moduleId/complete`   | Complete module       |
+| PUT    | `/:id/concept/:conceptId/complete` | Complete concept      |
+| PUT    | `/:id/task/:taskId/complete`       | Complete task         |
+| POST   | `/:id/quiz/:quizId/submit`         | Submit quiz           |
+| GET    | `/:id/progress`                    | Get detailed progress |
+| PUT    | `/:id/status`                      | Update status         |
+| DELETE | `/:id`                             | Delete roadmap        |
 
 ### Frontend Components
 
 #### Pages
+
 - **CreateEnhancedRoadmap.jsx** - Roadmap creation form
+
   - Skill level selection
   - Time commitment input
   - Learning preferences
   - Prior experience
 
 - **EnhancedRoadmapsList.jsx** - All roadmaps view
+
   - Filter by status
   - Progress overview
   - Quick stats
@@ -234,6 +256,7 @@ POST /api/enhanced-roadmaps/generate
 ```
 
 **AI Processing:**
+
 1. Analyzes user's chat history
 2. Detects actual skill level
 3. Combines with declared level
@@ -243,6 +266,7 @@ POST /api/enhanced-roadmaps/generate
 7. Adds metadata and IDs
 
 **Response:**
+
 ```javascript
 {
   "success": true,
@@ -298,6 +322,7 @@ GET /api/enhanced-roadmaps/:id/progress
 ```
 
 **Response:**
+
 ```javascript
 {
   "overall": 45,
@@ -328,12 +353,14 @@ GET /api/enhanced-roadmaps/:id/progress
 The system uses a sophisticated multi-part prompt:
 
 1. **System Prompt** (Instructions for AI)
+
    - Defines structure requirements
    - Specifies quality standards
    - Lists all required components
    - Provides JSON schema
 
 2. **User Prompt** (Specific request)
+
    - Learning goal
    - User profile (skill level, domain, experience)
    - Constraints (time, duration)
@@ -350,6 +377,7 @@ The system uses a sophisticated multi-part prompt:
 ### Skill Detection Prompt
 
 Analyzes conversation history with criteria:
+
 - Question complexity
 - Terminology usage
 - Problem-solving ability
@@ -424,12 +452,14 @@ Analyzes conversation history with criteria:
 ## Integration Points
 
 ### ChromaDB (Future Enhancement)
+
 - Store roadmap embeddings
 - Enable semantic search for similar roadmaps
 - Recommend relevant roadmaps to users
 - Find related content
 
 ### Existing Systems
+
 - **Quiz Service**: Auto-generates module quizzes
 - **AI Service**: Powers roadmap generation
 - **User Model**: Tracks learning stats and streaks
@@ -438,6 +468,7 @@ Analyzes conversation history with criteria:
 ## Best Practices
 
 ### For Users
+
 1. Be honest about your skill level
 2. Have some chat history for better skill detection
 3. Set realistic time commitments
@@ -447,6 +478,7 @@ Analyzes conversation history with criteria:
 7. Use reflection questions
 
 ### For Developers
+
 1. Always validate skill levels
 2. Handle quiz generation failures gracefully
 3. Cache roadmap data when possible
@@ -458,6 +490,7 @@ Analyzes conversation history with criteria:
 ## Performance Considerations
 
 ### Generation Time
+
 - Typical: 30-60 seconds
 - Includes:
   - Skill detection from chat history
@@ -467,12 +500,14 @@ Analyzes conversation history with criteria:
   - ID generation and cleanup
 
 ### Optimization Strategies
+
 1. **Parallel Processing**: Generate quizzes in parallel (future)
 2. **Caching**: Cache common roadmap templates
 3. **Streaming**: Stream roadmap as it's generated (future)
 4. **Batch Operations**: Generate multiple quizzes in one AI call
 
 ### Token Usage
+
 - Roadmap generation: ~3000-5000 tokens
 - Skill detection: ~500-1000 tokens
 - Per-module quiz: ~300-500 tokens
@@ -481,26 +516,31 @@ Analyzes conversation history with criteria:
 ## Future Enhancements
 
 1. **Collaborative Learning**
+
    - Share roadmaps with peers
    - Study groups
    - Peer reviews
 
 2. **Advanced Analytics**
+
    - Learning velocity tracking
    - Predictive completion dates
    - Skill gap analysis
 
 3. **Gamification**
+
    - Achievements and badges
    - Leaderboards
    - Streaks and rewards
 
 4. **Content Integration**
+
    - Auto-link to existing courses
    - Integrate with course catalog
    - Video resource embedding
 
 5. **Export Features**
+
    - PDF export
    - Calendar integration
    - Notion/Obsidian export
@@ -515,23 +555,27 @@ Analyzes conversation history with criteria:
 ### Common Issues
 
 #### Roadmap Generation Fails
+
 - Check AI service is running
 - Verify API keys are valid
 - Check token limits
 - Review error logs
 
 #### Skill Detection Inaccurate
+
 - User needs more chat history
 - Try with declared level only
 - Manually adjust in database
 
 #### Quizzes Not Generated
+
 - Check quiz service
 - Verify AI connection
 - Check module content
 - Generate manually if needed
 
 #### Progress Not Updating
+
 - Check unique IDs are correct
 - Verify user authentication
 - Check request payload
@@ -540,6 +584,7 @@ Analyzes conversation history with criteria:
 ## API Rate Limits
 
 Enhanced roadmap operations respect standard rate limits:
+
 - Free tier: 10 roadmaps/day
 - Pro tier: Unlimited roadmaps
 - Generation: Max 1 concurrent per user

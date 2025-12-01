@@ -27,7 +27,10 @@ import courseRoutes from './routes/courses.js';
 import moduleRoutes from './routes/modules.js';
 import lessonRoutes from './routes/lessons.js';
 import enrollmentRoutes from './routes/enrollments.js';
-import { errorHandler } from './middleware/errorHandler.js';
+import adminRoutes from './routes/admin.js';
+import publicCourseRoutes from './routes/publicCourseRoutes.js';
+import newsletterRoutes from './routes/newsletterRoutes.js';
+import { errorHandler} from './middleware/errorHandler.js';
 import rateLimiter from './middleware/rateLimiter.js';
 import moderateContent from './middleware/contentModeration.js';
 import { initializeSocketIO } from './config/socket.js';
@@ -136,7 +139,23 @@ if (aiService.isReady()) {
 
 // Middleware
 app.use(helmet()); // Security headers
-app.use(cors()); // Enable CORS
+
+// Configure CORS to allow the frontend origin and credentials (cookies)
+const allowedFrontend = process.env.FRONTEND_URL || 'http://localhost:3000';
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow requests with no origin (e.g., server-to-server, mobile tools)
+        if (!origin) return callback(null, true);
+        const allowed = [allowedFrontend, 'http://localhost:5173', 'http://localhost:5174'];
+        if (allowed.includes(origin)) return callback(null, true);
+        return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+};
+
+app.use(cors(corsOptions)); // Enable CORS with options
+app.options('*', cors(corsOptions)); // Preflight support
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(morgan('dev')); // HTTP request logger
@@ -155,6 +174,9 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/public', publicCourseRoutes); // PUBLIC - No auth required for course discovery
+app.use('/api/newsletter', newsletterRoutes); // PUBLIC - Newsletter subscriptions
+app.use('/api/admin', adminRoutes); // ADMIN ONLY - Protected by admin middleware
 app.use('/api/chat', moderateContent, chatRoutes); // Apply content moderation to chat
 app.use('/api/user', userRoutes);
 app.use('/api/dashboard', dashboardRoutes); // Optimized dashboard endpoint

@@ -31,8 +31,8 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
+    enum: ['learner', 'verified_instructor', 'platform_author', 'admin'],
+    default: 'learner'
   },
   learningStats: {
     totalConversations: {
@@ -169,6 +169,232 @@ const userSchema = new mongoose.Schema({
       default: null
     }
   },
+  // Instructor Verification System
+  instructorVerification: {
+    status: {
+      type: String,
+      enum: ['not_applied', 'pending', 'approved', 'rejected'],
+      default: 'not_applied'
+    },
+    appliedAt: {
+      type: Date,
+      default: null
+    },
+    approvedAt: {
+      type: Date,
+      default: null
+    },
+    rejectedAt: {
+      type: Date,
+      default: null
+    },
+    rejectionReason: {
+      type: String,
+      default: null
+    },
+
+    // KYC/Age Verification
+    kycStatus: {
+      type: String,
+      enum: ['not_submitted', 'pending', 'verified', 'failed'],
+      default: 'not_submitted'
+    },
+    kycProvider: {
+      type: String,
+      default: null // e.g., 'stripe_identity', 'manual'
+    },
+    kycVerifiedAt: {
+      type: Date,
+      default: null
+    },
+    dateOfBirth: {
+      type: Date,
+      default: null
+    },
+    age: {
+      type: Number,
+      default: null
+    },
+
+    // Subject Expertise
+    expertiseAreas: [{
+      subject: String,
+      category: String,
+      verificationMethod: {
+        type: String,
+        enum: ['quiz', 'portfolio', 'certification', 'manual_review']
+      },
+      verificationScore: Number,
+      verifiedAt: Date
+    }],
+
+    // Portfolio/Credentials
+    portfolio: {
+      bio: {
+        type: String,
+        maxlength: 2000,
+        default: null
+      },
+      professionalTitle: {
+        type: String,
+        maxlength: 200,
+        default: null
+      },
+      yearsOfExperience: {
+        type: Number,
+        default: 0
+      },
+      certifications: [{
+        name: String,
+        issuer: String,
+        url: String,
+        verifiedAt: Date
+      }],
+      socialLinks: {
+        linkedin: String,
+        github: String,
+        website: String
+      }
+    },
+
+    // Terms acceptance
+    termsAcceptedAt: {
+      type: Date,
+      default: null
+    },
+    termsVersion: {
+      type: String,
+      default: null
+    }
+  },
+
+  // AI Usage Tracking
+  aiUsage: {
+    currentPeriodStart: {
+      type: Date,
+      default: () => new Date()
+    },
+    currentPeriodEnd: {
+      type: Date,
+      default: () => {
+        const date = new Date();
+        date.setMonth(date.getMonth() + 1);
+        return date;
+      }
+    },
+
+    // Monthly quotas
+    quotas: {
+      chatMessages: {
+        limit: {
+          type: Number,
+          default: 100 // Learner default
+        },
+        used: {
+          type: Number,
+          default: 0
+        },
+        overage: {
+          type: Number,
+          default: 0
+        }
+      },
+      voiceMinutes: {
+        limit: {
+          type: Number,
+          default: 30 // Learner default
+        },
+        used: {
+          type: Number,
+          default: 0
+        },
+        overage: {
+          type: Number,
+          default: 0
+        }
+      },
+      courseGenerations: {
+        limit: {
+          type: Number,
+          default: 3 // Learner default
+        },
+        used: {
+          type: Number,
+          default: 0
+        },
+        overage: {
+          type: Number,
+          default: 0
+        }
+      }
+    },
+
+    // Historical tracking
+    totalMessagesAllTime: {
+      type: Number,
+      default: 0
+    },
+    totalVoiceMinutesAllTime: {
+      type: Number,
+      default: 0
+    },
+    totalCoursesGenerated: {
+      type: Number,
+      default: 0
+    },
+
+    // Cost tracking
+    estimatedCost: {
+      type: Number,
+      default: 0
+    },
+    lastResetAt: {
+      type: Date,
+      default: () => new Date()
+    }
+  },
+
+  // Instructor Earnings
+  earnings: {
+    totalEarned: {
+      type: Number,
+      default: 0
+    },
+    availableBalance: {
+      type: Number,
+      default: 0
+    },
+    pendingBalance: {
+      type: Number,
+      default: 0
+    },
+    totalWithdrawn: {
+      type: Number,
+      default: 0
+    },
+
+    // Payout info
+    payoutMethod: {
+      type: String,
+      enum: ['stripe', 'paypal', 'bank_transfer', null],
+      default: null
+    },
+    payoutDetails: {
+      type: Map,
+      of: String,
+      default: new Map()
+    },
+
+    nextPayoutDate: {
+      type: Date,
+      default: null
+    },
+    lastPayoutDate: {
+      type: Date,
+      default: null
+    }
+  },
+
   isVerified: {
     type: Boolean,
     default: false
@@ -356,6 +582,218 @@ userSchema.methods.recordContribution = function(type) {
   }
 
   return this.updateContributorQuality();
+};
+
+// ==========================================
+// NEW: Dual-Layer System Methods
+// ==========================================
+
+// Check if user can create marketplace courses
+userSchema.methods.canCreateMarketplaceCourse = function() {
+  return this.role === 'verified_instructor' ||
+         this.role === 'platform_author' ||
+         this.role === 'admin';
+};
+
+// Check if user can publish courses publicly
+userSchema.methods.canPublishCourse = function() {
+  return this.canCreateMarketplaceCourse();
+};
+
+// Get AI usage quotas based on role
+userSchema.methods.getAIQuotas = function() {
+  const quotasByRole = {
+    learner: {
+      chatMessages: 100,
+      voiceMinutes: 30,
+      courseGenerations: 3
+    },
+    verified_instructor: {
+      chatMessages: 1000,
+      voiceMinutes: 300,
+      courseGenerations: 20
+    },
+    platform_author: {
+      chatMessages: Infinity,
+      voiceMinutes: Infinity,
+      courseGenerations: Infinity
+    },
+    admin: {
+      chatMessages: Infinity,
+      voiceMinutes: Infinity,
+      courseGenerations: Infinity
+    }
+  };
+
+  return quotasByRole[this.role] || quotasByRole.learner;
+};
+
+// Update AI usage quotas based on role
+userSchema.methods.updateAIQuotasForRole = function() {
+  const quotas = this.getAIQuotas();
+
+  this.aiUsage.quotas.chatMessages.limit = quotas.chatMessages;
+  this.aiUsage.quotas.voiceMinutes.limit = quotas.voiceMinutes;
+  this.aiUsage.quotas.courseGenerations.limit = quotas.courseGenerations;
+
+  return this.save();
+};
+
+// Check if user has AI usage quota available
+userSchema.methods.hasAIQuota = function(type) {
+  const quota = this.aiUsage.quotas[type];
+
+  if (!quota) return false;
+  if (quota.limit === Infinity) return true;
+
+  return quota.used < quota.limit;
+};
+
+// Consume AI usage quota
+userSchema.methods.consumeAIQuota = function(type, amount = 1) {
+  const quota = this.aiUsage.quotas[type];
+
+  if (!quota) {
+    throw new Error(`Invalid quota type: ${type}`);
+  }
+
+  // Unlimited quota
+  if (quota.limit === Infinity) {
+    return this.save();
+  }
+
+  quota.used += amount;
+
+  // Track overage
+  if (quota.used > quota.limit) {
+    quota.overage = quota.used - quota.limit;
+  }
+
+  // Update all-time tracking
+  if (type === 'chatMessages') {
+    this.aiUsage.totalMessagesAllTime += amount;
+  } else if (type === 'voiceMinutes') {
+    this.aiUsage.totalVoiceMinutesAllTime += amount;
+  } else if (type === 'courseGenerations') {
+    this.aiUsage.totalCoursesGenerated += amount;
+  }
+
+  return this.save();
+};
+
+// Reset monthly AI usage quota
+userSchema.methods.resetAIQuota = function() {
+  const now = new Date();
+
+  // Check if period has ended
+  if (now < this.aiUsage.currentPeriodEnd) {
+    return Promise.resolve(this);
+  }
+
+  // Reset usage
+  this.aiUsage.quotas.chatMessages.used = 0;
+  this.aiUsage.quotas.chatMessages.overage = 0;
+  this.aiUsage.quotas.voiceMinutes.used = 0;
+  this.aiUsage.quotas.voiceMinutes.overage = 0;
+  this.aiUsage.quotas.courseGenerations.used = 0;
+  this.aiUsage.quotas.courseGenerations.overage = 0;
+
+  // Set new period
+  this.aiUsage.currentPeriodStart = now;
+  const nextPeriod = new Date(now);
+  nextPeriod.setMonth(nextPeriod.getMonth() + 1);
+  this.aiUsage.currentPeriodEnd = nextPeriod;
+  this.aiUsage.lastResetAt = now;
+
+  return this.save();
+};
+
+// Calculate age from date of birth
+userSchema.methods.calculateAge = function() {
+  if (!this.instructorVerification.dateOfBirth) {
+    return null;
+  }
+
+  const today = new Date();
+  const birthDate = new Date(this.instructorVerification.dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  this.instructorVerification.age = age;
+  return age;
+};
+
+// Check if user meets instructor requirements
+userSchema.methods.meetsInstructorRequirements = function() {
+  const age = this.calculateAge();
+
+  return {
+    ageVerified: age !== null && age >= 18,
+    kycVerified: this.instructorVerification.kycStatus === 'verified',
+    hasExpertise: this.instructorVerification.expertiseAreas.length > 0,
+    termsAccepted: !!this.instructorVerification.termsAcceptedAt,
+    allMet: function() {
+      return this.ageVerified && this.kycVerified && this.hasExpertise && this.termsAccepted;
+    }
+  };
+};
+
+// Approve instructor application
+userSchema.methods.approveAsInstructor = function() {
+  const requirements = this.meetsInstructorRequirements();
+
+  if (!requirements.allMet()) {
+    throw new Error('User does not meet all instructor requirements');
+  }
+
+  this.role = 'verified_instructor';
+  this.instructorVerification.status = 'approved';
+  this.instructorVerification.approvedAt = new Date();
+
+  // Update AI quotas for new role
+  return this.updateAIQuotasForRole();
+};
+
+// Reject instructor application
+userSchema.methods.rejectInstructorApplication = function(reason) {
+  this.instructorVerification.status = 'rejected';
+  this.instructorVerification.rejectedAt = new Date();
+  this.instructorVerification.rejectionReason = reason;
+
+  return this.save();
+};
+
+// Add earnings
+userSchema.methods.addEarnings = function(amount, description) {
+  this.earnings.totalEarned += amount;
+  this.earnings.availableBalance += amount;
+
+  return this.save();
+};
+
+// Request payout
+userSchema.methods.requestPayout = function(amount) {
+  if (amount > this.earnings.availableBalance) {
+    throw new Error('Insufficient balance for payout');
+  }
+
+  this.earnings.availableBalance -= amount;
+  this.earnings.pendingBalance += amount;
+
+  return this.save();
+};
+
+// Complete payout
+userSchema.methods.completePayout = function(amount) {
+  this.earnings.pendingBalance -= amount;
+  this.earnings.totalWithdrawn += amount;
+  this.earnings.lastPayoutDate = new Date();
+
+  return this.save();
 };
 
 export default mongoose.model('User', userSchema);

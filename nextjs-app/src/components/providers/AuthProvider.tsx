@@ -86,16 +86,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    // Immediately clear user state (optimistic update)
+    setUser(null);
+    setError(null);
+
     try {
+      // Call backend to clear cookie
       await authService.logout();
-      setUser(null);
-      router.push('/login');
     } catch (err: any) {
       console.error('Logout error:', err);
-      // Force logout on client side anyway
-      setUser(null);
-      // HTTP-only cookies are cleared by backend
-      router.push('/login');
+      // Continue with logout even if API call fails
+    } finally {
+      // Force redirect to login page
+      // Use replace to prevent back button from going to protected pages
+      router.replace('/login');
     }
   };
 

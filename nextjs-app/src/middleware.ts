@@ -18,28 +18,44 @@ const protectedRoutes = [
   '/session',
 ];
 
-// Public routes (auth pages)
+// Public routes (explicitly allowed without auth)
+const publicRoutes = [
+  '/',
+  '/about',
+  '/pricing',
+  '/contact',
+  '/api', // API routes
+];
+
+// Auth-only routes (redirect to dashboard if already logged in)
 const authRoutes = ['/login', '/register'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Get auth token from localStorage (client-side) or cookies
+  // Get auth token from HTTP-only cookie
   const token = request.cookies.get('authToken')?.value;
+  const hasValidToken = !!token && token.trim() !== '' && token !== 'undefined';
 
   // Check if the current route is protected
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+  const isPublicRoute = publicRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
 
-  // Redirect to login if accessing protected route without token
-  if (isProtectedRoute && !token) {
+  // Allow public routes for everyone
+  if (isPublicRoute && !isAuthRoute) {
+    return NextResponse.next();
+  }
+
+  // Redirect to login if accessing protected route without valid token
+  if (isProtectedRoute && !hasValidToken) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect to dashboard if accessing auth routes with valid token
-  if (isAuthRoute && token) {
+  // Redirect to dashboard if accessing auth routes (login/register) with valid token
+  if (isAuthRoute && hasValidToken) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 

@@ -226,11 +226,22 @@ export const updatePassword = async (req, res) => {
 // @route   POST /api/auth/logout
 // @access  Private
 export const logout = async (req, res) => {
-    // Clear authToken cookie
+    // Clear authToken cookie - use both methods to ensure it's cleared
+    // Method 1: clearCookie
     res.clearCookie('authToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
+        path: '/'
+    });
+
+    // Method 2: Set cookie with empty value and immediate expiration (belt and suspenders)
+    res.cookie('authToken', '', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 0, // Expire immediately
+        expires: new Date(0), // Set to past date
         path: '/'
     });
 

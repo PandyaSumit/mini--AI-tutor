@@ -103,6 +103,59 @@ router.get('/courses', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/public/courses/featured
+ * @desc    Get featured courses for homepage
+ * @access  Public
+ */
+router.get('/courses/featured', async (req, res) => {
+  try {
+    const featuredCourses = await Course.find({
+      courseType: { $in: ['marketplace', 'flagship'] },
+      visibility: 'public',
+      'marketplace.hasPassedQualityReview': true,
+      isPublished: true,
+      'marketplace.totalSales': { $gt: 0 } // Has sales
+    })
+      .populate('createdBy', 'name instructorVerification.portfolio.professionalTitle')
+      .select('-aiGeneration -marketplace.qualityIssues')
+      .sort('-marketplace.totalSales')
+      .limit(8)
+      .lean();
+
+    // Add enrollment counts
+    const coursesWithStats = await Promise.all(
+      featuredCourses.map(async (course) => {
+        const enrollmentCount = await Enrollment.countDocuments({
+          course: course._id,
+          status: { $in: ['active', 'completed'] }
+        });
+
+        return {
+          ...course,
+          statistics: {
+            ...course.statistics,
+            enrollmentCount
+          }
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      data: {
+        courses: coursesWithStats
+      }
+    });
+  } catch (error) {
+    console.error('Featured courses error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch featured courses'
+    });
+  }
+});
+
+/**
  * @route   GET /api/public/courses/:courseId
  * @desc    Get public course details (no auth required)
  * @access  Public
@@ -189,59 +242,6 @@ router.get('/courses/:courseId', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch course details'
-    });
-  }
-});
-
-/**
- * @route   GET /api/public/courses/featured
- * @desc    Get featured courses for homepage
- * @access  Public
- */
-router.get('/courses/featured', async (req, res) => {
-  try {
-    const featuredCourses = await Course.find({
-      courseType: { $in: ['marketplace', 'flagship'] },
-      visibility: 'public',
-      'marketplace.hasPassedQualityReview': true,
-      isPublished: true,
-      'marketplace.totalSales': { $gt: 0 } // Has sales
-    })
-      .populate('createdBy', 'name instructorVerification.portfolio.professionalTitle')
-      .select('-aiGeneration -marketplace.qualityIssues')
-      .sort('-marketplace.totalSales')
-      .limit(8)
-      .lean();
-
-    // Add enrollment counts
-    const coursesWithStats = await Promise.all(
-      featuredCourses.map(async (course) => {
-        const enrollmentCount = await Enrollment.countDocuments({
-          course: course._id,
-          status: { $in: ['active', 'completed'] }
-        });
-
-        return {
-          ...course,
-          statistics: {
-            ...course.statistics,
-            enrollmentCount
-          }
-        };
-      })
-    );
-
-    res.json({
-      success: true,
-      data: {
-        courses: coursesWithStats
-      }
-    });
-  } catch (error) {
-    console.error('Featured courses error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch featured courses'
     });
   }
 });

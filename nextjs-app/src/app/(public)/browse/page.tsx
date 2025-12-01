@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import { publicCourseService } from '@/services/public/publicCourseService';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export default function BrowsePage() {
   const searchParams = useSearchParams();
@@ -110,6 +111,18 @@ export default function BrowsePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Breadcrumbs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <Breadcrumbs
+            items={[
+              { label: 'Browse Courses', href: '/browse' },
+              ...(selectedCategory ? [{ label: selectedCategory, href: `/browse?category=${encodeURIComponent(selectedCategory)}` }] : []),
+            ]}
+          />
+        </div>
+      </div>
+
       {/* Header Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

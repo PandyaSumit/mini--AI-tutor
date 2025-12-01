@@ -19,28 +19,28 @@ import {
 export default function NotFound() {
   const quickLinks = [
     {
-      to: '/dashboard',
+      to: '/',
       icon: Home,
-      label: 'Dashboard',
-      description: 'Return to your learning hub',
+      label: 'Home',
+      description: 'Return to the homepage',
     },
     {
-      to: '/chat',
-      icon: MessageSquare,
-      label: 'AI Chat',
-      description: 'Start a new conversation',
+      to: '/browse',
+      icon: Search,
+      label: 'Browse Courses',
+      description: 'Explore our course catalog',
     },
     {
-      to: '/roadmaps',
+      to: '/categories',
       icon: Map,
-      label: 'Roadmaps',
-      description: 'View your learning paths',
+      label: 'Categories',
+      description: 'Browse by category',
     },
     {
-      to: '/flashcards',
+      to: '/dashboard',
       icon: Brain,
-      label: 'Flashcards',
-      description: 'Study with flashcards',
+      label: 'Dashboard',
+      description: 'Access your learning hub',
     },
   ];
 

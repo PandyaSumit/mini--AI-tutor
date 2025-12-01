@@ -18,6 +18,7 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import { useState } from 'react';
+import NewsletterSignup from '@/components/NewsletterSignup';
 
 interface PublicLayoutClientProps {
   children: React.ReactNode;
@@ -174,6 +175,11 @@ export default function PublicLayoutClient({ children }: PublicLayoutClientProps
       {/* Footer */}
       <footer className="bg-gray-900 text-white mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Newsletter Section */}
+          <div className="mb-12">
+            <NewsletterSignup variant="footer" />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="col-span-1">

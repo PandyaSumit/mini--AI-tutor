@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { enrollmentService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 interface CourseDetailClientProps {
   course: any;
@@ -121,6 +122,19 @@ export default function CourseDetailClient({ course, courseId }: CourseDetailCli
           }),
         }}
       />
+
+      {/* Breadcrumbs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <Breadcrumbs
+            items={[
+              { label: 'Browse Courses', href: '/browse' },
+              ...(course.category ? [{ label: course.category, href: `/browse?category=${encodeURIComponent(course.category)}` }] : []),
+              { label: course.title, href: `/course/${courseId}` },
+            ]}
+          />
+        </div>
+      </div>
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">

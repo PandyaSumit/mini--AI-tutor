@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -158,6 +159,7 @@ app.use(cors(corsOptions)); // Enable CORS with options
 app.options('*', cors(corsOptions)); // Preflight support
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(cookieParser()); // Parse cookies from request headers
 app.use(morgan('dev')); // HTTP request logger
 
 // Apply rate limiting to all routes

@@ -26,12 +26,9 @@ class AuthService {
 
             const { token, user } = response.data.data;
 
-            // Store token in localStorage for client-side access
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('authToken', token);
-                // Also set token in cookie for middleware
-                document.cookie = `authToken=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-            }
+            // Security: HTTP-only cookie is set by backend automatically
+            // No need to store token in localStorage (XSS vulnerability)
+            // Token will be sent automatically with requests via withCredentials
 
             return { token, user };
         } catch (error) {
@@ -51,12 +48,9 @@ class AuthService {
 
             const { token, user } = response.data.data;
 
-            // Store token in localStorage for client-side access
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('authToken', token);
-                // Also set token in cookie for middleware
-                document.cookie = `authToken=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-            }
+            // Security: HTTP-only cookie is set by backend automatically
+            // No need to store token in localStorage (XSS vulnerability)
+            // Token will be sent automatically with requests via withCredentials
 
             return { token, user };
         } catch (error) {
@@ -69,20 +63,10 @@ class AuthService {
      */
     async logout(): Promise<void> {
         try {
+            // Backend will clear the HTTP-only cookie
             await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
-
-            // Clear token from localStorage and cookie
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem('authToken');
-                // Clear authToken cookie
-                document.cookie = 'authToken=; path=/; max-age=0';
-            }
         } catch (error) {
-            // Clear token even if request fails
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem('authToken');
-                document.cookie = 'authToken=; path=/; max-age=0';
-            }
+            // Even if request fails, cookie will be cleared on next auth check
             throw error;
         }
     }
@@ -104,18 +88,39 @@ class AuthService {
 
     /**
      * Check if user is authenticated
+     * Note: We can't directly check HTTP-only cookies from JavaScript
+     * This method now attempts to get current user from the API
+     */
+    async isAuthenticatedAsync(): Promise<boolean> {
+        try {
+            await this.getCurrentUser();
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Check if user is authenticated (synchronous version)
+     * Note: Less reliable since we can't access HTTP-only cookies
+     * Use isAuthenticatedAsync() for accurate check
      */
     isAuthenticated(): boolean {
-        if (typeof window === 'undefined') return false;
-        return !!localStorage.getItem('authToken');
+        // We can't reliably check HTTP-only cookies from JavaScript
+        // This is a limitation but improves security
+        // Rely on API calls to verify authentication
+        return false; // Always return false, use API checks instead
     }
 
     /**
      * Get stored auth token
+     * Note: No longer storing tokens in localStorage for security
+     * Tokens are in HTTP-only cookies, inaccessible to JavaScript
      */
     getToken(): string | null {
-        if (typeof window === 'undefined') return null;
-        return localStorage.getItem('authToken');
+        // Security: Token is in HTTP-only cookie, not accessible to JavaScript
+        // This prevents XSS attacks from stealing the token
+        return null;
     }
 }
 

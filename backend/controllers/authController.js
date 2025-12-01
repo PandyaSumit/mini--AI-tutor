@@ -55,7 +55,7 @@ export const register = async (req, res) => {
                     role: user.role,
                     createdAt: user.createdAt
                 },
-                token
+                token // Keep token for backward compatibility, but cookie is primary
             }
         });
     } catch (error) {

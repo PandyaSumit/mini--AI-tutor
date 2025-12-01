@@ -35,19 +35,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      if (authService.isAuthenticated()) {
-        const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
-      }
+      // Try to get current user - backend will validate HTTP-only cookie
+      const currentUser = await authService.getCurrentUser();
+      setUser(currentUser);
     } catch (err: any) {
       console.error('Auth check failed:', err);
-      setError(err.message || 'Failed to authenticate');
+      // If getCurrentUser fails, user is not authenticated
+      setError(null); // Don't set error for normal "not authenticated" state
       setUser(null);
-      // Clear invalid token from both localStorage and cookies
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('authToken');
-        document.cookie = 'authToken=; path=/; max-age=0';
-      }
+      // No need to clear cookies - they're HTTP-only and managed by backend
     } finally {
       setLoading(false);
     }
@@ -98,10 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Logout error:', err);
       // Force logout on client side anyway
       setUser(null);
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('authToken');
-        document.cookie = 'authToken=; path=/; max-age=0';
-      }
+      // HTTP-only cookies are cleared by backend
       router.push('/login');
     }
   };

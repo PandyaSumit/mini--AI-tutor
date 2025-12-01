@@ -19,13 +19,9 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor
 apiClient.interceptors.request.use(
     (config) => {
-        // Add auth token from localStorage if exists
-        if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('authToken');
-            if (token && config.headers) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-        }
+        // Security: Token is in HTTP-only cookie, sent automatically via withCredentials
+        // No need to manually add Authorization header from localStorage
+        // This prevents XSS attacks from stealing and using the token
         return config;
     },
     (error) => {
@@ -49,13 +45,9 @@ apiClient.interceptors.response.use(
 
             // Handle authentication errors
             if (error.response.status === 401) {
-                // Clear stored token from both localStorage and cookies
-                // Let the app-level auth logic (AuthProvider) handle routing so
-                // UI can show errors and avoid unexpected full-page reloads.
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('authToken');
-                    document.cookie = 'authToken=; path=/; max-age=0';
-                }
+                // HTTP-only cookies are managed by backend
+                // Let the app-level auth logic (AuthProvider) handle routing
+                // No need to manually clear cookies (they're HTTP-only)
             }
 
             return Promise.reject(apiError);

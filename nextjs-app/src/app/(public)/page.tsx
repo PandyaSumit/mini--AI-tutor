@@ -19,6 +19,8 @@ import {
   Play,
 } from 'lucide-react';
 import { publicCourseService } from '@/services/public/publicCourseService';
+import Testimonials from '@/components/Testimonials';
+import FAQ from '@/components/FAQ';
 
 export default function HomePage() {
   const [featuredCourses, setFeaturedCourses] = useState<any[]>([]);
@@ -280,6 +282,36 @@ export default function HomePage() {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              What Our Learners Say
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Join thousands of successful learners who have transformed their careers with AI-powered education
+            </p>
+          </div>
+          <Testimonials variant="grid" />
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="bg-gray-50 py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xl text-gray-600">
+              Everything you need to know about learning with AI Tutor
+            </p>
+          </div>
+          <FAQ />
         </div>
       </section>
 

@@ -27,7 +27,8 @@ import courseRoutes from './routes/courses.js';
 import moduleRoutes from './routes/modules.js';
 import lessonRoutes from './routes/lessons.js';
 import enrollmentRoutes from './routes/enrollments.js';
-import { errorHandler } from './middleware/errorHandler.js';
+import adminRoutes from './routes/admin.js';
+import { errorHandler} from './middleware/errorHandler.js';
 import rateLimiter from './middleware/rateLimiter.js';
 import moderateContent from './middleware/contentModeration.js';
 import { initializeSocketIO } from './config/socket.js';
@@ -171,6 +172,7 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes); // ADMIN ONLY - Protected by admin middleware
 app.use('/api/chat', moderateContent, chatRoutes); // Apply content moderation to chat
 app.use('/api/user', userRoutes);
 app.use('/api/dashboard', dashboardRoutes); // Optimized dashboard endpoint

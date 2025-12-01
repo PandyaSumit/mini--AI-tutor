@@ -91,61 +91,101 @@ router.get('/dashboard', async (req, res) => {
     ]);
 
     // Format user stats
-    const userStats = {
-      total: 0,
-      learners: 0,
-      verified_instructors: 0,
-      platform_authors: 0,
-      admins: 0
+    const byRole = {
+      learner: 0,
+      verified_instructor: 0,
+      platform_author: 0,
+      admin: 0
     };
+    let totalUserCount = 0;
 
     totalUsers.forEach(stat => {
-      userStats.total += stat.count;
-      userStats[stat._id] = stat.count;
+      totalUserCount += stat.count;
+      if (byRole.hasOwnProperty(stat._id)) {
+        byRole[stat._id] = stat.count;
+      }
     });
 
-    // Format course stats
-    const courseStats = {
-      total: 0,
-      personal: 0,
-      marketplace: 0,
-      flagship: 0,
-      public: 0,
-      private: 0
+    // Count new users this month
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const newThisMonth = await User.countDocuments({
+      createdAt: { $gte: thisMonthStart }
+    });
+
+    const userStats = {
+      total: totalUserCount,
+      byRole,
+      newThisMonth
     };
 
+    // Format course stats
+    const byType = {
+      personal: 0,
+      marketplace: 0,
+      flagship: 0
+    };
+    const byVisibility = {
+      private: 0,
+      unlisted: 0,
+      public: 0
+    };
+    let totalCourseCount = 0;
+
     totalCourses.forEach(stat => {
-      courseStats.total += stat.count;
-      courseStats[stat._id.courseType] = (courseStats[stat._id.courseType] || 0) + stat.count;
-      courseStats[stat._id.visibility] = (courseStats[stat._id.visibility] || 0) + stat.count;
+      totalCourseCount += stat.count;
+      if (byType.hasOwnProperty(stat._id.courseType)) {
+        byType[stat._id.courseType] = (byType[stat._id.courseType] || 0) + stat.count;
+      }
+      if (byVisibility.hasOwnProperty(stat._id.visibility)) {
+        byVisibility[stat._id.visibility] = (byVisibility[stat._id.visibility] || 0) + stat.count;
+      }
     });
 
-    // Get recent admin actions
-    const recentActions = await AdminActionLog.getRecentActions(20);
+    const courseStats = {
+      total: totalCourseCount,
+      byType,
+      byVisibility
+    };
+
+    // Count revenue this month
+    const thisMonthRevenue = await Course.aggregate([
+      {
+        $match: {
+          'marketplace.totalRevenue': { $gt: 0 },
+          updatedAt: { $gte: thisMonthStart }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          thisMonth: { $sum: '$marketplace.totalRevenue' }
+        }
+      }
+    ]);
+
+    const totalRevenue = platformRevenue[0]?.totalRevenue || 0;
 
     res.json({
       success: true,
       data: {
         users: userStats,
         courses: courseStats,
-        enrollments: totalEnrollments,
         pendingReviews: {
           instructorApplications: pendingInstructors,
-          courseQuality: pendingCourseReviews
+          courseQualityReviews: pendingCourseReviews
         },
-        aiUsage: recentAIUsage[0] || {
-          totalUsers: 0,
-          totalRequests: 0,
-          totalTokens: 0,
-          totalMinutes: 0,
-          totalCost: 0
+        aiUsage: {
+          totalMessagesThisMonth: recentAIUsage[0]?.totalRequests || 0,
+          totalVoiceMinutesThisMonth: recentAIUsage[0]?.totalMinutes || 0,
+          totalCoursesGenerated: recentAIUsage[0]?.courseGenerations || 0,
+          estimatedCost: recentAIUsage[0]?.totalCost || 0
         },
         revenue: {
-          total: platformRevenue[0]?.totalRevenue || 0,
-          sales: platformRevenue[0]?.totalSales || 0,
-          platformShare: (platformRevenue[0]?.totalRevenue || 0) * 0.3 // 30% platform fee
-        },
-        recentActions
+          totalRevenue,
+          platformShare: totalRevenue * 0.3, // 30% platform fee
+          instructorShare: totalRevenue * 0.7, // 70% to instructors
+          thisMonth: thisMonthRevenue[0]?.thisMonth || 0
+        }
       }
     });
   } catch (error) {
@@ -176,8 +216,9 @@ router.get('/instructors/pending', async (req, res) => {
 
     res.json({
       success: true,
-      count: pendingInstructors.length,
-      data: pendingInstructors
+      data: {
+        applications: pendingInstructors
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -296,8 +337,9 @@ router.get('/courses/pending-review', async (req, res) => {
 
     res.json({
       success: true,
-      count: pendingCourses.length,
-      data: pendingCourses
+      data: {
+        courses: pendingCourses
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -422,12 +464,11 @@ router.get('/users', async (req, res) => {
 
     res.json({
       success: true,
-      data: users,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
+      data: {
+        users,
         total,
-        pages: Math.ceil(total / Number(limit))
+        page: Number(page),
+        totalPages: Math.ceil(total / Number(limit))
       }
     });
   } catch (error) {
@@ -589,8 +630,9 @@ router.get('/logs/actions', async (req, res) => {
 
     res.json({
       success: true,
-      count: logs.length,
-      data: logs
+      data: {
+        logs
+      }
     });
   } catch (error) {
     res.status(500).json({

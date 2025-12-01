@@ -19,7 +19,9 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
     "mcp:start": "node ai/mcp/server.js",
-    "seed:knowledge": "node scripts/seedKnowledgeBase.js"
+    "seed:knowledge": "node scripts/seedKnowledgeBase.js",
+    "admin:verify": "node scripts/verify-admin-setup.js",
+    "admin:create": "node scripts/create-admin.js"
   },
   "keywords": [
     "ai",

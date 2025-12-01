@@ -7,8 +7,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks';
+import { enrollmentService } from '@/services';
 import {
   Sparkles,
   Brain,
@@ -55,6 +56,7 @@ const stats = [
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, user } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
@@ -65,12 +67,45 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // Redirect if already authenticated
+  // Handle redirect after authentication
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      handlePostLoginRedirect();
     }
   }, [user, router]);
+
+  const handlePostLoginRedirect = async () => {
+    try {
+      // Check for enrollment intention
+      const enrollCourseId = sessionStorage.getItem('enrollAfterLogin');
+
+      if (enrollCourseId) {
+        // Clear the stored intention
+        sessionStorage.removeItem('enrollAfterLogin');
+
+        // Enroll in the course
+        await enrollmentService.enrollInCourse(enrollCourseId);
+
+        // Redirect to the course
+        router.push(`/dashboard/courses/${enrollCourseId}`);
+        return;
+      }
+
+      // Check for redirect URL in query params
+      const redirect = searchParams.get('redirect');
+      if (redirect) {
+        router.push(redirect);
+        return;
+      }
+
+      // Default redirect to dashboard
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Post-login redirect error:', error);
+      // Fallback to dashboard on error
+      router.push('/dashboard');
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({

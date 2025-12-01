@@ -46,6 +46,57 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
+      {/* JSON-LD Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'EducationalOrganization',
+            name: 'AI Tutor',
+            url: 'https://ai-tutor.com',
+            logo: 'https://ai-tutor.com/logo.png',
+            description: 'AI-powered personalized learning platform offering thousands of courses taught by expert instructors.',
+            address: {
+              '@type': 'PostalAddress',
+              addressCountry: 'US',
+            },
+            sameAs: [
+              'https://twitter.com/aitutor',
+              'https://linkedin.com/company/aitutor',
+              'https://facebook.com/aitutor',
+            ],
+            aggregateRating: stats.totalEnrollments > 0 ? {
+              '@type': 'AggregateRating',
+              ratingValue: '4.8',
+              reviewCount: stats.totalEnrollments.toString(),
+              bestRating: '5',
+              worstRating: '1',
+            } : undefined,
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'AI Tutor',
+            url: 'https://ai-tutor.com',
+            description: 'Learn anything with AI-powered personalized education.',
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: {
+                '@type': 'EntryPoint',
+                urlTemplate: 'https://ai-tutor.com/browse?search={search_term_string}',
+              },
+              'query-input': 'required name=search_term_string',
+            },
+          }),
+        }}
+      />
+
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">

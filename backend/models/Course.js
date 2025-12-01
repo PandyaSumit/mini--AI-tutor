@@ -150,6 +150,149 @@ const courseSchema = new mongoose.Schema({
       type: String
     }]
   },
+
+  // NEW: Dual-Layer System Fields
+  visibility: {
+    type: String,
+    enum: ['private', 'unlisted', 'public'],
+    default: 'private'
+  },
+
+  courseType: {
+    type: String,
+    enum: ['personal', 'marketplace', 'flagship'],
+    default: 'personal'
+  },
+
+  // Pricing (for marketplace courses)
+  pricing: {
+    model: {
+      type: String,
+      enum: ['free', 'paid', 'subscription'],
+      default: 'free'
+    },
+    amount: {
+      type: Number,
+      default: 0 // USD cents
+    },
+    currency: {
+      type: String,
+      default: 'USD'
+    },
+
+    // Revenue split
+    platformFeePercentage: {
+      type: Number,
+      default: 30 // Platform takes 30%
+    },
+    instructorShare: {
+      type: Number,
+      default: 70 // Instructor gets 70%
+    }
+  },
+
+  // Marketplace metadata
+  marketplace: {
+    isFeatured: {
+      type: Boolean,
+      default: false
+    },
+    featuredUntil: {
+      type: Date,
+      default: null
+    },
+    isPremium: {
+      type: Boolean,
+      default: false
+    },
+    rank: {
+      type: Number,
+      default: 0 // For sorting
+    },
+
+    // Quality gates
+    hasPassedQualityReview: {
+      type: Boolean,
+      default: false
+    },
+    qualityReviewedAt: {
+      type: Date,
+      default: null
+    },
+    qualityReviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    qualityIssues: [{
+      type: String
+    }],
+
+    // Sales tracking
+    totalSales: {
+      type: Number,
+      default: 0
+    },
+    totalRevenue: {
+      type: Number,
+      default: 0
+    },
+    averageRating: {
+      type: Number,
+      default: 0
+    },
+    totalReviews: {
+      type: Number,
+      default: 0
+    }
+  },
+
+  // AI Generation tracking
+  aiGeneration: {
+    isAIGenerated: {
+      type: Boolean,
+      default: false
+    },
+    generatedAt: {
+      type: Date,
+      default: null
+    },
+    generationPrompt: {
+      type: String,
+      default: null
+    },
+    generationModel: {
+      type: String,
+      default: null
+    },
+    estimatedCost: {
+      type: Number,
+      default: 0
+    },
+
+    // Quality indicators
+    hasHumanReview: {
+      type: Boolean,
+      default: false
+    },
+    humanReviewedAt: {
+      type: Date,
+      default: null
+    },
+    humanReviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    }
+  },
+
+  // Creator role tracking
+  creatorRole: {
+    type: String,
+    enum: ['learner', 'verified_instructor', 'platform_author', 'admin'],
+    required: true
+  },
+
   createdAt: {
     type: Date,
     default: Date.now
@@ -446,5 +589,183 @@ courseSchema.post('findOneAndUpdate', async function(doc) {
     }
   }
 });
+
+// ==========================================
+// NEW: Dual-Layer System Methods
+// ==========================================
+
+// Submit course for quality review
+courseSchema.methods.submitForQualityReview = async function() {
+  if (this.courseType !== 'marketplace' && this.courseType !== 'flagship') {
+    throw new Error('Only marketplace and flagship courses can be reviewed');
+  }
+
+  // Run automated quality checks
+  const qualityChecks = {
+    hasDescription: this.description && this.description.length >= 100,
+    hasModules: this.statistics.totalModules >= 3,
+    hasLessons: this.statistics.totalLessons >= 10,
+    hasLearningOutcomes: this.metadata.learningOutcomes && this.metadata.learningOutcomes.length >= 3,
+    hasThumbnail: !!this.thumbnail,
+    meetsQualityScore: this.qualityScore >= 50
+  };
+
+  const passedAutomated = Object.values(qualityChecks).every(check => check);
+
+  if (!passedAutomated) {
+    // Collect issues
+    this.marketplace.qualityIssues = Object.entries(qualityChecks)
+      .filter(([key, passed]) => !passed)
+      .map(([key]) => {
+        const issueMessages = {
+          hasDescription: 'Description must be at least 100 characters',
+          hasModules: 'Course must have at least 3 modules',
+          hasLessons: 'Course must have at least 10 lessons total',
+          hasLearningOutcomes: 'Must have at least 3 learning outcomes',
+          hasThumbnail: 'Course must have a thumbnail image',
+          meetsQualityScore: 'Quality score must be at least 50'
+        };
+        return issueMessages[key];
+      });
+
+    return this.save();
+  }
+
+  // Passed automated checks - mark as ready for admin review
+  this.marketplace.hasPassedQualityReview = false; // Still needs admin review
+  this.marketplace.qualityIssues = [];
+
+  return this.save();
+};
+
+// Approve course quality (admin only)
+courseSchema.methods.approveQuality = function(reviewerId) {
+  this.marketplace.hasPassedQualityReview = true;
+  this.marketplace.qualityReviewedAt = new Date();
+  this.marketplace.qualityReviewedBy = reviewerId;
+  this.marketplace.qualityIssues = [];
+
+  // Auto-publish if not already published
+  if (!this.isPublished) {
+    this.isPublished = true;
+    this.publishedAt = new Date();
+  }
+
+  return this.save();
+};
+
+// Reject course quality
+courseSchema.methods.rejectQuality = function(reviewerId, issues) {
+  this.marketplace.hasPassedQualityReview = false;
+  this.marketplace.qualityReviewedAt = new Date();
+  this.marketplace.qualityReviewedBy = reviewerId;
+  this.marketplace.qualityIssues = issues;
+
+  return this.save();
+};
+
+// Check if course can be made public
+courseSchema.methods.canBePublic = function() {
+  // Personal courses can never be public
+  if (this.courseType === 'personal') {
+    return false;
+  }
+
+  // Marketplace courses need quality review
+  if (this.courseType === 'marketplace') {
+    return this.marketplace.hasPassedQualityReview;
+  }
+
+  // Flagship courses can always be public
+  if (this.courseType === 'flagship') {
+    return true;
+  }
+
+  return false;
+};
+
+// Set visibility with validation
+courseSchema.methods.setVisibility = async function(visibility) {
+  if (visibility === 'public' && !this.canBePublic()) {
+    throw new Error('Course does not meet requirements for public visibility');
+  }
+
+  this.visibility = visibility;
+  return this.save();
+};
+
+// Record a sale
+courseSchema.methods.recordSale = async function(amount) {
+  this.marketplace.totalSales += 1;
+  this.marketplace.totalRevenue += amount;
+
+  // Calculate instructor earnings
+  const platformFee = amount * (this.pricing.platformFeePercentage / 100);
+  const instructorEarning = amount - platformFee;
+
+  // Update instructor earnings
+  const User = mongoose.model('User');
+  const instructor = await User.findById(this.createdBy);
+
+  if (instructor) {
+    await instructor.addEarnings(instructorEarning);
+  }
+
+  return this.save();
+};
+
+// Update average rating
+courseSchema.methods.updateRating = function(newRating) {
+  const currentTotal = this.marketplace.averageRating * this.marketplace.totalReviews;
+  this.marketplace.totalReviews += 1;
+  this.marketplace.averageRating = (currentTotal + newRating) / this.marketplace.totalReviews;
+
+  return this.save();
+};
+
+// Mark as AI generated
+courseSchema.methods.markAsAIGenerated = function(prompt, model, cost) {
+  this.aiGeneration.isAIGenerated = true;
+  this.aiGeneration.generatedAt = new Date();
+  this.aiGeneration.generationPrompt = prompt;
+  this.aiGeneration.generationModel = model;
+  this.aiGeneration.estimatedCost = cost;
+
+  return this.save();
+};
+
+// Mark as human reviewed
+courseSchema.methods.markAsHumanReviewed = function(reviewerId) {
+  this.aiGeneration.hasHumanReview = true;
+  this.aiGeneration.humanReviewedAt = new Date();
+  this.aiGeneration.humanReviewedBy = reviewerId;
+
+  return this.save();
+};
+
+// Static method: Find marketplace courses
+courseSchema.statics.findMarketplaceCourses = function(filters = {}) {
+  return this.find({
+    visibility: 'public',
+    courseType: { $in: ['marketplace', 'flagship'] },
+    isPublished: true,
+    'marketplace.hasPassedQualityReview': true,
+    ...filters
+  }).sort({ 'marketplace.rank': -1, 'statistics.enrollmentCount': -1 });
+};
+
+// Static method: Find personal courses for a user
+courseSchema.statics.findPersonalCourses = function(userId) {
+  return this.find({
+    createdBy: userId,
+    courseType: 'personal'
+  }).sort({ createdAt: -1 });
+};
+
+// Add indexes for new fields
+courseSchema.index({ visibility: 1, courseType: 1, isPublished: 1 });
+courseSchema.index({ creatorRole: 1, visibility: 1 });
+courseSchema.index({ 'marketplace.hasPassedQualityReview': 1, 'marketplace.rank': -1 });
+courseSchema.index({ 'marketplace.isFeatured': 1, 'marketplace.featuredUntil': 1 });
 
 export default mongoose.model('Course', courseSchema);

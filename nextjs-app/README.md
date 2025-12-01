@@ -95,7 +95,18 @@ npm run start         # Start production server
 # Code Quality
 npm run lint          # Run ESLint
 npm run type-check    # TypeScript type checking
+
+# Troubleshooting
+npm run fix:caniuse   # Fix caniuse-lite module issues
 ```
+
+## 🔧 Troubleshooting
+
+Having issues? Check out [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for solutions to common problems, including:
+- Module not found errors (caniuse-lite, etc.)
+- Port conflicts
+- Build errors
+- TypeScript errors
 
 ## 🏗️ Architecture
 

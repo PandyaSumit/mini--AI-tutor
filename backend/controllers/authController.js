@@ -151,17 +151,16 @@ export const getMe = async (req, res) => {
         res.status(200).json({
             success: true,
             data: {
-                user: {
-                    id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                    avatar: user.avatar,
-                    learningStats: user.learningStats,
-                    preferences: user.preferences,
-                    isVerified: user.isVerified,
-                    createdAt: user.createdAt
-                }
+                _id: user._id,
+                id: user._id, // Keep for backward compatibility
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatar: user.avatar,
+                learningStats: user.learningStats,
+                preferences: user.preferences,
+                isVerified: user.isVerified,
+                createdAt: user.createdAt
             }
         });
     } catch (error) {

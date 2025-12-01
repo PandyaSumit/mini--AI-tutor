@@ -9,7 +9,7 @@ export interface User {
   createdAt: string;
   updatedAt?: string;
   avatar?: string;
-  role?: 'student' | 'teacher' | 'admin';
+  role?: 'learner' | 'verified_instructor' | 'platform_author' | 'admin';
 }
 
 export interface UserProfile extends User {

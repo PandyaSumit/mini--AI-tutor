@@ -215,23 +215,29 @@ export default function LandingPage() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
+              <Link
+                href="/browse"
+                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              >
+                Browse Courses
+              </Link>
+              <Link
+                href="/categories"
+                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              >
+                Categories
+              </Link>
+              <Link
+                href="/teach"
+                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              >
+                For Instructors
+              </Link>
               <a
                 href="#features"
                 className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
               >
                 Features
-              </a>
-              <a
-                href="#benefits"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Benefits
-              </a>
-              <a
-                href="#testimonials"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Testimonials
               </a>
               <a
                 href="#pricing"
@@ -276,26 +282,33 @@ export default function LandingPage() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white">
             <div className="px-6 py-4 space-y-3">
+              <Link
+                href="/browse"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              >
+                Browse Courses
+              </Link>
+              <Link
+                href="/categories"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              >
+                Categories
+              </Link>
+              <Link
+                href="/teach"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
+              >
+                For Instructors
+              </Link>
               <a
                 href="#features"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
               >
                 Features
-              </a>
-              <a
-                href="#benefits"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Benefits
-              </a>
-              <a
-                href="#testimonials"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Testimonials
               </a>
               <a
                 href="#pricing"

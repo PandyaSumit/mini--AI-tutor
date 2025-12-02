@@ -15,7 +15,7 @@ import {
   LogIn,
   Menu,
   X,
-  GraduationCap,
+  Sparkles,
 } from 'lucide-react';
 import { useState } from 'react';
 import NewsletterSignup from '@/components/NewsletterSignup';
@@ -42,20 +42,20 @@ export default function PublicLayoutClient({ children }: PublicLayoutClientProps
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-white" />
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
-              <span className="text-xl font-bold text-gray-900">AI Tutor</span>
+              <span className="text-lg font-bold text-gray-900">Mini AI Tutor</span>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
+            <nav className="hidden md:flex items-center gap-8">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                  className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
                 >
                   {item.name}
                 </Link>
@@ -63,20 +63,20 @@ export default function PublicLayoutClient({ children }: PublicLayoutClientProps
             </nav>
 
             {/* Desktop Auth Buttons */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center gap-3">
               {loading ? (
-                <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
               ) : user ? (
                 <>
                   <Link
                     href="/dashboard"
-                    className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                    className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
                   >
                     Dashboard
                   </Link>
                   <Link
                     href="/dashboard/profile"
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex items-center space-x-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all font-medium shadow-sm hover:shadow active:scale-[0.98]"
                   >
                     <User className="w-4 h-4" />
                     <span>{user.name}</span>
@@ -86,16 +86,15 @@ export default function PublicLayoutClient({ children }: PublicLayoutClientProps
                 <>
                   <Link
                     href="/login"
-                    className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                    className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
                   >
-                    <LogIn className="w-4 h-4" />
-                    <span>Log In</span>
+                    Sign in
                   </Link>
                   <Link
                     href="/signup"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    className="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all font-medium shadow-sm hover:shadow active:scale-[0.98]"
                   >
-                    Sign Up
+                    Get Started
                   </Link>
                 </>
               )}
@@ -104,12 +103,13 @@ export default function PublicLayoutClient({ children }: PublicLayoutClientProps
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+              className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-gray-700" />
+                <X className="w-6 h-6" strokeWidth={2} />
               ) : (
-                <Menu className="w-6 h-6 text-gray-700" />
+                <Menu className="w-6 h-6" strokeWidth={2} />
               )}
             </button>
           </div>
@@ -117,25 +117,25 @@ export default function PublicLayoutClient({ children }: PublicLayoutClientProps
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
-            <div className="px-4 py-4 space-y-3">
+          <div className="md:hidden border-t border-gray-100 bg-white">
+            <div className="px-6 py-4 space-y-3">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block py-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                  className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
                 >
                   {item.name}
                 </Link>
               ))}
-              <div className="pt-3 border-t border-gray-200 space-y-3">
+              <div className="pt-4 space-y-2">
                 {user ? (
                   <>
                     <Link
                       href="/dashboard"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                      className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
                     >
                       Dashboard
                     </Link>
@@ -149,17 +149,16 @@ export default function PublicLayoutClient({ children }: PublicLayoutClientProps
                     <Link
                       href="/login"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center space-x-2 py-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                      className="block w-full text-center px-4 py-2.5 text-gray-600 hover:text-gray-900 transition-colors font-medium border border-gray-200 rounded-lg"
                     >
-                      <LogIn className="w-4 h-4" />
-                      <span>Log In</span>
+                      Sign in
                     </Link>
                     <Link
                       href="/signup"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block w-full text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                      className="block w-full text-center px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all font-medium"
                     >
-                      Sign Up
+                      Get Started
                     </Link>
                   </>
                 )}
@@ -183,11 +182,11 @@ export default function PublicLayoutClient({ children }: PublicLayoutClientProps
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="col-span-1">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <GraduationCap className="w-6 h-6 text-white" />
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-gray-900" strokeWidth={2.5} />
                 </div>
-                <span className="text-xl font-bold">AI Tutor</span>
+                <span className="text-xl font-bold">Mini AI Tutor</span>
               </div>
               <p className="text-gray-400 text-sm">
                 Empowering learners worldwide with AI-powered personalized education.

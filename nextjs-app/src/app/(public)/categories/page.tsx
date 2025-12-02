@@ -107,15 +107,15 @@ export default function CategoriesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl">
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
+        <section className="bg-white py-20 px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center max-w-4xl mx-auto">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 leading-tight">
                 Explore Course Categories
               </h1>
-              <p className="text-xl text-blue-100">
+              <p className="text-xl text-gray-600 leading-relaxed">
                 Discover thousands of courses across diverse topics. Find the perfect learning path for your goals.
               </p>
             </div>
@@ -123,7 +123,7 @@ export default function CategoriesPage() {
         </section>
 
         {/* Loading Categories */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <section className="max-w-7xl mx-auto px-6 lg:px-8 py-16 bg-gray-50">
           <CategoryGridSkeleton count={8} />
         </section>
       </div>
@@ -131,15 +131,15 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+      <section className="bg-white py-20 px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 leading-tight">
               Explore Course Categories
             </h1>
-            <p className="text-xl text-blue-100">
+            <p className="text-xl text-gray-600 leading-relaxed">
               Discover thousands of courses across diverse topics. Find the perfect learning path for your goals.
             </p>
           </div>
@@ -147,7 +147,7 @@ export default function CategoriesPage() {
       </section>
 
       {/* Categories Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-16 bg-gray-50">
         {categoriesWithCounts.length === 0 ? (
           <div className="text-center py-20">
             <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -158,7 +158,6 @@ export default function CategoriesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {categoriesWithCounts.map((category) => {
               const Icon = getCategoryIcon(category.name);
-              const colorClass = getCategoryColor(category.name);
 
               return (
                 <Link
@@ -166,18 +165,18 @@ export default function CategoriesPage() {
                   href={`/browse?category=${encodeURIComponent(category.name)}`}
                   className="group"
                 >
-                  <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden h-full">
-                    <div className={`bg-gradient-to-br ${colorClass} p-6 text-white`}>
-                      <Icon className="w-12 h-12 mb-4" />
+                  <div className="bg-white rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden h-full">
+                    <div className="bg-gray-900 p-6 text-white">
+                      <Icon className="w-12 h-12 mb-4" strokeWidth={2} />
                       <h3 className="text-xl font-bold mb-2">{category.name}</h3>
                       <p className="text-white text-opacity-90">
                         {category.count} {category.count === 1 ? 'course' : 'courses'}
                       </p>
                     </div>
                     <div className="p-6">
-                      <div className="flex items-center text-blue-600 group-hover:text-blue-700 font-medium">
+                      <div className="flex items-center text-gray-600 group-hover:text-gray-900 font-medium transition-colors">
                         <span>Browse Courses</span>
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" strokeWidth={2} />
                       </div>
                     </div>
                   </div>
@@ -189,24 +188,24 @@ export default function CategoriesPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-white border-t border-gray-200 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+      <section className="bg-white border-t border-gray-100 py-16 px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Can't find what you're looking for?
           </h2>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-gray-600 mb-8 leading-relaxed">
             Browse all courses or use our search to find the perfect course for you.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/browse"
-              className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+              className="inline-flex items-center justify-center px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white rounded-xl transition-all font-semibold shadow-sm hover:shadow active:scale-[0.98]"
             >
               Browse All Courses
             </Link>
             <Link
               href="/browse?search="
-              className="px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-semibold"
+              className="inline-flex items-center justify-center px-8 py-4 border-2 border-gray-200 text-gray-900 rounded-xl hover:bg-gray-50 transition-all font-semibold active:scale-[0.98]"
             >
               Search Courses
             </Link>

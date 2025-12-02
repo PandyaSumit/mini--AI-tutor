@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks';
 import { useRouter } from 'next/navigation';
@@ -22,8 +22,6 @@ import {
   TrendingUp,
   Shield,
   Play,
-  Menu,
-  X,
   Github,
   Twitter,
   Linkedin,
@@ -126,11 +124,9 @@ const pricingFeatures = [
   'Community access',
 ];
 
-export default function LandingPage() {
+export default function HomePage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -138,38 +134,6 @@ export default function LandingPage() {
       router.push('/dashboard');
     }
   }, [user, router]);
-
-  // Handle scroll for navbar
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Close mobile menu on escape
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && mobileMenuOpen) {
-        setMobileMenuOpen(false);
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [mobileMenuOpen]);
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [mobileMenuOpen]);
 
   // Scroll Reveal Animation Hook
   useEffect(() => {
@@ -197,149 +161,9 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-white'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" strokeWidth={2.5} />
-              </div>
-              <span className="text-lg font-bold text-gray-900">Mini AI Tutor</span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              <Link
-                href="/browse"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Browse Courses
-              </Link>
-              <Link
-                href="/categories"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Categories
-              </Link>
-              <Link
-                href="/teach"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                For Instructors
-              </Link>
-              <a
-                href="#features"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Features
-              </a>
-              <a
-                href="#pricing"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Pricing
-              </a>
-            </div>
-
-            {/* Desktop Auth Buttons */}
-            <div className="hidden md:flex items-center gap-3">
-              <Link
-                href="/login"
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/register"
-                className="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all font-medium shadow-sm hover:shadow active:scale-[0.98]"
-              >
-                Get Started
-              </Link>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6" strokeWidth={2} />
-              ) : (
-                <Menu className="w-6 h-6" strokeWidth={2} />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-100 bg-white">
-            <div className="px-6 py-4 space-y-3">
-              <Link
-                href="/browse"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Browse Courses
-              </Link>
-              <Link
-                href="/categories"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Categories
-              </Link>
-              <Link
-                href="/teach"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                For Instructors
-              </Link>
-              <a
-                href="#features"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Features
-              </a>
-              <a
-                href="#pricing"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Pricing
-              </a>
-              <div className="pt-4 space-y-2">
-                <Link
-                  href="/login"
-                  className="block w-full text-center px-4 py-2.5 text-gray-600 hover:text-gray-900 transition-colors font-medium border border-gray-200 rounded-lg"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href="/register"
-                  className="block w-full text-center px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Get Started
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
-      </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-24 px-6 lg:px-8">
+      <section className="pt-24 pb-24 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
             {/* Badge */}

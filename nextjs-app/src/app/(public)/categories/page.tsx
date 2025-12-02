@@ -123,7 +123,7 @@ export default function CategoriesPage() {
         </section>
 
         {/* Loading Categories */}
-        <section className="max-w-7xl mx-auto px-6 lg:px-8 py-16 bg-gray-50">
+        <section className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
           <CategoryGridSkeleton count={8} />
         </section>
       </div>
@@ -147,7 +147,7 @@ export default function CategoriesPage() {
       </section>
 
       {/* Categories Grid */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-16 bg-gray-50">
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
         {categoriesWithCounts.length === 0 ? (
           <div className="text-center py-20">
             <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />

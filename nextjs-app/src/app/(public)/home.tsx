@@ -22,9 +22,6 @@ import {
   TrendingUp,
   Shield,
   Play,
-  Github,
-  Twitter,
-  Linkedin,
 } from 'lucide-react';
 
 const features = [
@@ -492,122 +489,6 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-100 py-12 px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            {/* Brand */}
-            <div className="md:col-span-2">
-              <Link href="/" className="flex items-center gap-2.5 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" strokeWidth={2.5} />
-                </div>
-                <span className="text-lg font-bold text-gray-900">Mini AI Tutor</span>
-              </Link>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                AI-powered education platform helping learners achieve their goals faster with
-                personalized study paths and intelligent tutoring.
-              </p>
-              <div className="flex items-center gap-3">
-                <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-900 flex items-center justify-center transition-colors group"
-                >
-                  <Twitter className="w-4 h-4 text-gray-600 group-hover:text-white transition-colors" strokeWidth={2} />
-                </a>
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-900 flex items-center justify-center transition-colors group"
-                >
-                  <Github className="w-4 h-4 text-gray-600 group-hover:text-white transition-colors" strokeWidth={2} />
-                </a>
-                <a
-                  href="https://linkedin.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-900 flex items-center justify-center transition-colors group"
-                >
-                  <Linkedin className="w-4 h-4 text-gray-600 group-hover:text-white transition-colors" strokeWidth={2} />
-                </a>
-              </div>
-            </div>
-
-            {/* Links */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
-              <ul className="space-y-3">
-                <li>
-                  <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <Link href="/login" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Sign in
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/register" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Get Started
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
-              <ul className="space-y-3">
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom Bar */}
-          <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-500">© 2024 Mini AI Tutor. All rights reserved.</p>
-            <div className="flex items-center gap-6 text-sm">
-              <a href="#" className="text-gray-500 hover:text-gray-900 transition-colors">
-                Privacy
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gray-900 transition-colors">
-                Terms
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gray-900 transition-colors">
-                Cookies
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

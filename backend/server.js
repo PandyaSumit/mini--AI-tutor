@@ -31,6 +31,7 @@ import enrollmentRoutes from './routes/enrollments.js';
 import adminRoutes from './routes/admin.js';
 import publicCourseRoutes from './routes/publicCourseRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
+import agentRoutes from './routes/agentRoutes.js';
 import { errorHandler} from './middleware/errorHandler.js';
 import rateLimiter from './middleware/rateLimiter.js';
 import moderateContent from './middleware/contentModeration.js';
@@ -112,6 +113,31 @@ if (aiService.isReady()) {
     }
 })();
 
+// Initialize Agent Orchestrator
+(async () => {
+    try {
+        const { default: agentOrchestrator } = await import('./ai/agents/AgentOrchestrator.js');
+        const result = await agentOrchestrator.initialize();
+
+        if (result.success) {
+            console.log('✅ Agent Orchestrator initialized');
+
+            // Make available globally for routes
+            app.set('agentOrchestrator', agentOrchestrator);
+
+            // Graceful shutdown
+            process.on('SIGTERM', async () => {
+                await agentOrchestrator.shutdown();
+            });
+        } else {
+            console.warn('⚠️  Agent Orchestrator initialization failed:', result.error);
+        }
+    } catch (error) {
+        console.error('❌ Agent Orchestrator error:', error.message);
+        console.log('⚠️  Continuing without agent system...');
+    }
+})();
+
 // Initialize Course Sync Service
 (async () => {
     try {
@@ -179,6 +205,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/public', publicCourseRoutes); // PUBLIC - No auth required for course discovery
 app.use('/api/newsletter', newsletterRoutes); // PUBLIC - Newsletter subscriptions
 app.use('/api/admin', adminRoutes); // ADMIN ONLY - Protected by admin middleware
+app.use('/api/agents', agentRoutes); // Agent system endpoints
 app.use('/api/chat', moderateContent, chatRoutes); // Apply content moderation to chat
 app.use('/api/user', userRoutes);
 app.use('/api/dashboard', dashboardRoutes); // Optimized dashboard endpoint

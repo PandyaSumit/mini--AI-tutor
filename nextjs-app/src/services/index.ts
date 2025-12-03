@@ -15,6 +15,7 @@ import { aiService } from './ai/aiService';
 import { enrollmentService } from './enrollment/enrollmentService';
 import { voiceService } from './voice/voiceService';
 import { adminService } from './admin/adminService';
+import { agentService } from './agent/agentService';
 
 // Export named services
 export {
@@ -30,6 +31,7 @@ export {
     enrollmentService,
     voiceService,
     adminService,
+    agentService,
 };
 
 // Export default object for convenience
@@ -46,4 +48,5 @@ export default {
     enrollmentService,
     voiceService,
     adminService,
+    agentService,
 };

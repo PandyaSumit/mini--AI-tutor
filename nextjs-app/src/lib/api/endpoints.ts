@@ -75,4 +75,15 @@ export const API_ENDPOINTS = {
     GET_STATS: '/dashboard/stats',
     GET_RECENT_ACTIVITY: '/dashboard/activity',
   },
+
+  // Agents
+  AGENTS: {
+    TUTOR_ASK: '/agents/tutor/ask',
+    COURSE_PREPARE: '/agents/course/prepare',
+    COST_ANALYTICS: '/agents/cost/analytics',
+    USER_BUDGET: (userId: string) => `/agents/cost/user/${userId}`,
+    PROGRESS_UPDATE: '/agents/progress/update',
+    PROGRESS_COMPLETE_TOPIC: '/agents/progress/complete-topic',
+    AGENT_STATS: '/agents/stats',
+  },
 };

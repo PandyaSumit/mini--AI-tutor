@@ -6,20 +6,24 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { chatService } from '@/services/chat';
-import { Send, Sparkles, Loader2, Mic, Bot, User, Plus, SlidersHorizontal, Clock4, ChevronDown, ArrowUp } from 'lucide-react';
+import { agentService } from '@/services/agent';
+import { Send, Sparkles, Loader2, Mic, Bot, User, Plus, SlidersHorizontal, Clock4, ChevronDown, ArrowUp, Zap } from 'lucide-react';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  cost?: number;
+  cached?: boolean;
 }
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [conversationId, setConversationId] = useState<string | undefined>(undefined);
+  const [quotaError, setQuotaError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -44,33 +48,51 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setQuotaError(null);
 
     try {
-      const response = await chatService.sendMessage({
-        message: userMessage.content,
-        conversationId: undefined,
+      const response = await agentService.askTutor({
+        query: userMessage.content,
+        conversation_id: conversationId,
       });
+
+      // Store conversation ID for future messages
+      if (response.conversation_id) {
+        setConversationId(response.conversation_id);
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content:
-          response.response ||
-          'Sorry, I could not process your request.',
+        content: response.answer || 'Sorry, I could not process your request.',
         timestamp: new Date(),
+        cost: response.cost,
+        cached: response.cached,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content:
-          'Sorry, there was an error processing your message. Please try again.',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+
+      // Handle quota exceeded error
+      if (error.message && error.message.includes('QUOTA_EXCEEDED')) {
+        setQuotaError('You have reached your message limit. Please upgrade your plan to continue.');
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: '⚠️ You have reached your message limit for this month. Please upgrade your plan to continue chatting with the AI tutor.',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      } else {
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: 'Sorry, there was an error processing your message. Please try again.',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -207,10 +229,19 @@ export default function ChatPage() {
           {/* SCROLLABLE CHAT AREA */}
           <main className="flex-1 overflow-y-auto overflow-x-hidden">
             <div className="px-4 sm:px-6 lg:px-8 pb-24">
+              {/* Quota warning banner */}
+              {quotaError && (
+                <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-amber-50 border-b border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
+                  <p className="text-[13px] sm:text-[14px] text-amber-800 dark:text-amber-300">
+                    ⚠️ {quotaError}
+                  </p>
+                </div>
+              )}
+
               {/* Sticky context line */}
               <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-white/90 dark:bg-[#212121]/90 backdrop-blur border-b border-gray-100 dark:border-neutral-700">
                 <p className="text-[13px] sm:text-[14px] text-gray-700 dark:text-gray-200">
-                  Analyzing how Bitcoin&apos;s volatility influences investor confidence
+                  AI Tutor Chat - Powered by Multi-Agent System
                 </p>
               </div>
 
@@ -235,6 +266,19 @@ export default function ChatPage() {
                         }`}
                       >
                         <p>{message.content}</p>
+
+                        {/* Show cost/cache badge for assistant messages */}
+                        {message.role === 'assistant' && message.cost !== undefined && (
+                          <div className="mt-2 pt-2 border-t border-gray-200 dark:border-[#2f2f46] flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+                            {message.cached && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                <Zap className="w-3 h-3" />
+                                Cached
+                              </span>
+                            )}
+                            <span>Cost: ${message.cost.toFixed(4)}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

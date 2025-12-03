@@ -67,7 +67,7 @@ export function getCheckoutSuccessUrl(sessionId) {
 
 export function getCheckoutCancelUrl() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  return `${baseUrl}/payment/cancelled`;
+  return `${baseUrl}/payment/cancel`;
 }
 
 export default stripe;

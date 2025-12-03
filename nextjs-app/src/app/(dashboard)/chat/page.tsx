@@ -7,6 +7,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { agentService } from '@/services/agent';
+import UpgradeModal from '@/components/UpgradeModal';
 import { Send, Sparkles, Loader2, Mic, Bot, User, Plus, SlidersHorizontal, Clock4, ChevronDown, ArrowUp, Zap } from 'lucide-react';
 
 interface Message {
@@ -24,6 +25,8 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | undefined>(undefined);
   const [quotaError, setQuotaError] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeInfo, setUpgradeInfo] = useState<{ tier?: string; message?: string; upgradeTo?: string }>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -74,9 +77,20 @@ export default function ChatPage() {
     } catch (error: any) {
       console.error('Chat error:', error);
 
-      // Handle quota exceeded error
-      if (error.message && error.message.includes('QUOTA_EXCEEDED')) {
-        setQuotaError('You have reached your message limit. Please upgrade your plan to continue.');
+      // Handle quota exceeded error (FREE_TIER_EXHAUSTED from backend)
+      if (error.response?.data?.error === 'FREE_TIER_EXHAUSTED') {
+        const data = error.response.data;
+
+        setQuotaError(data.message || 'You have reached your message limit.');
+
+        // Show upgrade modal
+        setUpgradeInfo({
+          tier: data.currentTier,
+          message: data.message,
+          upgradeTo: data.upgradeTo || 'basic',
+        });
+        setShowUpgradeModal(true);
+
         const errorMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
@@ -352,6 +366,15 @@ export default function ChatPage() {
           </footer>
         </>
       )}
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentTier={upgradeInfo.tier}
+        message={upgradeInfo.message}
+        upgradeTo={upgradeInfo.upgradeTo}
+      />
     </div>
   );
 }

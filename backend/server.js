@@ -32,6 +32,8 @@ import adminRoutes from './routes/admin.js';
 import publicCourseRoutes from './routes/publicCourseRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
 import agentRoutes from './routes/agentRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import webhookRoutes from './routes/webhookRoutes.js';
 import { errorHandler} from './middleware/errorHandler.js';
 import rateLimiter from './middleware/rateLimiter.js';
 import moderateContent from './middleware/contentModeration.js';
@@ -183,6 +185,11 @@ const corsOptions = {
 
 app.use(cors(corsOptions)); // Enable CORS with options
 app.options('*', cors(corsOptions)); // Preflight support
+
+// CRITICAL: Stripe webhook route MUST come BEFORE express.json()
+// Stripe requires raw body for signature verification
+app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }), webhookRoutes);
+
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(cookieParser()); // Parse cookies from request headers
@@ -206,6 +213,7 @@ app.use('/api/public', publicCourseRoutes); // PUBLIC - No auth required for cou
 app.use('/api/newsletter', newsletterRoutes); // PUBLIC - Newsletter subscriptions
 app.use('/api/admin', adminRoutes); // ADMIN ONLY - Protected by admin middleware
 app.use('/api/agents', agentRoutes); // Agent system endpoints
+app.use('/api/payments', paymentRoutes); // Payment routes - Protected with auth middleware
 app.use('/api/chat', moderateContent, chatRoutes); // Apply content moderation to chat
 app.use('/api/user', userRoutes);
 app.use('/api/dashboard', dashboardRoutes); // Optimized dashboard endpoint

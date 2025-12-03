@@ -1,58 +1,74 @@
 /**
  * Agent Routes - API endpoints for agent system
+ * SECURITY: All routes protected with enrollment and quota checks
  */
 
 import express from 'express';
 import { authenticate } from '../middleware/auth.js';
+import { requireEnrollment } from '../middleware/enrollmentMiddleware.js';
+import { checkAIQuota, consumeAIQuota } from '../middleware/quotaMiddleware.js';
 
 const router = express.Router();
 
 /**
  * POST /api/agents/tutor/ask
  * Ask AI tutor a question
+ * SECURITY:
+ * - Requires authentication
+ * - Requires course enrollment (paid or free)
+ * - Requires AI quota available
+ * - Consumes quota after successful response
  */
-router.post('/tutor/ask', authenticate, async (req, res) => {
-  try {
-    const orchestrator = req.app.get('agentOrchestrator');
-    if (!orchestrator) {
-      return res.status(503).json({ error: 'Agent system not available' });
-    }
+router.post(
+  '/tutor/ask',
+  authenticate,
+  requireEnrollment,
+  checkAIQuota('chatMessages'),
+  async (req, res) => {
+    try {
+      const orchestrator = req.app.get('agentOrchestrator');
+      if (!orchestrator) {
+        return res.status(503).json({ error: 'Agent system not available' });
+      }
 
-    const { course_id, topic_id, query, conversation_id } = req.body;
+      const { course_id, topic_id, query, conversation_id } = req.body;
 
-    if (!query) {
-      return res.status(400).json({ error: 'Query is required' });
-    }
+      if (!query) {
+        return res.status(400).json({ error: 'Query is required' });
+      }
 
-    const result = await orchestrator.routeTask('tutoring', {
-      user_id: req.user._id,
-      course_id,
-      topic_id,
-      query,
-      conversation_id,
-      feature: 'ai_tutor_chat'
-    });
-
-    if (result.success) {
-      res.json({
-        answer: result.result.answer,
-        sources: result.result.sources,
-        cached: result.result.cached,
-        conversation_id: result.result.conversation_id,
-        cost: result.cost
+      const result = await orchestrator.routeTask('tutoring', {
+        user_id: req.user._id,
+        course_id,
+        topic_id,
+        query,
+        conversation_id,
+        feature: 'ai_tutor_chat',
       });
-    } else {
-      res.status(400).json({
-        error: result.error || 'Failed to get answer',
-        upgrade_url: result.result?.upgrade_url
-      });
-    }
 
-  } catch (error) {
-    console.error('Tutor ask error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+      if (result.success) {
+        // SECURITY: Consume quota after successful AI call
+        await consumeAIQuota(req, 1);
+
+        res.json({
+          answer: result.result.answer,
+          sources: result.result.sources,
+          cached: result.result.cached,
+          conversation_id: result.result.conversation_id,
+          cost: result.cost,
+        });
+      } else {
+        res.status(400).json({
+          error: result.error || 'Failed to get answer',
+          upgrade_url: result.result?.upgrade_url,
+        });
+      }
+    } catch (error) {
+      console.error('Tutor ask error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
-});
+);
 
 /**
  * POST /api/agents/course/prepare

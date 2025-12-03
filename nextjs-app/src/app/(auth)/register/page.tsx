@@ -26,6 +26,8 @@ import {
   AlertCircle,
   Check,
   X,
+  GraduationCap,
+  Briefcase,
 } from 'lucide-react';
 
 const features = [
@@ -72,6 +74,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    role: 'learner',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -117,6 +120,7 @@ export default function RegisterPage() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        role: formData.role,
       });
       // Navigation handled by AuthProvider
     } catch (err: any) {
@@ -351,6 +355,107 @@ export default function RegisterPage() {
                     autoComplete="email"
                   />
                 </div>
+              </div>
+
+              {/* Role Selection */}
+              <div className="space-y-2">
+                <label htmlFor="role" className="block text-sm font-semibold text-gray-900">
+                  I want to join as
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, role: 'learner' })}
+                    className={`relative p-4 rounded-xl border-2 transition-all text-left ${
+                      formData.role === 'learner'
+                        ? 'border-gray-900 bg-gray-50'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        formData.role === 'learner' ? 'bg-gray-900' : 'bg-gray-100'
+                      }`}>
+                        <GraduationCap className={`w-5 h-5 ${
+                          formData.role === 'learner' ? 'text-white' : 'text-gray-600'
+                        }`} strokeWidth={2} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1">Student</h3>
+                        <p className="text-xs text-gray-600 leading-relaxed">Learn with AI tutoring</p>
+                      </div>
+                    </div>
+                    {formData.role === 'learner' && (
+                      <div className="absolute top-3 right-3">
+                        <Check className="w-4 h-4 text-gray-900" strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, role: 'verified_instructor' })}
+                    className={`relative p-4 rounded-xl border-2 transition-all text-left ${
+                      formData.role === 'verified_instructor'
+                        ? 'border-gray-900 bg-gray-50'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        formData.role === 'verified_instructor' ? 'bg-gray-900' : 'bg-gray-100'
+                      }`}>
+                        <Briefcase className={`w-5 h-5 ${
+                          formData.role === 'verified_instructor' ? 'text-white' : 'text-gray-600'
+                        }`} strokeWidth={2} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1">Instructor</h3>
+                        <p className="text-xs text-gray-600 leading-relaxed">Teach & earn money</p>
+                      </div>
+                    </div>
+                    {formData.role === 'verified_instructor' && (
+                      <div className="absolute top-3 right-3">
+                        <Check className="w-4 h-4 text-gray-900" strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, role: 'platform_author' })}
+                    className={`relative p-4 rounded-xl border-2 transition-all text-left ${
+                      formData.role === 'platform_author'
+                        ? 'border-gray-900 bg-gray-50'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        formData.role === 'platform_author' ? 'bg-gray-900' : 'bg-gray-100'
+                      }`}>
+                        <Sparkles className={`w-5 h-5 ${
+                          formData.role === 'platform_author' ? 'text-white' : 'text-gray-600'
+                        }`} strokeWidth={2} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-1">Author</h3>
+                        <p className="text-xs text-gray-600 leading-relaxed">Create flagship courses</p>
+                      </div>
+                    </div>
+                    {formData.role === 'platform_author' && (
+                      <div className="absolute top-3 right-3">
+                        <Check className="w-4 h-4 text-gray-900" strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                </div>
+                {formData.role === 'verified_instructor' && (
+                  <p className="text-xs text-gray-600 mt-2 flex items-start gap-2">
+                    <Shield className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" strokeWidth={2} />
+                    <span>You'll need to complete verification (ID check + subject validation) to publish courses</span>
+                  </p>
+                )}
               </div>
 
               {/* Password Field */}

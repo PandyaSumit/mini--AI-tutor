@@ -109,12 +109,12 @@ function getUpgradeInfo(currentTier) {
     },
     basic: {
       message:
-        'You've reached your monthly limit. Upgrade to Pro for unlimited messages.',
+        'You have reached your monthly limit. Upgrade to Pro for unlimited messages.',
       nextTier: 'pro',
       price: 1999, // $19.99
     },
     pro: {
-      message: 'You've reached your monthly limit. Please wait for next billing cycle.',
+      message: 'You have reached your monthly limit. Please wait for next billing cycle.',
       nextTier: null,
       price: null,
     },

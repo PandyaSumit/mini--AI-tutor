@@ -5,9 +5,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { courseService } from '@/services/course';
+import { useAuth } from '@/hooks';
 import {
   ArrowLeft,
   Sparkles,
@@ -18,6 +19,8 @@ import {
   Users,
   TrendingUp,
   Clock,
+  Lock,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface SimilarCourse {
@@ -54,6 +57,7 @@ interface GeneratedCourse {
 
 export default function CreateCoursePage() {
   const router = useRouter();
+  const { user } = useAuth();
 
   // Steps: 1=Input, 2=SimilarCourses, 3=Preview, 4=Generating, 5=Success
   const [step, setStep] = useState(1);
@@ -67,6 +71,39 @@ export default function CreateCoursePage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [generatedCourse, setGeneratedCourse] = useState<GeneratedCourse | null>(null);
+
+  // Check verification status on mount
+  useEffect(() => {
+    if (!user) return;
+
+    // Check if user can create marketplace courses
+    const canCreateCourse =
+      user.role === 'verified_instructor' ||
+      user.role === 'platform_author' ||
+      user.role === 'admin';
+
+    if (!canCreateCourse) {
+      // Not an instructor role
+      router.push('/dashboard?error=not_instructor');
+      return;
+    }
+
+    // Check verification status for instructors
+    if (user.role === 'verified_instructor' || user.role === 'platform_author') {
+      const verificationStatus = user.instructorVerification?.status;
+
+      if (verificationStatus === 'pending') {
+        router.push('/instructor/verification?status=pending&blocked=course_creation');
+        return;
+      } else if (verificationStatus === 'rejected') {
+        router.push('/instructor/verification?status=rejected&blocked=course_creation');
+        return;
+      } else if (verificationStatus !== 'approved') {
+        router.push('/instructor/verification?blocked=course_creation');
+        return;
+      }
+    }
+  }, [user, router]);
 
   const handleCheckSimilar = async () => {
     if (!prompt.trim()) {

@@ -29,6 +29,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  // Helper function for role-based routing after login/register
+  const getPostAuthRoute = (user: User): string => {
+    // Admin goes to admin dashboard
+    if (user.role === 'admin') {
+      return '/admin/dashboard';
+    }
+
+    // Instructors - check verification status
+    if (user.role === 'verified_instructor' || user.role === 'platform_author') {
+      const verificationStatus = user.instructorVerification?.status;
+
+      // If not verified, send to verification page
+      if (verificationStatus !== 'approved') {
+        if (verificationStatus === 'pending') {
+          return '/instructor/verification?status=pending';
+        } else if (verificationStatus === 'rejected') {
+          return '/instructor/verification?status=rejected';
+        } else {
+          // Not applied yet
+          return '/instructor/verification';
+        }
+      }
+
+      // Verified instructors go to instructor dashboard
+      return '/instructor/dashboard';
+    }
+
+    // Students and other roles go to regular dashboard
+    return '/dashboard';
+  };
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -55,7 +86,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null);
       const response = await authService.login({ email, password });
       setUser(response.user);
-      router.push('/dashboard');
+
+      // Role-based routing
+      const redirectRoute = getPostAuthRoute(response.user);
+      router.push(redirectRoute);
     } catch (err: any) {
       const errorMessage = err.message || 'Login failed';
       setError(errorMessage);
@@ -75,7 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null);
       const response = await authService.register(data);
       setUser(response.user);
-      router.push('/dashboard');
+
+      // Role-based routing
+      const redirectRoute = getPostAuthRoute(response.user);
+      router.push(redirectRoute);
     } catch (err: any) {
       const errorMessage = err.message || 'Registration failed';
       setError(errorMessage);

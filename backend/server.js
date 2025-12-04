@@ -34,6 +34,7 @@ import newsletterRoutes from './routes/newsletterRoutes.js';
 import agentRoutes from './routes/agentRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import webhookRoutes from './routes/webhookRoutes.js';
+import instructorRoutes from './routes/instructorRoutes.js';
 import { errorHandler} from './middleware/errorHandler.js';
 import rateLimiter from './middleware/rateLimiter.js';
 import moderateContent from './middleware/contentModeration.js';
@@ -214,6 +215,7 @@ app.use('/api/newsletter', newsletterRoutes); // PUBLIC - Newsletter subscriptio
 app.use('/api/admin', adminRoutes); // ADMIN ONLY - Protected by admin middleware
 app.use('/api/agents', agentRoutes); // Agent system endpoints
 app.use('/api/payments', paymentRoutes); // Payment routes - Protected with auth middleware
+app.use('/api/instructor', instructorRoutes); // Instructor-specific routes - Protected with auth middleware
 app.use('/api/chat', moderateContent, chatRoutes); // Apply content moderation to chat
 app.use('/api/user', userRoutes);
 app.use('/api/dashboard', dashboardRoutes); // Optimized dashboard endpoint

@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import { authenticate } from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/authMiddleware.js';
 import { requireEnrollment } from '../middleware/enrollmentMiddleware.js';
 import { checkAIQuota, consumeAIQuota } from '../middleware/quotaMiddleware.js';
 
@@ -21,7 +21,7 @@ const router = express.Router();
  */
 router.post(
   '/tutor/ask',
-  authenticate,
+  protect,
   requireEnrollment,
   checkAIQuota('chatMessages'),
   async (req, res) => {
@@ -74,7 +74,7 @@ router.post(
  * POST /api/agents/course/prepare
  * Prepare course for AI teaching
  */
-router.post('/course/prepare', authenticate, async (req, res) => {
+router.post('/course/prepare', protect, async (req, res) => {
   try {
     const orchestrator = req.app.get('agentOrchestrator');
     if (!orchestrator) {
@@ -106,7 +106,7 @@ router.post('/course/prepare', authenticate, async (req, res) => {
  * GET /api/agents/cost/analytics
  * Get cost analytics
  */
-router.get('/cost/analytics', authenticate, async (req, res) => {
+router.get('/cost/analytics', protect, async (req, res) => {
   try {
     // Admin only
     if (req.user.role !== 'admin') {
@@ -138,7 +138,7 @@ router.get('/cost/analytics', authenticate, async (req, res) => {
  * GET /api/agents/cost/user/:user_id
  * Check user budget status
  */
-router.get('/cost/user/:user_id', authenticate, async (req, res) => {
+router.get('/cost/user/:user_id', protect, async (req, res) => {
   try {
     const orchestrator = req.app.get('agentOrchestrator');
     if (!orchestrator) {
@@ -167,7 +167,7 @@ router.get('/cost/user/:user_id', authenticate, async (req, res) => {
  * POST /api/agents/progress/update
  * Update student progress
  */
-router.post('/progress/update', authenticate, async (req, res) => {
+router.post('/progress/update', protect, async (req, res) => {
   try {
     const orchestrator = req.app.get('agentOrchestrator');
     if (!orchestrator) {
@@ -196,7 +196,7 @@ router.post('/progress/update', authenticate, async (req, res) => {
  * POST /api/agents/progress/complete-topic
  * Mark topic as completed
  */
-router.post('/progress/complete-topic', authenticate, async (req, res) => {
+router.post('/progress/complete-topic', protect, async (req, res) => {
   try {
     const orchestrator = req.app.get('agentOrchestrator');
     if (!orchestrator) {
@@ -224,7 +224,7 @@ router.post('/progress/complete-topic', authenticate, async (req, res) => {
  * GET /api/agents/stats
  * Get all agent statistics (admin only)
  */
-router.get('/stats', authenticate, async (req, res) => {
+router.get('/stats', protect, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });

@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate } from '../middleware/authMiddleware.js';
 import { requireEnrollment } from '../middleware/enrollmentMiddleware.js';
 import { checkAIQuota, consumeAIQuota } from '../middleware/quotaMiddleware.js';
 

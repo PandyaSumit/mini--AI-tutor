@@ -249,15 +249,127 @@ export function getCourseQualityPrompt(courseData = {}) {
   });
 }
 
+/**
+ * Generate Common Questions for Topic
+ * Used by CoursePreparationAgent
+ */
+export const commonQuestionsPrompt = {
+  version: '1.0.0',
+  templates: {
+    default: {
+      system: `You are an expert educator preparing teaching materials.
+
+Generate 20 common questions that students typically ask about this topic, with clear, concise answers.
+
+Return ONLY valid JSON (no markdown, no code blocks):
+{
+  "questions": [
+    {
+      "question": "What is X?",
+      "answer": "X is... (2-3 sentences)"
+    }
+  ]
+}
+
+Guidelines:
+- Questions should cover basics, common misconceptions, and practical applications
+- Answers should be clear, accurate, and beginner-friendly
+- Include "why" and "how" questions, not just "what"
+- Cover edge cases and gotchas`,
+      user: `Topic: {topicTitle}
+
+Learning Objectives:
+{learningObjectives}
+
+Key Concepts:
+{keyConcepts}
+
+Generate 20 common questions and answers:`,
+    },
+  },
+};
+
+/**
+ * Explain Concept
+ * Used by CoursePreparationAgent for generating concept explanations
+ */
+export const explainConceptPrompt = {
+  version: '1.0.0',
+  templates: {
+    default: {
+      system: `You are an expert educator. Explain the following concept clearly and concisely.
+
+Guidelines:
+- Start with a simple definition
+- Provide a real-world analogy
+- Give a practical example
+- Keep it to 2-3 paragraphs
+- Use beginner-friendly language`,
+      user: `Course: {courseTitle}
+Course Context: {courseDescription}
+
+Concept to explain: {concept}
+
+Provide a clear explanation:`,
+    },
+  },
+};
+
+/**
+ * Helper function to generate common questions prompt
+ */
+export function generateCommonQuestions(options = {}) {
+  const {
+    topicTitle = '',
+    learningObjectives = [],
+    keyConcepts = []
+  } = options;
+
+  const objectivesStr = Array.isArray(learningObjectives)
+    ? learningObjectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')
+    : learningObjectives;
+
+  const conceptsStr = Array.isArray(keyConcepts)
+    ? keyConcepts.join(', ')
+    : keyConcepts;
+
+  return formatCoursePrompt(commonQuestionsPrompt, {
+    topicTitle,
+    learningObjectives: objectivesStr,
+    keyConcepts: conceptsStr
+  });
+}
+
+/**
+ * Helper function to explain concept
+ */
+export function explainConcept(options = {}) {
+  const {
+    concept = '',
+    courseTitle = '',
+    courseDescription = ''
+  } = options;
+
+  return formatCoursePrompt(explainConceptPrompt, {
+    concept,
+    courseTitle,
+    courseDescription
+  });
+}
+
 export default {
   courseStructure: courseStructurePrompt,
   coursePreview: coursePreviewPrompt,
   lessonTutor: lessonTutorPrompt,
   courseSpecialization: courseSpecializationPrompt,
   courseQuality: courseQualityPrompt,
+  commonQuestions: commonQuestionsPrompt,
+  explainConcept: explainConceptPrompt,
   getCourseStructurePrompt,
   getCoursePreviewPrompt,
   getLessonTutorPrompt,
   getCourseSpecializationPrompt,
   getCourseQualityPrompt,
+  generateCommonQuestions,
+  explainConcept,
 };

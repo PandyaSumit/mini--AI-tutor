@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import { protect } from '../middleware/auth.js';
+import { protect } from '../middleware/authMiddleware.js';
 import advancedRagChain from '../ai/chains/advancedRagChain.js';
 import adaptiveTutorGraph from '../ai/graphs/adaptiveTutorGraph.js';
 import platformServer from '../ai/mcp/servers/platformServer.js';

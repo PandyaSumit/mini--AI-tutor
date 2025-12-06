@@ -2,7 +2,7 @@ import express from 'express';
 import Course from '../models/Course.js';
 import Module from '../models/Module.js';
 import Enrollment from '../models/Enrollment.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, authorize, requireOwnership, requireVerification } from '../middleware/authMiddleware.js';
 import courseGenerator from '../services/courseGenerator.js';
 
 const router = express.Router();
@@ -94,9 +94,9 @@ router.get('/:id', async (req, res) => {
 /**
  * @route   POST /api/courses/generate
  * @desc    Generate course using AI
- * @access  Private
+ * @access  Private (Instructors, Authors, Admin only)
  */
-router.post('/generate', protect, async (req, res) => {
+router.post('/generate', protect, authorize('verified_instructor', 'platform_author', 'admin'), requireVerification, async (req, res) => {
   try {
     const { prompt, level, numModules, lessonsPerModule } = req.body;
 
@@ -130,9 +130,9 @@ router.post('/generate', protect, async (req, res) => {
 /**
  * @route   POST /api/courses/generate/preview
  * @desc    Generate course preview (without saving)
- * @access  Private
+ * @access  Private (Instructors, Authors, Admin only)
  */
-router.post('/generate/preview', protect, async (req, res) => {
+router.post('/generate/preview', protect, authorize('verified_instructor', 'platform_author', 'admin'), async (req, res) => {
   try {
     const { prompt, level, numModules } = req.body;
 
@@ -161,9 +161,9 @@ router.post('/generate/preview', protect, async (req, res) => {
 /**
  * @route   POST /api/courses/check-similar
  * @desc    Check for similar existing courses
- * @access  Private
+ * @access  Private (Instructors, Authors, Admin only)
  */
-router.post('/check-similar', protect, async (req, res) => {
+router.post('/check-similar', protect, authorize('verified_instructor', 'platform_author', 'admin'), async (req, res) => {
   try {
     const { prompt, level } = req.body;
 
@@ -196,9 +196,9 @@ router.post('/check-similar', protect, async (req, res) => {
 /**
  * @route   POST /api/courses
  * @desc    Create new course manually
- * @access  Private
+ * @access  Private (Instructors, Authors, Admin only)
  */
-router.post('/', protect, async (req, res) => {
+router.post('/', protect, authorize('verified_instructor', 'platform_author', 'admin'), requireVerification, async (req, res) => {
   try {
     const courseData = {
       ...req.body,
@@ -231,28 +231,12 @@ router.post('/', protect, async (req, res) => {
 /**
  * @route   PUT /api/courses/:id
  * @desc    Update course
- * @access  Private (creator only)
+ * @access  Private (Owner or Admin only)
  */
-router.put('/:id', protect, async (req, res) => {
+router.put('/:id', protect, authorize('verified_instructor', 'platform_author', 'admin'), requireOwnership('course'), async (req, res) => {
   try {
-    let course = await Course.findById(req.params.id);
-
-    if (!course) {
-      return res.status(404).json({
-        success: false,
-        error: 'Course not found'
-      });
-    }
-
-    // Check ownership
-    if (course.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to update this course'
-      });
-    }
-
-    course = await Course.findByIdAndUpdate(
+    // req.resource is already available from requireOwnership middleware
+    const course = await Course.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
@@ -273,28 +257,12 @@ router.put('/:id', protect, async (req, res) => {
 /**
  * @route   DELETE /api/courses/:id
  * @desc    Delete course
- * @access  Private (creator only)
+ * @access  Private (Owner or Admin only)
  */
-router.delete('/:id', protect, async (req, res) => {
+router.delete('/:id', protect, authorize('verified_instructor', 'platform_author', 'admin'), requireOwnership('course'), async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id);
-
-    if (!course) {
-      return res.status(404).json({
-        success: false,
-        error: 'Course not found'
-      });
-    }
-
-    // Check ownership
-    if (course.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to delete this course'
-      });
-    }
-
-    await course.deleteOne();
+    // req.resource is already available from requireOwnership middleware
+    await req.resource.deleteOne();
 
     res.json({
       success: true,
@@ -311,32 +279,16 @@ router.delete('/:id', protect, async (req, res) => {
 /**
  * @route   POST /api/courses/:id/publish
  * @desc    Publish course
- * @access  Private (creator only)
+ * @access  Private (Owner or Admin only)
  */
-router.post('/:id/publish', protect, async (req, res) => {
+router.post('/:id/publish', protect, authorize('verified_instructor', 'platform_author', 'admin'), requireOwnership('course'), async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id);
-
-    if (!course) {
-      return res.status(404).json({
-        success: false,
-        error: 'Course not found'
-      });
-    }
-
-    // Check ownership
-    if (course.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        error: 'Not authorized to publish this course'
-      });
-    }
-
-    await course.publish();
+    // req.resource is already available from requireOwnership middleware
+    await req.resource.publish();
 
     res.json({
       success: true,
-      data: course
+      data: req.resource
     });
   } catch (error) {
     res.status(500).json({

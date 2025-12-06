@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks';
 import { useRouter } from 'next/navigation';
@@ -22,11 +22,6 @@ import {
   TrendingUp,
   Shield,
   Play,
-  Menu,
-  X,
-  Github,
-  Twitter,
-  Linkedin,
 } from 'lucide-react';
 
 const features = [
@@ -126,11 +121,9 @@ const pricingFeatures = [
   'Community access',
 ];
 
-export default function LandingPage() {
+export default function HomePage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -138,38 +131,6 @@ export default function LandingPage() {
       router.push('/dashboard');
     }
   }, [user, router]);
-
-  // Handle scroll for navbar
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Close mobile menu on escape
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && mobileMenuOpen) {
-        setMobileMenuOpen(false);
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [mobileMenuOpen]);
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [mobileMenuOpen]);
 
   // Scroll Reveal Animation Hook
   useEffect(() => {
@@ -197,136 +158,9 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-white'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" strokeWidth={2.5} />
-              </div>
-              <span className="text-lg font-bold text-gray-900">Mini AI Tutor</span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              <a
-                href="#features"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Features
-              </a>
-              <a
-                href="#benefits"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Benefits
-              </a>
-              <a
-                href="#testimonials"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Testimonials
-              </a>
-              <a
-                href="#pricing"
-                className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Pricing
-              </a>
-            </div>
-
-            {/* Desktop Auth Buttons */}
-            <div className="hidden md:flex items-center gap-3">
-              <Link
-                href="/login"
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/register"
-                className="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all font-medium shadow-sm hover:shadow active:scale-[0.98]"
-              >
-                Get Started
-              </Link>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6" strokeWidth={2} />
-              ) : (
-                <Menu className="w-6 h-6" strokeWidth={2} />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-100 bg-white">
-            <div className="px-6 py-4 space-y-3">
-              <a
-                href="#features"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Features
-              </a>
-              <a
-                href="#benefits"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Benefits
-              </a>
-              <a
-                href="#testimonials"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Testimonials
-              </a>
-              <a
-                href="#pricing"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                Pricing
-              </a>
-              <div className="pt-4 space-y-2">
-                <Link
-                  href="/login"
-                  className="block w-full text-center px-4 py-2.5 text-gray-600 hover:text-gray-900 transition-colors font-medium border border-gray-200 rounded-lg"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href="/register"
-                  className="block w-full text-center px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Get Started
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
-      </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-24 px-6 lg:px-8">
+      <section className="pt-24 pb-24 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
             {/* Badge */}
@@ -655,122 +489,6 @@ export default function LandingPage() {
           </Link>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-100 py-12 px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            {/* Brand */}
-            <div className="md:col-span-2">
-              <Link href="/" className="flex items-center gap-2.5 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-gray-900 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" strokeWidth={2.5} />
-                </div>
-                <span className="text-lg font-bold text-gray-900">Mini AI Tutor</span>
-              </Link>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                AI-powered education platform helping learners achieve their goals faster with
-                personalized study paths and intelligent tutoring.
-              </p>
-              <div className="flex items-center gap-3">
-                <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-900 flex items-center justify-center transition-colors group"
-                >
-                  <Twitter className="w-4 h-4 text-gray-600 group-hover:text-white transition-colors" strokeWidth={2} />
-                </a>
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-900 flex items-center justify-center transition-colors group"
-                >
-                  <Github className="w-4 h-4 text-gray-600 group-hover:text-white transition-colors" strokeWidth={2} />
-                </a>
-                <a
-                  href="https://linkedin.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-900 flex items-center justify-center transition-colors group"
-                >
-                  <Linkedin className="w-4 h-4 text-gray-600 group-hover:text-white transition-colors" strokeWidth={2} />
-                </a>
-              </div>
-            </div>
-
-            {/* Links */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
-              <ul className="space-y-3">
-                <li>
-                  <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <Link href="/login" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Sign in
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/register" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Get Started
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
-              <ul className="space-y-3">
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom Bar */}
-          <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-500">© 2024 Mini AI Tutor. All rights reserved.</p>
-            <div className="flex items-center gap-6 text-sm">
-              <a href="#" className="text-gray-500 hover:text-gray-900 transition-colors">
-                Privacy
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gray-900 transition-colors">
-                Terms
-              </a>
-              <a href="#" className="text-gray-500 hover:text-gray-900 transition-colors">
-                Cookies
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -20,7 +20,7 @@ import {
   Loader,
   ChevronRight,
 } from 'lucide-react';
-import { enrollmentService } from '@/services';
+import { enrollmentService, paymentService } from '@/services';
 import { useAuth } from '@/hooks/useAuth';
 import Breadcrumbs from '@/components/Breadcrumbs';
 
@@ -63,6 +63,22 @@ export default function CourseDetailClient({ course, courseId }: CourseDetailCli
       return;
     }
 
+    // Check if course is paid - redirect to Stripe checkout
+    if (course.pricing.model === 'paid') {
+      try {
+        setEnrolling(true);
+        const response = await paymentService.createCourseCheckout(courseId);
+        // Redirect to Stripe Checkout
+        paymentService.redirectToCheckout(response.url);
+      } catch (err: any) {
+        console.error('Payment error:', err);
+        alert(err.message || 'Failed to start checkout');
+        setEnrolling(false);
+      }
+      return;
+    }
+
+    // Free course - enroll directly
     try {
       setEnrolling(true);
       await enrollmentService.enrollInCourse(courseId);

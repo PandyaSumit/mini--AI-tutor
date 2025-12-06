@@ -27,9 +27,10 @@ import { PlatformLogo } from "@/components/icons";
 interface MobileSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  variant?: 'student' | 'instructor' | 'author';
 }
 
-const navItems = [
+const studentNavItems = [
   {
     to: "/dashboard",
     label: "Dashboard",
@@ -68,6 +69,84 @@ const navItems = [
   },
 ];
 
+const instructorNavItems = [
+  {
+    to: "/instructor/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    match: (path: string) => path === "/instructor/dashboard",
+  },
+  {
+    to: "/instructor/courses",
+    label: "My Courses",
+    icon: GraduationCap,
+    match: (path: string) => path.startsWith("/instructor/courses"),
+  },
+  {
+    to: "/courses/create",
+    label: "Create Course",
+    icon: BookOpen,
+    match: (path: string) => path === "/courses/create",
+  },
+  {
+    to: "/instructor/students",
+    label: "Students",
+    icon: Brain,
+    match: (path: string) => path === "/instructor/students",
+  },
+  {
+    to: "/instructor/earnings",
+    label: "Earnings",
+    icon: MessageSquare,
+    match: (path: string) => path === "/instructor/earnings",
+  },
+  {
+    to: "/chat",
+    label: "AI Chat",
+    icon: MessageSquare,
+    match: (path: string) => path.startsWith("/chat") && !path.startsWith("/instructor"),
+  },
+];
+
+const authorNavItems = [
+  {
+    to: "/author/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    match: (path: string) => path === "/author/dashboard",
+  },
+  {
+    to: "/author/curriculum",
+    label: "Curriculum Builder",
+    icon: BookOpen,
+    match: (path: string) => path === "/author/curriculum",
+  },
+  {
+    to: "/author/content",
+    label: "Content Writing",
+    icon: Brain,
+    match: (path: string) => path === "/author/content",
+  },
+  {
+    to: "/author/library",
+    label: "Content Library",
+    icon: GraduationCap,
+    match: (path: string) => path === "/author/library",
+  },
+  {
+    to: "/author/publish",
+    label: "Publishing Queue",
+    icon: MessageSquare,
+    match: (path: string) => path === "/author/publish",
+  },
+  {
+    to: "/chat",
+    label: "AI Chat",
+    icon: MessageSquare,
+    match: (path: string) => path.startsWith("/chat") && !path.startsWith("/author"),
+  },
+];
+
 // Small theme toggle used in mobile sidebar
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
@@ -93,7 +172,7 @@ const ThemeToggle = () => {
   );
 };
 
-export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
+export default function MobileSidebar({ isOpen, onClose, variant = 'student' }: MobileSidebarProps) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
 
@@ -102,6 +181,13 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
       await logout();
     }
   };
+
+  // Select navigation items based on variant
+  const navItems = variant === 'instructor'
+    ? instructorNavItems
+    : variant === 'author'
+    ? authorNavItems
+    : studentNavItems;
 
   return (
     <>

@@ -7,13 +7,22 @@ import crypto from 'crypto';
 // @access  Public
 export const register = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, role } = req.body;
 
         // Validate input
         if (!name || !email || !password) {
             return res.status(400).json({
                 success: false,
                 message: 'Please provide all required fields'
+            });
+        }
+
+        // Validate role (prevent users from selecting admin role)
+        const allowedRoles = ['learner', 'verified_instructor', 'platform_author'];
+        if (role && !allowedRoles.includes(role)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid role selected. Please choose a valid role.'
             });
         }
 
@@ -26,11 +35,12 @@ export const register = async (req, res) => {
             });
         }
 
-        // Create user
+        // Create user with specified role or default to 'learner'
         const user = await User.create({
             name,
             email,
-            password
+            password,
+            role: role || 'learner' // Default to learner if no role specified
         });
 
         // Generate token

@@ -22,7 +22,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/hooks";
-import { courseService, enrollmentService, voiceService } from "@/services";
+import { courseService, enrollmentService, voiceService, paymentService } from "@/services";
 import type { Course } from "@/types";
 
 interface Enrollment {
@@ -89,6 +89,22 @@ export default function CourseDetailPage() {
       return;
     }
 
+    // Check if course is paid - redirect to Stripe checkout
+    if (course && course.pricing?.model === 'paid') {
+      try {
+        setEnrolling(true);
+        const response = await paymentService.createCourseCheckout(courseId);
+        // Redirect to Stripe Checkout
+        paymentService.redirectToCheckout(response.url);
+      } catch (err: any) {
+        console.error("Payment error:", err);
+        alert(err.message || "Failed to start checkout");
+        setEnrolling(false);
+      }
+      return;
+    }
+
+    // Free course - enroll directly
     try {
       setEnrolling(true);
       await courseService.enroll(courseId);

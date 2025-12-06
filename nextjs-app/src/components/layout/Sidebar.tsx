@@ -22,6 +22,11 @@ import {
   Bell,
   Command,
   GraduationCap,
+  Briefcase,
+  Users,
+  DollarSign,
+  PlusCircle,
+  BarChart3,
 } from "lucide-react";
 import { PlatformLogo, SidebarHandlerIcon } from "@/components/icons";
 
@@ -32,6 +37,8 @@ interface NavItem {
   match: (path: string) => boolean;
   showInBottomNav: boolean;
   badge?: string;
+  roles?: string[]; // Optional: restrict to specific roles
+  requiresVerification?: boolean; // Optional: requires instructor verification
 }
 
 const navItems: NavItem[] = [
@@ -42,6 +49,45 @@ const navItems: NavItem[] = [
     match: (path) => path === "/dashboard",
     showInBottomNav: true,
   },
+  // Instructor-specific navigation (only for verified instructors)
+  {
+    to: "/instructor/dashboard",
+    label: "Instructor Hub",
+    icon: Briefcase,
+    match: (path) => path.startsWith("/instructor/dashboard"),
+    showInBottomNav: false,
+    roles: ['verified_instructor', 'platform_author', 'admin'],
+    requiresVerification: true,
+    badge: "instructor",
+  },
+  {
+    to: "/instructor/students",
+    label: "My Students",
+    icon: Users,
+    match: (path) => path.startsWith("/instructor/students"),
+    showInBottomNav: false,
+    roles: ['verified_instructor', 'platform_author', 'admin'],
+    requiresVerification: true,
+  },
+  {
+    to: "/instructor/earnings",
+    label: "Earnings",
+    icon: DollarSign,
+    match: (path) => path.startsWith("/instructor/earnings"),
+    showInBottomNav: false,
+    roles: ['verified_instructor', 'platform_author', 'admin'],
+    requiresVerification: true,
+  },
+  {
+    to: "/courses/create",
+    label: "Create Course",
+    icon: PlusCircle,
+    match: (path) => path === "/courses/create",
+    showInBottomNav: false,
+    roles: ['verified_instructor', 'platform_author', 'admin'],
+    requiresVerification: true,
+  },
+  // General navigation (for all users)
   {
     to: "/chat",
     label: "AI Chat",
@@ -67,7 +113,7 @@ const navItems: NavItem[] = [
     to: "/courses",
     label: "Courses",
     icon: GraduationCap,
-    match: (path) => path.startsWith("/courses"),
+    match: (path) => path.startsWith("/courses") && !path.startsWith("/courses/create"),
     showInBottomNav: false,
   },
   {
@@ -188,7 +234,25 @@ const SidebarContent = ({
         }`}
       >
         <div className="space-y-0.5 pt-2">
-          {navItems.map((item) => {
+          {navItems
+            .filter((item) => {
+              // Filter by role if specified
+              if (item.roles && user) {
+                if (!item.roles.includes(user.role)) {
+                  return false;
+                }
+              }
+
+              // Filter by verification status if required
+              if (item.requiresVerification && user) {
+                if (user.instructorVerification?.status !== 'approved') {
+                  return false;
+                }
+              }
+
+              return true;
+            })
+            .map((item) => {
             const Icon = item.icon;
             const isActive = item.match(pathname || "");
 

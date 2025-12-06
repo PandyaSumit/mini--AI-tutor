@@ -36,8 +36,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return '/admin/dashboard';
     }
 
-    // Instructors - check verification status
-    if (user.role === 'verified_instructor' || user.role === 'platform_author') {
+    // Platform Author - check verification status
+    if (user.role === 'platform_author') {
+      const verificationStatus = user.instructorVerification?.status;
+
+      // If not verified, send to verification page
+      if (verificationStatus !== 'approved') {
+        if (verificationStatus === 'pending') {
+          return '/instructor/verification?status=pending';
+        } else if (verificationStatus === 'rejected') {
+          return '/instructor/verification?status=rejected';
+        } else {
+          // Not applied yet
+          return '/instructor/verification';
+        }
+      }
+
+      // Verified authors go to author dashboard
+      return '/author/dashboard';
+    }
+
+    // Verified Instructor - check verification status
+    if (user.role === 'verified_instructor') {
       const verificationStatus = user.instructorVerification?.status;
 
       // If not verified, send to verification page
@@ -56,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return '/instructor/dashboard';
     }
 
-    // Students and other roles go to regular dashboard
+    // Students (learner role) go to student dashboard
     return '/dashboard';
   };
 

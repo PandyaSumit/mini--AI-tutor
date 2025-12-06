@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks';
+import { useRequireRole } from '@/hooks/useRequireRole';
 import { instructorService } from '@/services';
 import type { DashboardStats } from '@/services/instructor/instructorService';
 import {
@@ -28,6 +29,11 @@ import {
 import Link from 'next/link';
 
 export default function InstructorDashboardPage() {
+  useRequireRole({
+    requiredRole: ['verified_instructor', 'platform_author', 'admin'],
+    requireVerification: true,
+  });
+
   const router = useRouter();
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);

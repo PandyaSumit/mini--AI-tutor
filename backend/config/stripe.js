@@ -6,14 +6,27 @@
 
 import Stripe from 'stripe';
 
-// Initialize Stripe with secret key (BACKEND ONLY)
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
+// Lazy initialization to ensure environment variables are loaded first
+let stripeInstance = null;
+
+function getStripeInstance() {
+  if (!stripeInstance) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
+    }
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-11-20.acacia',
+      typescript: true,
+    });
+  }
+  return stripeInstance;
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-11-20.acacia',
-  typescript: true,
+// Export a proxy that lazily initializes Stripe
+export const stripe = new Proxy({}, {
+  get(target, prop) {
+    return getStripeInstance()[prop];
+  }
 });
 
 // Stripe Webhook Secret (for webhook signature verification)

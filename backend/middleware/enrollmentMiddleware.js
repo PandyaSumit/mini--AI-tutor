@@ -10,6 +10,7 @@ import Course from '../models/Course.js';
 /**
  * Check if user is enrolled in course
  * Used for AI tutor access, content access, etc.
+ * OPTIONAL: If no course_id provided, skips enrollment check (for general chat)
  */
 export const requireEnrollment = async (req, res, next) => {
   try {
@@ -17,12 +18,9 @@ export const requireEnrollment = async (req, res, next) => {
     const userId = req.user._id;
     const checkCourseId = course_id || courseId;
 
+    // OPTIONAL: If no course specified, allow general chat
     if (!checkCourseId) {
-      return res.status(400).json({
-        success: false,
-        error: 'COURSE_ID_REQUIRED',
-        message: 'Course ID is required',
-      });
+      return next();
     }
 
     // SECURITY: Check if course exists

@@ -1,14 +1,54 @@
 /**
  * Auth Provider
  * Manages authentication state across the application
+ * Provides permission checking capabilities
  */
 
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth/authService';
 import type { User, AuthState } from '@/types';
+import type { Role, Permission } from '@/lib/permissions';
+import {
+  hasPermission,
+  hasAnyPermission,
+  hasAllPermissions,
+  hasRole,
+  hasAnyRole,
+  isOwner,
+  canEdit,
+  canDelete,
+  getUserPermissions,
+  isAdmin,
+  isInstructor,
+  isPlatformAuthor,
+} from '@/lib/permissions';
+
+interface PermissionChecks {
+  // Permission checks
+  hasPermission: (permission: Permission) => boolean;
+  hasAnyPermission: (permissions: Permission[]) => boolean;
+  hasAllPermissions: (permissions: Permission[]) => boolean;
+
+  // Role checks
+  hasRole: (role: Role) => boolean;
+  hasAnyRole: (roles: Role[]) => boolean;
+
+  // Resource ownership checks
+  isOwner: (resource: any) => boolean;
+  canEdit: (resource: any, editPermission: Permission) => boolean;
+  canDelete: (resource: any, deletePermission: Permission) => boolean;
+
+  // Role helper checks
+  isAdmin: () => boolean;
+  isInstructor: () => boolean;
+  isPlatformAuthor: () => boolean;
+
+  // Get all user permissions
+  getUserPermissions: () => Permission[];
+}
 
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -19,6 +59,9 @@ interface AuthContextValue extends AuthState {
   }) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+
+  // Permission checking functions
+  permissions: PermissionChecks;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -112,6 +155,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Memoized permission checking functions
+  // These use the helper functions from @/lib/permissions
+  const permissions = useMemo<PermissionChecks>(() => {
+    const userRole = user?.role;
+    const userId = user?._id;
+    const userPermissions = user?.permissions;
+
+    return {
+      // Permission checks
+      hasPermission: (permission: Permission) => {
+        return hasPermission(userRole, permission, userPermissions);
+      },
+
+      hasAnyPermission: (permissions: Permission[]) => {
+        return hasAnyPermission(userRole, permissions, userPermissions);
+      },
+
+      hasAllPermissions: (permissions: Permission[]) => {
+        return hasAllPermissions(userRole, permissions, userPermissions);
+      },
+
+      // Role checks
+      hasRole: (role: Role) => {
+        return hasRole(userRole, role);
+      },
+
+      hasAnyRole: (roles: Role[]) => {
+        return hasAnyRole(userRole, roles);
+      },
+
+      // Resource ownership checks
+      isOwner: (resource: any) => {
+        return isOwner(userId, resource);
+      },
+
+      canEdit: (resource: any, editPermission: Permission) => {
+        return canEdit(userRole, userId, resource, editPermission, userPermissions);
+      },
+
+      canDelete: (resource: any, deletePermission: Permission) => {
+        return canDelete(userRole, userId, resource, deletePermission, userPermissions);
+      },
+
+      // Role helper checks
+      isAdmin: () => {
+        return isAdmin(userRole);
+      },
+
+      isInstructor: () => {
+        return isInstructor(userRole);
+      },
+
+      isPlatformAuthor: () => {
+        return isPlatformAuthor(userRole);
+      },
+
+      // Get all user permissions
+      getUserPermissions: () => {
+        return getUserPermissions(userRole, userPermissions);
+      },
+    };
+  }, [user?.role, user?._id, user?.permissions]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -122,6 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         refreshUser,
+        permissions,
       }}
     >
       {children}

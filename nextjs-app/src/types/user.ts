@@ -2,6 +2,8 @@
  * User-related TypeScript types
  */
 
+import type { Role } from '@/lib/permissions';
+
 export interface User {
   _id: string;
   name: string;
@@ -9,7 +11,9 @@ export interface User {
   createdAt: string;
   updatedAt?: string;
   avatar?: string;
-  role?: 'learner' | 'verified_instructor' | 'platform_author' | 'admin';
+  role?: Role;
+  // Optional permission overrides (if user has custom permissions beyond their role)
+  permissions?: string[];
 }
 
 export interface UserProfile extends User {

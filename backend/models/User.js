@@ -796,4 +796,158 @@ userSchema.methods.completePayout = function(amount) {
   return this.save();
 };
 
+// ==========================================
+// RBAC (Role-Based Access Control) Methods
+// ==========================================
+
+/**
+ * Check if user has a specific permission
+ * @param {string} permission - Permission to check
+ * @returns {boolean} True if user has permission
+ */
+userSchema.methods.hasPermission = function(permission) {
+  // Import here to avoid circular dependencies
+  const { getRolePermissions } = require('../config/permissions.js');
+
+  // Admins have all permissions
+  if (this.role === 'admin') {
+    return true;
+  }
+
+  // Check role permissions
+  const rolePermissions = getRolePermissions(this.role);
+  if (rolePermissions.includes(permission)) {
+    return true;
+  }
+
+  // Check user-specific permissions (if added in future)
+  if (this.permissions && this.permissions.includes(permission)) {
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Check if user has any of the specified permissions
+ * @param {string[]} permissions - Array of permissions
+ * @returns {boolean} True if user has at least one permission
+ */
+userSchema.methods.hasAnyPermission = function(permissions) {
+  return permissions.some(permission => this.hasPermission(permission));
+};
+
+/**
+ * Check if user has all of the specified permissions
+ * @param {string[]} permissions - Array of permissions
+ * @returns {boolean} True if user has all permissions
+ */
+userSchema.methods.hasAllPermissions = function(permissions) {
+  return permissions.every(permission => this.hasPermission(permission));
+};
+
+/**
+ * Check if user owns a resource
+ * @param {Object} resource - Resource to check
+ * @returns {boolean} True if user owns the resource
+ */
+userSchema.methods.ownsResource = function(resource) {
+  if (!resource) return false;
+
+  const ownerId = resource.userId || resource.user || resource.createdBy || resource.instructor;
+  if (!ownerId) return false;
+
+  const ownerIdString = ownerId.toString ? ownerId.toString() : String(ownerId);
+  const userIdString = this._id.toString();
+
+  return ownerIdString === userIdString;
+};
+
+/**
+ * Check if user can edit a resource
+ * @param {Object} resource - Resource to check
+ * @param {string} editPermission - Permission required to edit
+ * @returns {boolean} True if user can edit
+ */
+userSchema.methods.canEditResource = function(resource, editPermission) {
+  // Admins can edit everything
+  if (this.role === 'admin') {
+    return true;
+  }
+
+  // Owners with permission can edit
+  if (this.ownsResource(resource) && this.hasPermission(editPermission)) {
+    return true;
+  }
+
+  // Check for global edit permission
+  const globalEditPermission = editPermission.replace('_own', '_all');
+  if (this.hasPermission(globalEditPermission)) {
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Check if user can delete a resource
+ * @param {Object} resource - Resource to check
+ * @param {string} deletePermission - Permission required to delete
+ * @returns {boolean} True if user can delete
+ */
+userSchema.methods.canDeleteResource = function(resource, deletePermission) {
+  // Admins can delete everything
+  if (this.role === 'admin') {
+    return true;
+  }
+
+  // Owners with permission can delete
+  if (this.ownsResource(resource) && this.hasPermission(deletePermission)) {
+    return true;
+  }
+
+  // Check for global delete permission
+  const globalDeletePermission = deletePermission.replace('_own', '_all');
+  if (this.hasPermission(globalDeletePermission)) {
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Get all permissions for this user
+ * @returns {string[]} Array of permission strings
+ */
+userSchema.methods.getAllPermissions = function() {
+  const { getRolePermissions } = require('../config/permissions.js');
+  const rolePermissions = getRolePermissions(this.role);
+  const userPermissions = this.permissions || [];
+  return [...new Set([...rolePermissions, ...userPermissions])];
+};
+
+/**
+ * Check if user is admin
+ * @returns {boolean} True if user is admin
+ */
+userSchema.methods.isAdmin = function() {
+  return this.role === 'admin';
+};
+
+/**
+ * Check if user is verified instructor
+ * @returns {boolean} True if user is verified instructor or higher
+ */
+userSchema.methods.isInstructor = function() {
+  return ['verified_instructor', 'platform_author', 'admin'].includes(this.role);
+};
+
+/**
+ * Check if user is platform author
+ * @returns {boolean} True if user is platform author or admin
+ */
+userSchema.methods.isPlatformAuthor = function() {
+  return ['platform_author', 'admin'].includes(this.role);
+};
+
 export default mongoose.model('User', userSchema);
